@@ -1,0 +1,27 @@
+seed = \val{random}
+
+\runParam{x = [2, 3, 4, 5]}
+\runParam{y = [6, 7, 8, 9] }
+\runParam{k = [8, 9, 10, 11, 12, 13, 14, 15, 16, 18]}
+\question Given \val={x}, \val={y}, and \val={k} find $z = x^2+y-k$\\
+
+\textbf{Solution}
+
+\run={z=x^2+y-k}\\ 
+\hlite{\val={z}}
+
+\run={random = abs(-k)}\\
+\run={y = abs(-k)}\\
+\run={abs=atan(x/y)}\\
+\run={z = (sin(y))^2}\\
+\run={z = atand(2/3) }\\
+\run={z = -(x+y)}\\
+\run={z=sqrt(y)}\\
+\run={z = log10(100)}\\
+\run={z = log(100)}\\
+\run={z = cosd(30)}\\
+\run={z = sind(30)}\\
+\run={z = tand(45)}\\
+\run={z = acosd(0.866)}\\
+\run={z = asind(0.5)}\\
+\run={z = atand(1)}\\

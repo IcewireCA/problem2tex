@@ -1,0 +1,242 @@
+\runParam{k_dc=[1e5, 1e6, 1e4]#}
+\runParam{wp1 = [1e1, 1e-1 1e2]#\paramUnits{rad/s}\paramLatex{\omega_{p1}}}
+\runParam{wp2 = [2e6, 1e6 3e6]#\paramUnits{rad/s}\paramLatex{\omega_{p2}}}
+\runParam{wp3 = [5e8, 1e9 2e9]#\paramUnits{rad/s}\paramLatex{\omega_{p3}}}
+\runParam{wp4 = [2e9]}
+
+\runSilent{kdB = 20*log10(k_dc)#\paramUnits{dB}}
+
+\question Assume an opamp is ideal but has the following open-loop gain.
+
+$A(s) = \frac{k_{dc}}{(1+s/\omega_{p1})(1+s/\omega_{p2})(1+s/\omega_{p3})}$ where \\
+\jl={k_dc}, \jl={wp1}, \jl={wp2}, and \jl={wp3}
+
+\begin{parts}
+
+\part[3] Draw the Bode plot for the above loop gain.
+
+\begin{blankSpace}
+
+\resizebox{0.9\textwidth}{!}{% dB graph
+\begin{tikzpicture}
+\begin{semilogxaxis}[
+yscale = 0.7,
+    xlabel={$\log{\omega}$ [rad/s]},
+    ylabel={$|A(s)|$ [dB]},
+    xmin=0.01, xmax=1e10,
+    ymin=-120, ymax=120,
+    xtick={0.01, 0.1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10},
+    ytick={-120, -80, -40, 0,40 ,80 ,120},
+    legend pos=north west,
+    ymajorgrids=true, xmajorgrids = true,
+    grid style=dashed,
+    label style={font=\tiny},
+                    tick label style={font=\tiny}
+]
+
+\addplot[
+    color=blue,
+    ]
+    coordinates {
+    
+    };
+    
+\end{semilogxaxis}
+\end{tikzpicture}
+}
+
+\vspace{50px}
+
+\resizebox{.9\textwidth}{!}{% phase graph
+\begin{tikzpicture}
+\begin{semilogxaxis}[
+yscale = 0.7,
+    xlabel={$\log{\omega}$ [rad/s]},
+    ylabel={$\angle A(s)$ [degrees]},
+    xmin=0.01, xmax=1e10,
+    ymin=-300, ymax=300,
+    xtick={0.01, 0.1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10},
+    ytick={-270, -180, -90, 0,90 ,180 ,270},
+    legend pos=north west,
+    ymajorgrids=true, xmajorgrids = true,
+    grid style=dashed,
+    label style={font=\tiny},
+                    tick label style={font=\tiny}
+]
+
+\addplot[
+    color=blue,
+    ]
+    coordinates {
+    
+    };
+    
+\end{semilogxaxis}
+\end{tikzpicture}
+}
+
+\end{blankSpace}
+ 
+\runSilent{k2dB = dBV(k_dc*wp1/wp2) }
+\runSilent{k3dB = dBV((k_dc*wp1*wp2)/(wp3*wp3)) }
+\runSilent{k4dB = dBV((k_dc*wp1*wp2*wp3)/(wp4^3))}
+
+\begin{figSolutions}
+
+\resizebox{.9\textwidth}{!}{% dB graph
+\begin{tikzpicture}
+\begin{semilogxaxis}[
+yscale = 0.7,
+    xlabel={$\log{\omega}$ [rad/s]},
+    ylabel={$|A(s)|$ [dB]},
+    xmin=0.01, xmax=1e10,
+    ymin=-120, ymax=120,
+    xtick={0.01, 0.1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10},
+    ytick={-120, -80, -40, 0,40 ,80 ,120},
+    legend pos=north west,
+    ymajorgrids=true, xmajorgrids = true,
+    grid style=dashed,
+    label style={font=\tiny},
+                    tick label style={font=\tiny}
+]
+
+\addplot[
+    color=blue,
+    ]
+    coordinates {
+    (0.01,\jl{kdB})
+    (\jl{wp1}, \jl{kdB})
+    (\jl{wp2}, \jl{k2dB})
+    (\jl{wp3},\jl{k3dB})
+    (\jl{wp4},\jl{k4dB})
+    
+    };
+    
+\end{semilogxaxis}
+\end{tikzpicture}
+}
+
+\vspace{50px}
+
+\resizebox{.9\textwidth}{!}{% phase graph
+\begin{tikzpicture}
+\begin{semilogxaxis}[
+yscale = 0.7,
+    xlabel={$\log{\omega}$ [rad/s]},
+    ylabel={$\angle A(s)$ [degrees]},
+    xmin=0.01, xmax=1e10,
+    ymin=-300, ymax=300,
+    xtick={0.01, 0.1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10},
+    ytick={-270, -180, -90, 0,90 ,180 ,270},
+    legend pos=north west,
+    ymajorgrids=true, xmajorgrids = true,
+    grid style=dashed,
+    label style={font=\tiny},
+                    tick label style={font=\tiny}
+]
+
+\addplot[
+    color=blue,
+    ]
+    coordinates {
+    (0.01,0)
+    (\run{wp1/10}, 0)
+    (\run{wp1*10}, -90)
+    (\run{wp2/10}, -90)
+    (\run{wp2*10}, -180)
+    (\run{wp3/10}, -180)
+    (\run{wp3*10}, -270)
+    (1e10, -270)
+    
+    };
+    
+\end{semilogxaxis}
+\end{tikzpicture}
+}
+
+\end{figSolutions}
+
+\begin{solutions}
+
+\textbf{Solution}
+
+See above graphs
+
+For magnitude response, dc gain extends until \jl={wp1}, then gain drops 20dB/dec until \jl={wp2}.\\
+After $\omega_{p2}$ the gain drops by 40dB/dec until \jl={wp3}\\
+
+For phase response, phase starts a $0 {^\circ}$ at dc and extends until $\omega_{p1}/10$.
+Phase then drops to $-90 {^\circ}$ at $\omega_{p1}*10$.  The phase remains at $-90 {^\circ}$
+until $\omega_{p2}/10$ where it drops to $-180 {^\circ}$ by $\omega_{p2}*10$.
+A similar drop of $-90 {^\circ}$ occurs around $\omega_{p3}$
+
+\end{solutions}
+
+\begin{answers}
+\textbf{Answer}
+
+
+\end{answers}
+
+\begin{blankSpace}
+\newpage
+\end{blankSpace}
+
+\runParam{K = [3, 4, 5, 1]#\paramUnits{V/V}}
+
+\part[3] Estimate the phase-margin (PM) if the above opamp is used to create a gain of +\jl{K} using 2 resistors (a non-inverting configuration) (Hint: Note that the unity gain freq is much greater than $\omega_{p1}$ and much less than $\omega_{p3}$.)
+
+\begin{solutions}
+\textbf{Solution}
+
+For a non-inverting opamp gain of \jl={K},
+\run={beta = 1/K # \paramLatex{\beta}}, resulting in the loop gain equal to
+
+$L(s) = \beta A(s) = \frac{L_0}{(1+s/\omega_{p1})(1+s/\omega_{p2})(1+s/\omega_{p3})}$\\
+where \run()={L_0 = beta*k_dc#\paramUnits{}} and $\omega_{p1}, \omega_{p2}, \omega_{p3}$ are given above.
+
+For frequencies near $\omega_t$ where $\omega_{p1} \ll \omega_t \ll \omega_{p3}$, we can
+approximate $L(s)$ as \\
+$L(s) \approx \frac{L_0}{(s/\omega{p1})(1+s/\omega{p2})}$ and making use of
+$|L(j\omega_t)|^2 = 1$, we have \\
+$\frac{L_0^2}{(\omega_1/\omega_{p1})^2(1+(\omega_t/\omega_{p2})^2)} = 1$ which
+can be rewritten as $\frac{\omega_{p1}^2\omega_{p2}^2L_0^2}{\omega_t^2(\omega_t^2+\omega_{p2}^2)} = 1$
+
+This equation can be written as a quadratic equation: $(\omega_t^2)^2 + \omega_{p2}^2(\omega_t^2)-\omega_{p1}^2\omega_{p2}^2L_0^2 = 0$.
+
+\runSilent{a=1; b=wp2^2; c=(wp1*wp2*L_0)^2}
+
+Putting in values, we have $(\omega_t^2)^2 + \jl{b}\omega_t^2 - \jl{c} = 0$
+
+\runSilent{d = sqrt(b^2+4*a*c)} % note that c here is negative so equation modified
+\runSilent{wt2p = (-b+d)/(2*a)#\paramLatex{\omega_t^2}}
+\runSilent{wt2n = (-b-d)/(2*a)}
+
+Solving for $\omega_t^2$, (it is a quadratic equation) we have 2 solutions of which one is positive (so we keep the positive solution) and
+therefore \jl={wt2p} resulting in \run={wt = sqrt(wt2p)#\paramUnits{rad/s}\paramLatex{\omega_t}}
+
+We can now find the phase of $L(\omega_t)$ as 
+
+\run()={phaseL = -90-atand(wt/wp2)#\paramUnits{^{\circ}}\paramLatex{\angle L(j\omega_t)}}
+
+Finally, the phase-margin (PM) can be found as
+
+\run()={PM = phaseL + 180#\paramUnits{^{\circ}}\paramLatex{PM}}
+
+\hlite{\jl={PM}}
+
+\end{solutions}
+
+\begin{answers}
+\textbf{Answer}
+
+\jl={PM}
+\end{answers}
+
+
+
+\end{parts}
+
+
+
+

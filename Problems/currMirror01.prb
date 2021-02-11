@@ -1,0 +1,39 @@
+\runParam{I_D = [30, 20, 10, 40] #\paramUnits{\mu A} }
+\runParam{V_omin = [0.5, 0.4, 0.3, 0.6] #\paramLatex{V_{o,min}}}
+\runParam{R_out = [60, 72, 80, 50]#\paramUnits{M \Omega}}
+\runParam{V_tn = [0.3, 0.25, 0.35, 0.4] }
+\runParam{unCox = [160, 250, 300, 200]# \paramUnits{\mu A/V^2} \paramLatex{\mu_n C_{ox}}}
+\runParam{lambn = [0.04, 0.025, 0.05, 0.03]#\paramUnits{\mu m/V} \paramLatex{\lambda_n'}}
+
+\question[6] Consider the wide-swing current mirror shown below where the desired output current is  \jlU{I_D}.  Given that $M_1$ and $M_2$ are identical in size and the minimum output voltage is \jlU{V_omin}, find the length of the transistors such that the current mirror output resistance is \jlU{R_out}.
+
+NMOS: $\jl={V_tn}; \jl={unCox}; \jl={lambn}$
+
+\begin{flushleft}
+ \fontsize{12}{10}\selectfont
+ \vspace{-20px}
+ \hbox{ \hspace{-100px}  \incProbLTspice[1.0\textwidth]{currMirror01a}}
+ \vspace{-40px}
+\end{flushleft}
+
+\begin{nothing}
+\vspace{100px}
+\end{nothing}
+
+\begin{solutions}
+\textbf{Solution}
+
+\jl={V_omin} $= 2V_{ov}$; \run={V_ov = V_omin/2} for both transistors\\
+\run()={g_m = 2*I_D/V_ov} for each transistor\\
+$R_{out}\approx g_mr_o^2$; \run()={r_o = sqrt(R_out/g_m)}\\
+$r_o = L/(|\lambda_n'|I_D)$\\
+\run()={L = r_o*abs(lambn)*I_D#\paramUnits{m}}\\
+\hlite{\jl={L}}
+
+\end{solutions}
+
+\begin{answers}
+\textbf{Answer}
+
+L = \jlU{L}
+\end{answers}

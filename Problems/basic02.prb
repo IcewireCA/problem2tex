@@ -1,0 +1,18 @@
+\runParam{V_1 = [2, 3, 4, 5]# \paramUnits{V}}
+\runParam{R_1 = [6, 7, 8, 9]# \paramUnits{k \Omega}}
+\question Given \jl={V_1} and \jl={R_1}, find the current  $I_R = V_1/R_1$
+
+
+\begin{solutions}
+\textbf{Solution}
+
+\run()={I_R=V_1/R_1}\\
+\hlite{\jl={I_R}}
+\end{solutions}
+
+
+\begin{answers}
+\textbf{Answer}
+
+\jl={I_R}
+\end{answers}
