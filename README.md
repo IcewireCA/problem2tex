@@ -23,9 +23,9 @@ Quick Setup
 ```bash
 # unzip zip file
 unzip problem2tex<version>.zip
-# Ensure icemaker binary is executable
+# Ensure problem2tex binary is executable
 chmod 755 problem2tex
-# Test icemaker app is working
+# Test problem2tex app is working
 ./problem2tex --help
 ```
 
