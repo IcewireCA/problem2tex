@@ -325,11 +325,11 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 	var reUnits = regexp.MustCompile(`(?m)\\paramUnits(?P<res1>{.*)$`)
 	var reLatex = regexp.MustCompile(`(?m)\\paramLatex(?P<res1>{.*)$`)
 	var reStep = regexp.MustCompile(`(?m)^\s*(?P<res1>\S+)\s*;\s*(?P<res2>\S+)\s*;\s*(?P<res3>\S+)[#|\s]*`)
-	var reKFactor = regexp.MustCompile(`(?m)^\s*(?P<res1>\S+)[#|\s]*`)
+	var reKFactor = regexp.MustCompile(`(?m)^\s*(?P<res1>[^#|\s]+)`) // match everything up to a # or space
 	if reEqual.MatchString(statement) {
 		result = reEqual.FindStringSubmatch(statement)
-		assignVar = result[1]
-		rightSide = strings.TrimSpace(result[2]) // trim whitespace from beginning and end
+		assignVar = result[1]                    // assignVar is the left side of the "=" sign.
+		rightSide = strings.TrimSpace(result[2]) // rightSide is the rightside of "=" sign.  then trim whitespace from beginning and end
 		assignVar, logOut = checkReserved(assignVar, logOut)
 		if logOut != "" {
 			return "", logOut
