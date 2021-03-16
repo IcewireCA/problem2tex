@@ -2,7 +2,7 @@
 # to run this shell script use: bash buildExecutables.sh
 #
 # Script is used to build and zip binaries/problem2tex versions
-date=_210302
+date=_210316
 env GOOS=windows GOARCH=amd64 go build -o binaries/problem2tex.exe
 zip -r binaries/problem2texWin64$date.zip binaries/problem2tex.exe
 rm binaries/problem2tex.exe
