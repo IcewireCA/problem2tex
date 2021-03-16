@@ -89,21 +89,21 @@ func main() {
 	rand.Seed(time.Now().UnixNano()) // needed so a new seed occurs every time the program is run
 	//currentTime := time.Now()
 	//	todayDate = currentTime.Format("2006-01-02")
-	version = "0.8.2" + " (" + "2021-02-09" + ")"
+	version = "0.8.3" + " (" + "2021-03-16" + ")"
 
 	inFile, outFile, randomStr, sigDigits, logOut = commandFlags(version) // outFile depends on inFile file extension
 	fileWriteString("", outFile.full)
 	if logOut != "" {
-		errorHeader = errorHeader + logOutComment(logOut, -1)
+		errorHeader = logOutError(logOut, -1, "ERROR") // first time assigning errorHeader so no need to concatenate
 		fileAppendString(errorHeader, outFile.full)
 		os.Exit(1)
 	}
 	header = "Created with problem2tex: version = " + version
 
-	errorHeader = errorHeader + logOutComment(header, -1)
+	errorHeader = logOutError(header, -1, "") // first time assigning errorHeader so no need to concatenate
 	inFileStr, logOut = fileReadString(inFile.full)
 	if logOut != "" {
-		errorHeader = errorHeader + logOutComment(logOut, -1)
+		errorHeader = errorHeader + logOutError(logOut, -1, "ERROR")
 	}
 	outStr, errorHeader2 = makeTex(inFileStr, sigDigits, randomStr, inFile, outFile)
 	outStr = errorHeader + errorHeader2 + outStr

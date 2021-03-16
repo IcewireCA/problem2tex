@@ -48,11 +48,11 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 		inLines[i], comment = deCommentLatex(inLines[i])
 		logOut = syntaxWarning(inLines[i])
 		if logOut != "" {
-			errorHeader = errorHeader + logOutComment(logOut, i)
+			errorHeader = errorHeader + logOutError(logOut, i, "WARNING")
 		}
 		inLines[i], logOut = valRunReplace(inLines[i], varAll, configParam, false)
 		if logOut != "" {
-			errorHeader = errorHeader + logOutComment(logOut, i)
+			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		}
 		inLines[i] = fixParll(inLines[i])
 		inLines[i] = inLines[i] + comment // add back comment that was removed above
@@ -65,7 +65,7 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 		}
 		spiceFile, spiceFilename, logOut = checkLTSpice(inLines[i], inFile, outFile, sigDigits, varAll, configParam)
 		if logOut != "" {
-			errorHeader = errorHeader + logOutComment(logOut, i)
+			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		} else {
 			fileWriteString(spiceFile, filepath.Join(outFile.path, spiceFilename+"_update.asc"))
 		}
@@ -82,13 +82,17 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 
 // add comment notation and line number to logOut info and add carriage return
 // Also print out the logOut
-func logOutComment(logOut string, lineNum int) string {
+func logOutError(logOut string, lineNum int, typeErr string) string {
 	var outString string
 	if lineNum != -1 { // dont include line number if lineNum = -1
 		logOut = logOut + " - Line number: " + strconv.Itoa(lineNum+1)
 	}
-	outString = "% " + logOut + "\n" // use tex comment notation and add CR
-	fmt.Println(outString)
+	if typeErr == "" {
+		outString = "% " + logOut + "\n" // use tex comment notation and add CR
+	} else {
+		outString = "% " + typeErr + ": " + logOut + "\n" // use tex comment notation and add CR
+	}
+	fmt.Print(outString)
 	return outString
 }
 
@@ -230,6 +234,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 					logOut = "can not be here 06"
 				}
 			} else {
+				logOut = "variable " + valCmd + " is NOT DEFINED"
 				replace = "\\mbox{$" + valCmd + " \\text{ NOT DEFINED}$}"
 			}
 		default:
@@ -265,7 +270,7 @@ func checkLTSpice(inString string, inFile, outFile fileInfo, sigDigits string, v
 	return spiceFile, spiceFilename, logOut
 }
 
-func syntaxWarning(statement string) (logOut string) {
+func syntaxWarning(statement string) (logOut string) { // check that syntax seems okay and give warning if not okay
 	var reDollar = regexp.MustCompile(`(?m)\$`)
 	logOut = bracketCheck(statement, "{")
 	logOut = logOut + bracketCheck(statement, "(")
@@ -273,7 +278,7 @@ func syntaxWarning(statement string) (logOut string) {
 	matches := reDollar.FindAllStringIndex(statement, -1)
 	// need to count $ and see that they are even (backetCheck will not work here)
 	if len(matches)%2 != 0 {
-		logOut = logOut + "Uneven number of $ so likely unmatched"
+		logOut = logOut + "-- Uneven number of $ so likely unmatched --"
 	}
 	return
 }
@@ -301,12 +306,12 @@ func bracketCheck(inString string, leftBrac string) (logOut string) {
 			count--
 		}
 		if count < 0 {
-			logOut = "Unmatched brackets: more " + rightBrac + " than " + leftBrac
+			logOut = "-- Unmatched brackets: more " + rightBrac + " than " + leftBrac + " --"
 			return
 		}
 	}
 	if count > 0 {
-		logOut = "Unmatched brackets: more " + leftBrac + " than " + rightBrac
+		logOut = "-- Unmatched brackets: more " + leftBrac + " than " + rightBrac + " --"
 	}
 	return
 }
@@ -903,7 +908,7 @@ func checkReserved(variable, logOut string) (string, string) {
 	for key = range func1 {
 		if variable == key {
 			logOut = logOut + key + " is a reserved variable and cannot be assigned"
-			variable = key + "IsReservedVariable"
+			variable = key + "-IsReservedVariable"
 		}
 	}
 	return variable, logOut

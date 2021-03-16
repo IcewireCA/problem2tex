@@ -29,6 +29,8 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 	flag.Parse()
 	if *versionPtr {
 		fmt.Println("problem2tex: ", version)
+		exitCode := 1
+		os.Exit(exitCode)
 	}
 	exitCode := 0
 	inFileStr = flag.Arg(0)
@@ -52,20 +54,10 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 	}
 	sigDigits, logOut = checkSigDigits(*sigDigitsPtr, logOut)
 	// sigDigits = strIncrement(sigDigits, -1) // needed so that TOTAL significant digits is sigDigits
-	if outFile.ext == "" {
+	if outFile.ext != ".tex" {
 		outFile.ext = ".log"
 		outFile.full = filepath.Join(outFile.path, outFile.name+outFile.ext)
-		logOut = logOut + "Output file needs a file extension of either .tex or .svg\n"
-	}
-	switch outFile.ext {
-	case ".tex":
-		if inFile.ext != ".prb" {
-			logOut = logOut + "Input should be .prb file\n"
-		}
-	default:
-		logOut = logOut + "Output file needs a file extension of .tex\n"
-		outFile.ext = ".log"
-		outFile.full = filepath.Join(outFile.path, outFile.name+outFile.ext)
+		logOut = logOut + "Output file needs a file extension of .tex"
 	}
 	return
 }
@@ -103,11 +95,11 @@ func checkRandom(randomStr string) (int, string) {
 func checkSigDigits(sigDigits, logOut string) (string, string) {
 	i, err := strconv.Atoi(sigDigits)
 	if err != nil {
-		logOut = logOut + "sigDigits should be a positive integer\n"
+		logOut = logOut + "sigDigits should be a positive integer"
 		sigDigits = "4"
 	} else {
 		if i < 1 {
-			logOut = logOut + "sigDigits should be a positive integer\n"
+			logOut = logOut + "sigDigits should be a positive integer"
 			sigDigits = "4"
 		}
 	}
@@ -165,41 +157,6 @@ func fileReadString(fileNameandPath string) (string, string) {
 	fileString = string(inbytes)
 	return fileString, logOut
 }
-
-// func checkIfNewer(newFile, oldFile string) bool {
-// 	var newer bool
-// 	var commandTest string
-// 	// var svgFile, pdfTexFile string
-// 	// svgFile = inFile.path + inFile.name + inFile.extension
-// 	// pdfTexFile = outPath + inFile.name + ".pdf_tex"
-// 	commandTest = "test " + newFile + " -nt " + oldFile + " ; echo $?"
-// 	out, errout, err := shellout(commandTest)
-// 	if err != nil {
-// 		log.Printf("error: %v\n", err)
-// 	}
-// 	_ = errout
-// 	// fmt.Println("--- stdout ---")
-// 	// fmt.Println(out)
-// 	// fmt.Println("--- stderr ---")
-// 	// fmt.Println(errout)
-// 	var re = regexp.MustCompile(`(?m)0`)
-// 	if re.MatchString(out) {
-// 		newer = true
-// 	} else {
-// 		newer = false
-// 	}
-// 	return newer
-// }
-
-// func shellout(command string) (string, string, error) {
-// 	var stdout bytes.Buffer
-// 	var stderr bytes.Buffer
-// 	cmd := exec.Command("bash", "-c", command)
-// 	cmd.Stdout = &stdout
-// 	cmd.Stderr = &stderr
-// 	err := cmd.Run()
-// 	return stdout.String(), stderr.String(), err
-// }
 
 // Checks if file is utf16 encoded and if so, it converts it to utf8 for better regex matching
 func convertIfUtf16(inString string) (string, bool) {
