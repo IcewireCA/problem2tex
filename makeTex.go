@@ -110,29 +110,26 @@ func valRunReplace(inString string, varAll map[string]varSingle, configParam map
 	}
 	for reFirstvalRunCmd.MatchString(inString) { // chec for val or run command
 		if reFirstvalCmd.MatchString(inString) { // check for a val command
-			head, tail, replace, logOut = valReplace(inString, varAll, configParam) // found a val command
-			if logOut != "" {
-				inString = logOut
-				return inString, logOut
+			head, tail, replace, newLog = valReplace(inString, varAll, configParam) // found a val command
+			if newLog != "" {
+				logOut = logOut + " " + newLog
 			}
 		}
 		if !ltSpice { // also run these commands below if ltSpice is false
 			if reFirstRunCmd.MatchString(inString) { // check for a run command
-				head, tail, replace, newLog, logOut = runReplace(inString, varAll, configParam)
-				if logOut != "" {
-					inString = logOut
-					return inString, logOut
+				head, tail, replace, newLog = runReplace(inString, varAll, configParam)
+				if newLog != "" {
+					logOut = logOut + " " + newLog
 				}
 			}
 		}
 		inString = head + replace + tail
-		logOut = logOut + newLog
 	}
 	return inString, logOut
 }
 
-func runReplace(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, string, string, string) {
-	var head, tail, logOut, runCmdType, runCmd, replace, newLog, assignVar string
+func runReplace(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, string, string) {
+	var head, tail, logOut, runCmdType, runCmd, replace, assignVar string
 	var answer float64
 	var result []string
 	var reFirstRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)\\(?P<res2>run.*)(?P<res3>{.*)$`)
@@ -143,38 +140,38 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	replace = "" // so the old replace is not used
 	switch runCmdType {
 	case "runParam": // Used for setting parameters and config parameters
-		replace, newLog = runParamFunc(runCmd, varAll, configParam)
+		replace, logOut = runParamFunc(runCmd, varAll, configParam)
 		if replace == "" {
 			replace = "**deletethis**"
 		}
 	case "runSilent": // run statement but do not print anything
 		replace = "**deletethis**"
-		_, _, _, newLog = runCode(runCmd, varAll)
+		_, _, _, logOut = runCode(runCmd, varAll)
 	case "run": // run statement and print statement (ex: v_2 = 3*V_t)
-		assignVar, runCmd, answer, newLog = runCode(runCmd, varAll)
+		assignVar, runCmd, answer, logOut = runCode(runCmd, varAll)
 		if assignVar == "" {
 			replace = float2Str(answer, configParam) // not an assignment statment so just return  answer
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + "$}"
 		}
 	case "run=": // run statement and print out statement = result (with units) (ex: v_2 = 3*V_t = 75mV)
-		assignVar, runCmd, _, newLog = runCode(runCmd, varAll)
+		assignVar, runCmd, _, logOut = runCode(runCmd, varAll)
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + valueInSI(assignVar, varAll, configParam) + "$}"
 		}
 	case "run()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
-		_, runCmd, _, newLog = runCode(runCmd, varAll)
+		_, runCmd, _, logOut = runCode(runCmd, varAll)
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
 	case "run()=": // same as run() but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
-		assignVar, runCmd, _, newLog = runCode(runCmd, varAll)
+		assignVar, runCmd, _, logOut = runCode(runCmd, varAll)
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + valueInSI(assignVar, varAll, configParam) + "$}"
 	default:
 		// if here, then error as \run**something else** is here
 		logOut = "\\" + runCmdType + " *** NOT A VALID COMMAND\n"
 	}
-	return head, tail, replace, newLog, logOut
+	return head, tail, replace, logOut
 }
 
 func valReplace(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, string, string) {

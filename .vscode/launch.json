@@ -12,9 +12,9 @@
             "program": "${fileDirname}",
             "env": {},
             "args": [
-               "-export=Problems/tmp/basic02",
+               "-export=Problems/tmp/basic03.tex",
              //  "-sigDigits=7", "-random=32",
-               "Problems/basic02.prb",            
+               "Problems/basic03.prb",            
             ]
         }
     ]
