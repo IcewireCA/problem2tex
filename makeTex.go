@@ -380,7 +380,6 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			varAll[assignVar] = varSingle{}
 			tmp2 = varAll[assignVar]
 			tmp2.latex = latexifyVar(assignVar) // add latex version of assignVar
-			tmp2.units = defaultUnits(assignVar)
 		}
 		switch {
 		case reArray.MatchString(rightSide): // it is an array runParam statement

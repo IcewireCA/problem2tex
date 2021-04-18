@@ -1,4 +1,4 @@
-\runParam{V_1 = 2.34# \paramUnits{V}}
+\runParam{V_1 = 2.34}
 \runParam{R_1 = 6 # \paramUnits{k \Omega}}
 \question Given \val={V_1} and \val={R_1}, find the current  $I_R = V_1/R_1$
 

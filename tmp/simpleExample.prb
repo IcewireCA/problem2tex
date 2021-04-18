@@ -1,0 +1,18 @@
+CONFIG{units=[vV:V][iI:A][rR:\Omega][C:F][L:H][g:A/V]}
+
+PARAM{V_1 = 3} UNITS{V} SYMBOL{V_4}
+PARAM{R_1 = 8} UNITS{k \Omega} SYMBOL{R_2}
+
+QUESTION Given $$V_4=[[V_1]]$$ and [[R_1=]], find the current $$I_{R2} = V_4/R_2$$.
+other text here 
+
+SOLUTION
+The solution is found through the following equation
+RUN(){I_R=V_1/R_1}
+HILITE{[[I_R=]]}
+ENDSOLUTION
+
+ANSWER
+
+ENDANSWER
+ 

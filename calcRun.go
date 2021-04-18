@@ -73,7 +73,6 @@ func runCode(inString string, varAll map[string]varSingle) (assignVar, outString
 				varAll[assignVar] = varSingle{} // adding blank new variable to varAll map
 				tmp2 = varAll[assignVar]
 				tmp2.latex = latexifyVar(assignVar) // add latex version of assignVar
-				tmp2.units = defaultUnits(assignVar)
 			} else {
 				tmp2 = varAll[assignVar] // use existing map location
 			}
@@ -104,29 +103,6 @@ func runCode(inString string, varAll map[string]varSingle) (assignVar, outString
 				return
 			}
 			return
-		}
-	}
-	return
-}
-
-func defaultUnits(newVar string) (defUnits string) {
-	var reFirstChar = regexp.MustCompile(`(?mU)\s*(?P<res1>\S)`) // find first non-space character
-	if reFirstChar.MatchString(newVar) {
-		tmp := reFirstChar.FindStringSubmatch(newVar)[1]
-		switch tmp {
-		case "V", "v":
-			defUnits = "V"
-		case "I", "i":
-			defUnits = "A"
-		case "R", "r":
-			defUnits = "\\Omega"
-		case "C":
-			defUnits = "F"
-		case "L":
-			defUnits = "H"
-		case "G", "g":
-			defUnits = "A/V"
-		default: // leave blank
 		}
 	}
 	return
