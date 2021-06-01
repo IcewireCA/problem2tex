@@ -1,18 +1,28 @@
-CONFIG{units=[vV:V][iI:A][rR:\Omega][C:F][L:H][g:A/V]}
+CONFIG{units=[vV:V][iI:A][rR:\Omega][cC:F][lL:H][gG:A/V][qQ:C][tT:s]# electrical}
 
-PARAM{V_1 = 3} UNITS{V} SYMBOL{V_4}
+PARAM{V_1 = 3} UNITS{V} SYMBOL{V_4} }
 PARAM{R_1 = 8} UNITS{k \Omega} SYMBOL{R_2}
 
-QUESTION Given $$V_4=[[V_1]]$$ and [[R_1=]], find the current $$I_{R2} = V_4/R_2$$.
-other text here 
+QUESTION 
+Given $$V_4=VAL{V_1}$$ and VAL{R_1,=}, find the current $$I_{R2} = V_4/R_2$$.
+other text here
+
+
+PARTQUESTION
+Here is part a of a question
+
 
 SOLUTION
 The solution is found through the following equation
 RUN(){I_R=V_1/R_1}
-HILITE{[[I_R=]]}
+HILITE{VAL{I_R,=}}
 ENDSOLUTION
 
 ANSWER
-
+HILITE{VAL{I_R,=}}
 ENDANSWER
+
+PARTQUESTION
+And another part here
+
  

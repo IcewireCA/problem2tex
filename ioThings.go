@@ -92,6 +92,24 @@ func checkRandom(randomStr string) (int, string) {
 	return random, logOut
 }
 
+func parseFormat(formatStr string) (string, string, string) {
+	var formatType, sigDigits, logOut string
+	var result []string
+	if formatStr == "$" {
+		formatType = "$"
+		return formatType, "", ""
+	}
+	var re0 = regexp.MustCompile(`(?m)^(?P<res1>\w)(?P<res2>\d)$`)
+	if re0.MatchString(formatStr) {
+		result = re0.FindStringSubmatch(formatStr)
+		formatType = result[1]
+		sigDigits = result[2]
+	} else {
+		logOut = "format: " + formatStr + "is not a valid format"
+	}
+	return formatType, sigDigits, logOut
+}
+
 func checkSigDigits(sigDigits, logOut string) (string, string) {
 	i, err := strconv.Atoi(sigDigits)
 	if err != nil {

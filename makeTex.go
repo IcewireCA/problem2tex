@@ -23,11 +23,12 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 	// as looking at value for each key
 	// these are configuration parameters
 	var configParam = map[string]string{ // defaults shown below
-		"paramRandom":    randomStr, // can be false, true, any positive integer, min, max, minMax
-		"paramSigDigits": sigDigits, // number of significant digits to print
-		"paramKFactor":   "1.3:5",   // variation from x/k to kx : number of choices
-		"paramFormat":    "eng",     // can be eng, sci or decimal
-		"paramVerbose":   "false",   // can be true or false
+		"random":    randomStr, // can be false, true, any positive integer, min, max, minMax
+		"KFactor":   "1.3:5",   // variation from x/k to kx : number of choices
+		"format":    "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
+		"format()":  "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
+		"formatEQN": "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
+		"verbose":   "false",   // can be true or false
 	}
 
 	varAll := make(map[string]varSingle) // IMPORTANT to use this type of map assignment - tried another and it worked for a while
@@ -50,7 +51,7 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "WARNING")
 		}
-		inLines[i], logOut = valRunReplace(inLines[i], varAll, configParam, false)
+		inLines[i], logOut = commandReplace(inLines[i], varAll, configParam, false)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		}
@@ -96,40 +97,61 @@ func logOutError(logOut string, lineNum int, typeErr string) string {
 	return outString
 }
 
-func valRunReplace(inString string, varAll map[string]varSingle, configParam map[string]string, ltSpice bool) (string, string) {
+// commandReplace looks for \val, \run and \runConfig commands, executes those commands and replaces each with appropriate output
+func commandReplace(inString string, varAll map[string]varSingle, configParam map[string]string, ltSpice bool) (string, string) {
 	// ltSpice is a bool that if true implies we are replacing things in a .asc file (instead of a .prb file)
-	var head, tail, replace, logOut, newLog string
-	var reFirstvalRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)\\(?P<res2>run.*|val.*)(?P<res3>{.*)$`)
-	var reFirstvalCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)\\(?P<res2>val.*)(?P<res3>{.*)$`)
-	var reFirstRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)\\(?P<res2>run.*)(?P<res3>{.*)$`)
-	var reFixSpice = regexp.MustCompile(`(?mU)\\(?P<res1>\\val.*{)`)
-	if ltSpice { // fix ltSpice file so all \\val.*{ are changed to \val.*{
+	var head, tail, replace, logOut, newLog, leftMost string
+	var reFirstValMatch = regexp.MustCompile(`(?mU)\\val{`)
+	var reFirstRunMatch = regexp.MustCompile(`(?mU)\\run`)
+	var reFixSpice = regexp.MustCompile(`(?mU)\\(?P<res1>\\val{)`)
+	if ltSpice { // fix ltSpice file so all \\val{ are changed to \val{
 		if reFixSpice.MatchString(inString) {
 			inString = reFixSpice.ReplaceAllString(inString, "$res1")
 		}
 	}
-	for reFirstvalRunCmd.MatchString(inString) { // chec for val or run command
-		if reFirstvalCmd.MatchString(inString) { // check for a val command
-			head, tail, replace, newLog = valReplace(inString, varAll, configParam) // found a val command
+	for reFirstValMatch.MatchString(inString) || reFirstRunMatch.MatchString(inString) { // chec for val or run command
+		// keep doing this loop until all \val, \run, \runConfig commands are done (\runConfig are done with \run command list)
+		if reFirstValMatch.MatchString(inString) && reFirstRunMatch.MatchString(inString) {
+			// if true, then both \val and \run are in inString and must do the most left one first
+			locateVal := reFirstValMatch.FindStringIndex(inString)
+			locateRun := reFirstRunMatch.FindStringIndex(inString)
+			if locateVal[0] < locateRun[0] {
+				leftMost = "Val"
+			} else {
+				leftMost = "Run"
+			}
+		} else { // if only one of \val or \run found then do the most leftmost for that one
+			locateVal := reFirstValMatch.FindStringIndex(inString)
+			if locateVal == nil {
+				leftMost = "Run"
+			} else {
+				leftMost = "Val"
+			}
+		}
+		switch leftMost {
+		case "Val":
+			head, tail, replace, newLog = valReplace(inString, varAll, configParam)
 			if newLog != "" {
 				logOut = logOut + " " + newLog
 			}
-		}
-		if !ltSpice { // also run these commands below if ltSpice is false
-			if reFirstRunCmd.MatchString(inString) { // check for a run command
+		case "Run":
+			if !ltSpice { // also run these commands below if ltSpice is false
 				head, tail, replace, newLog = runReplace(inString, varAll, configParam)
 				if newLog != "" {
 					logOut = logOut + " " + newLog
 				}
 			}
+		default: // should not get here
+			fmt.Println("should not be here 08")
 		}
+		leftMost = ""
 		inString = head + replace + tail
 	}
 	return inString, logOut
 }
 
 func runReplace(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, string, string) {
-	var head, tail, logOut, runCmdType, runCmd, replace, assignVar string
+	var head, tail, logOut, runCmdType, runCmd, replace, assignVar, sigDigits string
 	var answer float64
 	var result []string
 	var reFirstRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)\\(?P<res2>run.*)(?P<res3>{.*)$`)
@@ -139,7 +161,12 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	runCmd, tail = matchBrackets(result[3], "{")
 	replace = "" // so the old replace is not used
 	switch runCmdType {
-	case "runParam": // Used for setting parameters and config parameters
+	case "runConfig": // Used for setting configuration settings
+		replace, logOut = runConfigFunc(runCmd, configParam)
+		if replace == "" {
+			replace = "**deletethis**"
+		}
+	case "runParam": // Used for setting parameters
 		replace, logOut = runParamFunc(runCmd, varAll, configParam)
 		if replace == "" {
 			replace = "**deletethis**"
@@ -150,7 +177,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	case "run": // run statement and print statement (ex: v_2 = 3*V_t)
 		assignVar, runCmd, answer, logOut = runCode(runCmd, varAll)
 		if assignVar == "" {
-			replace = float2Str(answer, configParam) // not an assignment statment so just return  answer
+			replace = value2Str(answer, configParam["format"]) // not an assignment statment so just return  answer
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + "$}"
 		}
@@ -159,14 +186,16 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
 		} else {
-			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + valueInSI(assignVar, varAll, configParam) + "$}"
+			_, sigDigits, _ = parseFormat(configParam["formatEQN"])
+			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
 		}
 	case "run()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
 		_, runCmd, _, logOut = runCode(runCmd, varAll)
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
 	case "run()=": // same as run() but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
 		assignVar, runCmd, _, logOut = runCode(runCmd, varAll)
-		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + valueInSI(assignVar, varAll, configParam) + "$}"
+		_, sigDigits, _ = parseFormat(configParam["formatEQN"])
+		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
 	default:
 		// if here, then error as \run**something else** is here
 		logOut = "\\" + runCmdType + " *** NOT A VALID COMMAND\n"
@@ -175,69 +204,61 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 }
 
 func valReplace(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, string, string) {
-	var head, valCmdType, tail, replace, valCmd, key, logOut, tmp, newLog string
+	var head, tail, errCode, expAndFormat, logOut string
+	var formatStr, formatType, exp, replace, sigDigits string
 	var ok bool
-	var answer float64
+	var value float64
 	var result []string
-	var reFirstvalCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)\\(?P<res2>val.*)(?P<res3>{.*)$`)
-	result = reFirstvalCmd.FindStringSubmatch(inString) // found a val command
+	var reFirstValCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)\\val(?P<res2>{.*)$`)
+	var reComma = regexp.MustCompile(`(?m)^\s*(?P<res1>.*)\s*,\s*(?P<res2>.*)\s*$`)
+	result = reFirstValCmd.FindStringSubmatch(inString) // found a val command
 	head = result[1]
-	valCmdType = result[2]
-	valCmd, tail = matchBrackets(result[3], "{")
-	replace = "" // so the old replace is not used
-
-	// first check if configParam going to be printed out and if so, then print it
-	for key = range configParam {
-		if valCmd == key {
-			replace = configParam[key] // printing out a configParam
-		}
-	}
-	if replace == "" { // no configParam found then do below
-		switch valCmdType {
-		case "val", "valNDec", "valNEng", "valNSci":
-			_, _, answer, newLog = runCode(valCmd, varAll)
-			if newLog == "" {
-				if valCmdType == "val" {
-					replace = float2Str(answer, configParam)
-				} else {
-					tmp = configParam["paramFormat"]
-					switch valCmdType {
-					case "valNDec":
-						configParam["paramFormat"] = "decimal"
-					case "valNEng":
-						configParam["paramFormat"] = "eng"
-					case "valNSci":
-						configParam["paramFormat"] = "sci"
-					default: // never here
-					}
-					replace = float2Str(answer, configParam)
-					configParam["paramFormat"] = tmp
-				}
-			} else {
-				replace = newLog
-			}
-		case "val=", "valU", "valLtx":
-			_, ok = varAll[valCmd] // check that valCmd is a variable in the varAll map
-			if ok {
-				switch valCmdType {
-				case "val=": // print out var = result (with SI units).  (ex: V_1 = 3V or v_{tx} = 23mV or D = 10km)
-					replace = "\\mbox{$" + varAll[valCmd].latex + " = " + valueInSI(valCmd, varAll, configParam) + "$}"
-				case "valU": // print out result (with SI units). (ex: 3V or 23mV or 10km)
-					replace = "\\mbox{$" + valueInSI(valCmd, varAll, configParam) + "$}"
-				case "valLtx":
-					replace = "\\mbox{$" + varAll[valCmd].latex + "$}"
-				default:
-					// should never be here
-					logOut = "can not be here 06"
-				}
-			} else {
-				logOut = "variable " + valCmd + " is NOT DEFINED"
-				replace = "\\mbox{$" + valCmd + " \\text{ NOT DEFINED}$}"
-			}
+	expAndFormat, tail = matchBrackets(result[2], "{") // expression and format
+	// if a comma exists in expAndFormat, then format is included after comma
+	// if no comma, then only expresion is present
+	if reComma.MatchString(expAndFormat) {
+		result = reComma.FindStringSubmatch(expAndFormat)
+		exp = result[1]
+		formatStr = result[2]
+		switch formatStr {
+		case "=", "L":
+			formatType = formatStr
 		default:
-			// if here, then \val**something else** found so an error message
-			logOut = "\\" + valCmdType + " *** NOT A VALID COMMAND"
+			formatType, sigDigits, logOut = parseFormat(formatStr)
+			if logOut != "" {
+				return head, tail, logOut, logOut
+			}
 		}
+	} else { // no comma and so no format given
+		exp = expAndFormat
+		formatType, sigDigits, _ = parseFormat(configParam["format"])
+	}
+	_, ok = varAll[exp] // check that exp is a variable in the varAll map
+	if ok {
+		// exp is a variable in varAll map
+		switch formatType {
+		case "E", "S", "D":
+			replace = value2Str(varAll[exp].value, formatStr)
+		case "U":
+			replace = valueInSI(exp, varAll, sigDigits)
+		case "=":
+			if string(configParam["formatEQN"][0]) == "U" {
+				sigDigits = string(configParam["formatEQN"][1])
+				replace = "\\mbox{$" + varAll[exp].latex + "=" + valueInSI(exp, varAll, sigDigits) + "$}"
+			} else { // if format not equal to U, then
+				replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, configParam["formatEQN"]) + "$}"
+			}
+		case "L":
+			replace = "\\mbox{$" + varAll[exp].latex + "$}"
+		}
+	} else {
+		// exp is an expression and not in varAll map
+		_, _, value, errCode = runCode(exp, varAll)
+		if errCode != "" {
+			logOut = "expression: " + exp + " *** NOT A VALID EXPRESSION"
+			return head, tail, errCode, logOut
+		}
+		replace = value2Str(value, formatStr)
 	}
 	return head, tail, replace, logOut
 }
@@ -255,7 +276,7 @@ func checkLTSpice(inString string, inFile, outFile fileInfo, sigDigits string, v
 		spiceFile, _ = convertIfUtf16(spiceFile)
 		inLines = strings.Split(spiceFile, "\n")
 		for i := range inLines {
-			inLines[i], logOut = valRunReplace(inLines[i], varAll, configParam, true)
+			inLines[i], logOut = commandReplace(inLines[i], varAll, configParam, true)
 			if logOut != "" {
 				logOut = logOut + " - error in " + spiceFilename + ".asc"
 				return "", "", logOut
@@ -313,8 +334,67 @@ func bracketCheck(inString string, leftBrac string) (logOut string) {
 	return
 }
 
+func runConfigFunc(statement string, configParam map[string]string) (string, string) {
+	var outString, logOut, key, formatType string
+	var assignVar, rightSide string
+	var result []string
+	var reEqual = regexp.MustCompile(`(?m)^\s*(?P<res1>\S+)\s*=\s*(?P<res2>.*)\s*`)
+	if reEqual.MatchString(statement) {
+		result = reEqual.FindStringSubmatch(statement)
+		assignVar = result[1]                    // assignVar is the left side of the "=" sign.
+		rightSide = strings.TrimSpace(result[2]) // rightSide is the rightside of "=" sign.  then trim whitespace from beginning and end
+		assignVar, logOut = checkReserved(assignVar, logOut)
+		if logOut != "" {
+			return "", logOut
+		}
+		if _, ok := configParam[assignVar]; ok { // check if assignVar is a valid key in configParam map
+			switch assignVar { // do some checks on rightSide to ensure it is valid
+			case "random":
+				_, logOut = checkRandom(rightSide)
+			case "format", "formatEQN":
+				formatType, _, logOut = parseFormat(rightSide)
+				switch formatType {
+				case "E", "S", "D", "$", "U":
+				default:
+					logOut = "format/formatEQN config setting can be either E, S, D, $ or U"
+				}
+			case "format()":
+				formatType, _, logOut = parseFormat(rightSide)
+				switch formatType {
+				case "E", "S", "D", "$":
+				default:
+					logOut = "format() config setting can be either E, S, D, or $"
+				}
+			case "KFactor":
+				_, _, logOut = convertKFactor(rightSide)
+			case "verbose":
+				switch rightSide {
+				case "true":
+					configParam["verbose"] = "true"
+					outString = "% Configuration Settings\n"
+					for key = range configParam {
+						outString = outString + "% " + key + " : " + configParam[key] + "\n"
+					}
+				case "false":
+				default:
+					logOut = "verbose can be either true or false"
+				}
+			case "sigDigits", "unitsPrint":
+			default:
+				logOut = "should never be here 05"
+			}
+			if logOut == "" {
+				configParam[assignVar] = rightSide
+			}
+		} else {
+			logOut = assignVar + " is not a valid configuration setting parameter"
+		}
+	}
+	return outString, logOut
+}
+
 func runParamFunc(statement string, varAll map[string]varSingle, configParam map[string]string) (string, string) {
-	var assignVar, rightSide, key, logOut string
+	var assignVar, rightSide, logOut string
 	var units, latex, prefix, outVerbose string
 	var value, factor, nominal float64
 	var values []float64
@@ -335,45 +415,6 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 		assignVar, logOut = checkReserved(assignVar, logOut)
 		if logOut != "" {
 			return "", logOut
-		}
-		for key = range configParam {
-			if assignVar == key { // it is a configParam runParam statement
-				switch assignVar {
-				case "paramRandom":
-					_, logOut = checkRandom(rightSide)
-					if logOut == "" {
-						configParam["paramRandom"] = rightSide
-					}
-				case "paramSigDigits":
-					// put check for paramSigDigits here
-					configParam["paramSigDigits"] = rightSide
-				case "paramFormat":
-					switch rightSide {
-					case "eng", "sci", "decimal":
-						configParam["paramFormat"] = rightSide
-					default:
-						logOut = "paramFormat can be either eng, sci or decimal"
-						return "", logOut
-					}
-				case "paramKFactor":
-					_, _, logOut = convertKFactor(rightSide)
-					if logOut != "" {
-						return "", logOut
-					}
-					configParam["paramKFactor"] = rightSide
-				case "paramVerbose":
-					switch rightSide {
-					case "true", "false":
-						configParam["paramVerbose"] = rightSide
-					default:
-						logOut = "paramVerbose can be either true or false"
-						return "", logOut
-					}
-				default:
-					logOut = "should never be here 05"
-				}
-				return "", logOut
-			}
 		}
 		tmp2, ok := varAll[assignVar]
 		if !ok { // if !ok then this is the first time assigning this variable in varAll map
@@ -424,7 +465,7 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 				return "", logOut
 			}
 			values = append(values, nominal) // the nominal value is value[0] so it is default
-			factor, num, logOut = convertKFactor(configParam["paramKFactor"])
+			factor, num, logOut = convertKFactor(configParam["KFactor"])
 			if logOut != "" {
 				return "", logOut
 			}
@@ -460,7 +501,7 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 				tmp2.latex = latex
 			}
 		}
-		if configParam["paramVerbose"] == "true" {
+		if configParam["verbose"] == "true" {
 			outVerbose = "% " + assignVar + " = ["
 			for i := range values {
 				outVerbose = outVerbose + fmt.Sprintf("%g", values[i]*prefix2float(prefix))
@@ -470,7 +511,7 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			}
 			outVerbose = outVerbose + "]"
 		}
-		random, logOut = checkRandom(configParam["paramRandom"])
+		random, logOut = checkRandom(configParam["random"])
 		switch random {
 		case 0: // if random == 0, then num = 0 so first element is chosen
 			num = 0
@@ -494,7 +535,7 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 		default: // if here, random is a seed so use it to get the next random
 			random = psuedoRand(random) // update random based on the last random value (treat last one as seed)
 			num = randInt(len(values), random)
-			configParam["paramRandom"] = strconv.Itoa(random)
+			configParam["random"] = strconv.Itoa(random)
 		}
 		value = values[num] * prefix2float(prefix)
 		tmp2.value = value
@@ -603,7 +644,7 @@ func bracketed(statement string, varAll map[string]varSingle, configParam map[st
 			_, ok := varAll[result[i]]
 			if ok {
 				re2 = regexp.MustCompile(`(?m)` + result[i])
-				sub = "(" + float2Str(varAll[result[i]].value, configParam) + ")"
+				sub = "(" + value2Str(varAll[result[i]].value, configParam["format()"]) + ")"
 				backPart = re2.ReplaceAllString(backPart, sub)
 			}
 		}
@@ -612,9 +653,9 @@ func bracketed(statement string, varAll map[string]varSingle, configParam map[st
 	return
 }
 
-func valueInSI(variable string, varAll map[string]varSingle, configParam map[string]string) (outSI string) {
-	significand, exponent, prefix := float2Parts(varAll[variable].value, strIncrement(configParam["paramSigDigits"], -1))
-	if varAll[variable].units == "" {
+func valueInSI(variable string, varAll map[string]varSingle, sigDigits string) (outSI string) {
+	significand, exponent, prefix := float2Parts(varAll[variable].value, strIncrement(sigDigits, -1))
+	if varAll[variable].units == "" { // if no units defined for that variable
 		if exponent == "0" {
 			outSI = significand
 		} else {
@@ -626,22 +667,25 @@ func valueInSI(variable string, varAll map[string]varSingle, configParam map[str
 	return
 }
 
-func float2Str(x float64, configParam map[string]string) (outString string) {
-	outString = "should not occur 01"
-	switch configParam["paramFormat"] {
-	case "eng":
-		significand, exponent, _ := float2Parts(x, strIncrement(configParam["paramSigDigits"], -1))
+func value2Str(x float64, formatStr string) (outString string) {
+	var formatType, sigDigits string
+	formatType, sigDigits, _ = parseFormat(formatStr)
+	switch formatType {
+	case "E":
+		significand, exponent, _ := float2Parts(x, strIncrement(sigDigits, -1))
 		if exponent == "0" {
 			outString = significand
 		} else {
 			outString = significand + "e" + exponent
 		}
-	case "sci":
-		outString = fmt.Sprintf("%."+strIncrement(configParam["paramSigDigits"], -1)+"e", x)
-	case "decimal": // decimal unless values are very large or very small in which case -- sci
-		outString = fmt.Sprintf("%."+strIncrement(configParam["paramSigDigits"], -1)+"g", x)
+	case "S":
+		outString = fmt.Sprintf("%."+strIncrement(sigDigits, -1)+"e", x)
+	case "D": // decimal
+		outString = fmt.Sprintf("%."+strIncrement(sigDigits, -1)+"f", x)
+	case "$": // dollar notation (2 decimal places and rounded off)
+		outString = fmt.Sprintf("%.2f", math.Round(x*100)/100)
 	default:
-		outString = "should not occur 02"
+		outString = "format not recognized"
 	}
 	return
 }
