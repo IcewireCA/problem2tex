@@ -22,6 +22,11 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
 	// these are configuration parameters
+	// for format, the number represents the number of significant digits
+	// in the case of $, digits is forced to 2 after the decimal sign.
+	// format: when \val is used
+	// format(): the values inside brackets when \run() is used
+	// formatEQN: when \run= or \val{value,=} is used
 	var configParam = map[string]string{ // defaults shown below
 		"random":    randomStr, // can be false, true, any positive integer, min, max, minMax
 		"KFactor":   "1.3:5",   // variation from x/k to kx : number of choices
@@ -30,6 +35,8 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 		"formatEQN": "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
 		"verbose":   "false",   // can be true or false
 	}
+	// when dollar is used, the symbol "$" is NOT automatically added and can be added by user.
+	// dollar results in number being nnn.nn (two digits after decimal point)
 
 	varAll := make(map[string]varSingle) // IMPORTANT to use this type of map assignment - tried another and it worked for a while
 	// til hash table memory changed and then memory errors on run that could not be traced by debugger
@@ -223,21 +230,26 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 		switch formatStr {
 		case "=", "L":
 			formatType = formatStr
+		case "U":
+			formatType = formatStr
+			_, sigDigits, _ = parseFormat(configParam["format"])
 		default:
 			formatType, sigDigits, logOut = parseFormat(formatStr)
 			if logOut != "" {
 				return head, tail, logOut, logOut
 			}
 		}
-	} else { // no comma and so no format given
+	} else { // no comma and so no format given then use default
 		exp = expAndFormat
 		formatType, sigDigits, _ = parseFormat(configParam["format"])
+		formatStr = formatType + sigDigits
 	}
+	// we now know the formatType and sigDigits to use so carry on ...
 	_, ok = varAll[exp] // check that exp is a variable in the varAll map
 	if ok {
 		// exp is a variable in varAll map
 		switch formatType {
-		case "E", "S", "D":
+		case "E", "S", "D", "$":
 			replace = value2Str(varAll[exp].value, formatStr)
 		case "U":
 			replace = valueInSI(exp, varAll, sigDigits)
@@ -248,8 +260,11 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 			} else { // if format not equal to U, then
 				replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, configParam["formatEQN"]) + "$}"
 			}
-		case "L":
+		case "L": // if L then print out latex symbol instead of value
 			replace = "\\mbox{$" + varAll[exp].latex + "$}"
+		default:
+			logOut = "format: " + formatType + " *** NOT A VALID FORMAT"
+			return head, tail, "", logOut
 		}
 	} else {
 		// exp is an expression and not in varAll map
@@ -678,10 +693,10 @@ func value2Str(x float64, formatStr string) (outString string) {
 		} else {
 			outString = significand + "e" + exponent
 		}
-	case "S":
+	case "S", "U":
 		outString = fmt.Sprintf("%."+strIncrement(sigDigits, -1)+"e", x)
 	case "D": // decimal
-		outString = fmt.Sprintf("%."+strIncrement(sigDigits, -1)+"f", x)
+		outString = fmt.Sprintf("%."+strIncrement(sigDigits, 0)+"f", x)
 	case "$": // dollar notation (2 decimal places and rounded off)
 		outString = fmt.Sprintf("%.2f", math.Round(x*100)/100)
 	default:

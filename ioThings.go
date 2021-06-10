@@ -95,7 +95,7 @@ func checkRandom(randomStr string) (int, string) {
 func parseFormat(formatStr string) (string, string, string) {
 	var formatType, sigDigits, logOut string
 	var result []string
-	if formatStr == "$" {
+	if formatStr == "$" { // note that $ should NOT have any digits after it
 		formatType = "$"
 		return formatType, "", ""
 	}
@@ -105,7 +105,7 @@ func parseFormat(formatStr string) (string, string, string) {
 		formatType = result[1]
 		sigDigits = result[2]
 	} else {
-		logOut = "format: " + formatStr + "is not a valid format"
+		logOut = "format: " + formatStr + " is not a valid format"
 	}
 	return formatType, sigDigits, logOut
 }

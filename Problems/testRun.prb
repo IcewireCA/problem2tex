@@ -1,0 +1,10 @@
+\runConfig{verbose=true}
+\runParam{V_1 = [3e-3]#\paramUnits{V}}
+\runParam{R_1 = [10e3]#\paramUnits{\Omega}}
+\val{V_1,=} \val{R_1,=}
+
+\run{I_1=V_1/R_1#\paramUnits{A}} \val{I_1,U} \run{I_1=5} \val{I_1,U}
+
+\run(){I_1=V_1/R_1#\paramUnits{A}} \val{I_1,U} \runSilent{I_1=5} \val{I_1,U}
+
+\run()={I_1=V_1/R_1#\paramUnits{A}}
