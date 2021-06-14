@@ -28,12 +28,14 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 	// format(): the values inside brackets when \run() is used
 	// formatEQN: when \run= or \val{value,=} is used
 	var configParam = map[string]string{ // defaults shown below
-		"random":    randomStr, // can be false, true, any positive integer, min, max, minMax
-		"KFactor":   "1.3:5",   // variation from x/k to kx : number of choices
-		"format":    "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
-		"format()":  "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
-		"formatEQN": "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
-		"verbose":   "false",   // can be true or false
+		"random":       randomStr, // can be false, true, any positive integer, min, max, minMax
+		"KFactor":      "1.3:5",   // variation from x/k to kx : number of choices
+		"format":       "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
+		"format()":     "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
+		"formatEQN":    "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
+		"verbose":      "false",   // can be true or false
+		"defaultUnits": "",        // place defaultUnits here [[iI:A][vV:V][rR:\Omega]]  etc
+		// if first letter of a variable is i or I then default units is A
 	}
 	// when dollar is used, the symbol "$" is NOT automatically added and can be added by user.
 	// dollar results in number being nnn.nn (two digits after decimal point)
@@ -165,7 +167,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	result = reFirstRunCmd.FindStringSubmatch(inString)
 	head = result[1]
 	runCmdType = result[2]
-	runCmd, tail = matchBrackets(result[3], "{")
+	runCmd, tail, logOut = matchBrackets(result[3], "{")
 	replace = "" // so the old replace is not used
 	switch runCmdType {
 	case "runConfig": // Used for setting configuration settings
@@ -180,16 +182,16 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		}
 	case "runSilent": // run statement but do not print anything
 		replace = "**deletethis**"
-		_, _, _, logOut = runCode(runCmd, varAll)
+		_, _, _, logOut = runCode(runCmd, varAll, configParam)
 	case "run": // run statement and print statement (ex: v_2 = 3*V_t)
-		assignVar, runCmd, answer, logOut = runCode(runCmd, varAll)
+		assignVar, runCmd, answer, logOut = runCode(runCmd, varAll, configParam)
 		if assignVar == "" {
 			replace = value2Str(answer, configParam["format"]) // not an assignment statment so just return  answer
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + "$}"
 		}
 	case "run=": // run statement and print out statement = result (with units) (ex: v_2 = 3*V_t = 75mV)
-		assignVar, runCmd, _, logOut = runCode(runCmd, varAll)
+		assignVar, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
 		} else {
@@ -197,10 +199,10 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
 		}
 	case "run()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
-		_, runCmd, _, logOut = runCode(runCmd, varAll)
+		_, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
 	case "run()=": // same as run() but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
-		assignVar, runCmd, _, logOut = runCode(runCmd, varAll)
+		assignVar, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
 		_, sigDigits, _ = parseFormat(configParam["formatEQN"])
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
 	default:
@@ -220,7 +222,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 	var reComma = regexp.MustCompile(`(?m)^\s*(?P<res1>.*)\s*,\s*(?P<res2>.*)\s*$`)
 	result = reFirstValCmd.FindStringSubmatch(inString) // found a val command
 	head = result[1]
-	expAndFormat, tail = matchBrackets(result[2], "{") // expression and format
+	expAndFormat, tail, logOut = matchBrackets(result[2], "{") // expression and format
 	// if a comma exists in expAndFormat, then format is included after comma
 	// if no comma, then only expresion is present
 	if reComma.MatchString(expAndFormat) {
@@ -268,7 +270,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 		}
 	} else {
 		// exp is an expression and not in varAll map
-		_, _, value, errCode = runCode(exp, varAll)
+		_, _, value, errCode = runCode(exp, varAll, configParam)
 		if errCode != "" {
 			logOut = "expression: " + exp + " *** NOT A VALID EXPRESSION"
 			return head, tail, errCode, logOut
@@ -388,13 +390,21 @@ func runConfigFunc(statement string, configParam map[string]string) (string, str
 					configParam["verbose"] = "true"
 					outString = "% Configuration Settings\n"
 					for key = range configParam {
-						outString = outString + "% " + key + " : " + configParam[key] + "\n"
+						if len(key) > 1 { // only print out config settings when key string length is greater than 1
+							outString = outString + "% " + key + " : " + configParam[key] + "\n"
+							// this is done so defaultUnits map values are not each printed
+						}
 					}
 				case "false":
 				default:
 					logOut = "verbose can be either true or false"
 				}
-			case "sigDigits", "unitsPrint":
+			case "defaultUnits":
+				configParam["defaultUnits"] = rightSide
+				logOut = defaultUnitsFunc(rightSide, configParam) // THIS FUNCTION MODIFIES configParam MAP!!!
+				if logOut != "" {
+					return "defaultUnits syntax is incorrect", logOut
+				}
 			default:
 				logOut = "should never be here 05"
 			}
@@ -433,9 +443,11 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 		}
 		tmp2, ok := varAll[assignVar]
 		if !ok { // if !ok then this is the first time assigning this variable in varAll map
+			// add default units and latexify version of assignVar
 			varAll[assignVar] = varSingle{}
 			tmp2 = varAll[assignVar]
-			tmp2.latex = latexifyVar(assignVar) // add latex version of assignVar
+			tmp2.units = defaultUnitsVar(assignVar, configParam) // add default units for assignVar (if defined in defaultUnits config parameter)
+			tmp2.latex = latexifyVar(assignVar)                  // add latex version of assignVar
 		}
 		switch {
 		case reArray.MatchString(rightSide): // it is an array runParam statement
@@ -506,13 +518,13 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			options := reOptions.FindStringSubmatch(rightSide)[1] // the options stuff after #
 			if reUnits.MatchString(options) {
 				tmp := reUnits.FindStringSubmatch(options)[1] // just the stuff {.*$
-				preUnits, _ := matchBrackets(tmp, "{")        // a string that has prefix and units together
+				preUnits, _, _ := matchBrackets(tmp, "{")     // a string that has prefix and units together
 				prefix, units = getPrefixUnits(preUnits)      // separate preUnits into prefix and units
 				tmp2.units = units
 			}
 			if reLatex.MatchString(options) {
 				tmp := reLatex.FindStringSubmatch(options)[1]
-				latex, _ = matchBrackets(tmp, "{")
+				latex, _, logOut = matchBrackets(tmp, "{")
 				tmp2.latex = latex
 			}
 		}
@@ -833,10 +845,11 @@ func deCommentLatex(inString string) (string, string) {
 	return inString, comment
 }
 
-func matchBrackets(inString, leftBrac string) (string, string) {
-	// returns the first enclosed values inside outside matching brackets
+func matchBrackets(inString, leftBrac string) (string, string, string) {
+	// returns the FIRST enclosed values inside outside matching brackets
 	// as well as rest of string after outside matching brackets
-	var inside, rightBrac, tail string
+	// eg: inString = "{here 1{a}}{here 2}" results in... inside = "here 1{a}" and tail="{here 2}"
+	var inside, rightBrac, tail, logOut string
 	switch leftBrac {
 	case "{":
 		rightBrac = "}"
@@ -865,14 +878,17 @@ func matchBrackets(inString, leftBrac string) (string, string) {
 					if j+1 <= len(inString) {
 						tail = inString[j+1:]
 					}
-					return inside, tail
+					return inside, tail, ""
 				}
 
 			}
 
 		}
 	}
-	return inside, tail
+	if openBr > 0 {
+		logOut = "There is no closing backet: \"" + rightBrac + "\""
+	}
+	return inside, tail, logOut
 }
 
 func strIncrement(inString string, k int) string {
@@ -893,7 +909,7 @@ func function2Latex(inString string) string {
 			result = re0.FindStringSubmatch(inString)
 			head = result[1]
 			tail = result[2]
-			funcInput, tail = matchBrackets(tail, "(")
+			funcInput, tail, _ = matchBrackets(tail, "(")
 			if key == "log10" { // latex command cannot be \log10 since numbers not allowed
 				key = "logten" // change to logten so that \logten{} is used for latex
 			}
@@ -913,7 +929,7 @@ func fixParll(inString string) string {
 		if reParll.MatchString(outString) {
 			result = reParll.FindStringSubmatch(outString)
 			head = result[1]
-			inside, tail = matchBrackets(result[2], "(")
+			inside, tail, _ = matchBrackets(result[2], "(")
 			inside = fixParll(inside)
 			if reInside.MatchString(inside) {
 				result = reInside.FindStringSubmatch(inside)
@@ -1015,4 +1031,52 @@ func str2Float64(numStr string) (float64, string) {
 		x = 1.2345678e123
 	}
 	return x, logOut
+}
+
+func defaultUnitsFunc(inString string, configParam map[string]string) string {
+	// This function takes in defaultUnits notation and updates configParam map to include default values
+	// for variables that start with certain letters
+	// For example if inString = [[iI:A][g:mA/V]] then default units for variables that start with
+	// i or I are "A" while default units for variables that start with g are "mA/V"
+	// This is done by adding configParam["i"]="A" and configParam["I"]="A" and configParam["g"]="mA/V" to configParam map
+	var tail, logOut, letters, units string
+	var result []string
+	var re0 = regexp.MustCompile(`(?m)(?P<res1>[a-zA-Z]+):(?P<res2>.+)`)
+	inString, tail, logOut = matchBrackets(inString, "[") // removing outside brackets and just left with inside ... eg: [iI:A][g:mA/V]
+	if tail != "" {
+		logOut = "defaultUnits syntax is incorrect: extra characters after final \"]\""
+		return logOut
+	}
+	for { // do this loop til no more [thing] elements left
+		inString, tail, logOut = matchBrackets(inString, "[")
+		if logOut != "" {
+			return logOut
+		}
+		if inString == "" && tail == "" {
+			break
+		}
+		if re0.MatchString(inString) {
+			result = re0.FindStringSubmatch(inString)
+			letters = result[1]
+			units = result[2]
+			for i := 0; i < len(letters); i++ {
+				configParam[string(letters[i])] = units
+			}
+		} else {
+			logOut = "defaultUnits syntax is incorrect inside \"[ ]\" element"
+			return logOut
+		}
+		inString = tail
+	}
+	return logOut
+}
+
+func defaultUnitsVar(assignVar string, configParam map[string]string) string {
+	var units, firstLetter string
+	firstLetter = string(assignVar[0])
+	_, ok := configParam[firstLetter]
+	if ok { // if true then first letter of assignVar is a key in the configParam map and will have default units defined for it
+		units = configParam[firstLetter]
+	}
+	return units
 }

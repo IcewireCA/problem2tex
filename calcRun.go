@@ -10,7 +10,7 @@ import (
 // runs a line of code that may have several statements in it (separated by ";")
 // returns assignVar where assignVar is the assigned variable.  it is last assigned var if multiple statements
 // also returns answer (float64) where it is the last answer calculated if there are multiple statements in one line
-func runCode(inString string, varAll map[string]varSingle) (assignVar, outString string, answer float64, errCode string) {
+func runCode(inString string, varAll map[string]varSingle, configParam map[string]string) (assignVar, outString string, answer float64, errCode string) {
 	var result, lineCode []string
 	var infixCode, rpnCode, options, units, latex string
 	var errorInfix, errorRpn string
@@ -72,19 +72,20 @@ func runCode(inString string, varAll map[string]varSingle) (assignVar, outString
 			if !ok { // assignVar is a new variable and needs to be added to varAll map
 				varAll[assignVar] = varSingle{} // adding blank new variable to varAll map
 				tmp2 = varAll[assignVar]
-				tmp2.latex = latexifyVar(assignVar) // add latex version of assignVar
+				tmp2.units = defaultUnitsVar(assignVar, configParam) // add default units which may be overwritten later
+				tmp2.latex = latexifyVar(assignVar)                  // add latex version of assignVar
 			} else {
 				tmp2 = varAll[assignVar] // use existing map location
 			}
 			if reUnits.MatchString(options) {
 				tmp := reUnits.FindStringSubmatch(options)[1] // just the stuff {.*$
-				preUnits, _ := matchBrackets(tmp, "{")        // a string that has prefix and units together
+				preUnits, _, _ := matchBrackets(tmp, "{")     // a string that has prefix and units together
 				_, units = getPrefixUnits(preUnits)           // separate preUnits into prefix and units
 				tmp2.units = units
 			}
 			if reLatex.MatchString(options) {
 				tmp := reLatex.FindStringSubmatch(options)[1]
-				latex, _ = matchBrackets(tmp, "{")
+				latex, _, errCode = matchBrackets(tmp, "{")
 				tmp2.latex = latex
 			}
 			tmp2.value = answer
