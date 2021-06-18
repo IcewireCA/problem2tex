@@ -1,0 +1,447 @@
+\documentclass{article}
+
+\usepackage[american]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{xcolor, fullpage, hyperref, listings, enumitem, sectsty}
+\usepackage{fullpage}
+\usepackage{graphicx}
+\graphicspath{ {./Graphics/} }
+
+\sectionfont{\color{blue}}  % sets colour of sections
+\subsectionfont{\color{blue}}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+
+\newcommand{\hlite}[1]{%
+  \colorbox{yellow!50}{#1} }
+\newcommand{\units}{\,\mathrm}
+  
+\title{\color{blue}\texttt{problem2tex} \\ \normalsize{version = 0.8.5 (2021-06-15)}}
+
+\author{
+David Johns, \\ \texttt{david.johns@icewire.ca}
+}
+\date{Document Date - 2021-06-15}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{The need for problem to tex}
+
+
+Latex is an excellent way to create educational material such as textbooks, examples, exams, and problem sets.  The purpose of \texttt{problem2tex} creating a .tex file is to allow one to create a numerical example (or problem) .prb file so that parameters can change and have the solution be automatically updated for that choice of parameters.  In addition, \texttt{problem2tex} has an expression solver that is used to quickly write the solution for an example (or problem).  
+
+Example usage:\\
+\texttt{problem2tex -export=example.tex -random=false -sigDigits=4 example.prb}
+
+\section{Installation and Setup}
+
+For installation/setup of problem2tex, see \href{https://www.icewire.ca}{https://www.icewire.ca}
+
+
+
+
+\section{Running problem2tex}
+
+\subsection{Command Line Options}
+
+The command line options for \texttt{problem2tex} are the following:
+\begin{itemize}
+\item \texttt{-help}
+\begin{itemize}
+\item[] Print out help info
+\end{itemize}
+\item \texttt{-version}
+\begin{itemize}
+\item[] Print out version info
+\end{itemize}
+\item \texttt{-export=\textcolor{blue}{path}/filename.tex} 
+\begin{itemize}
+\item[] where the output should be placed 
+\item[] \textcolor{blue}{path} is the directory path that can include .. or . and subdirectories
+\end{itemize}
+\item \texttt{-random=\textcolor{blue}{option}}
+\begin{itemize}
+\item[] where option is one of ... (problem to tex option)
+\item[] \textcolor{blue}{true}: Parameters are randomized
+\item[] \textcolor{blue}{false}: Parameters are the first values in the sets (default setting)
+\item[] \textcolor{blue}{positive integer}: Seed for random number generator
+\item[] \textcolor{blue}{min}: All smallest numbers 
+\item[] \textcolor{blue}{max}: All largest numbers
+\item[] \textcolor{blue}{minMax}: Random mix of largest and smallest numbers
+
+\end{itemize}
+\item \texttt{-sigDigits=\textcolor{blue}{value}}
+\begin{itemize}
+\item[] where value is an integer that sets the default number of significant digits in the output (If not specified, then it is set to 4).  RunConfig can also be used to set number of significant digits.
+\end{itemize}
+\end{itemize}
+
+\subsection{Error Logging}
+
+When running problem2tex, error information is placed as comments at the beginning of the output .tex file.  If things do not work as you expect, check the error log information first as Latex error information can sometimes be misleading.
+
+\subsection{Examples}
+
+problem2tex is a way to make problems have parameters that can change and the solution is re-calculated for that solution.  In addition, the solution is easily written as equations which are then displayed as latex solutions.  For this to work, problem2tex has a built-in expression solver similar to Julia or Matlab.   
+
+This example is available at \href{https://www.icewire.ca/examples/testBasic.zip}{testBasic.zip}
+
+In this example, basic01.prb is a user generated problem file and contains the following text:
+\begin{lstlisting}
+\runParam{x = [2, 3, 4, 5]}
+\runParam{y = [6, 7, 8, 9] }
+\runParam{k = [8]}
+\question Given \val={x}, \val={y}, and \val={k} find $z = x^2+y-k$\\
+\textbf{Solution}\\
+\run(){z=x^2+y-k}\\ 
+\hlite{\val={z}}
+\end{lstlisting}
+
+For the above problem, $x$, $y$ and $k$ are all parameters where $x$ is any one of 2,3,4 or 5 and
+y is any one of 6,7,8 or 9 and k is 8.  For the solution, it is simply written as the equation and a built-in expression solver solves the expression and writes it out in correct Latex form.  The solution in this case is written as 
+
+\begin{lstlisting}
+\run(){z=x^2+y-k}
+\end{lstlisting}
+
+
+and when running with the following command\\
+\begin{lstlisting}
+problem2tex -export=example.tex example.prb
+\end{lstlisting}
+the following tex file is created ...
+\begin{lstlisting}
+% Created with problem2tex: version = (version info)
+\question Given \mbox{$x = \mbox{$2 \units{ }$}$}, \mbox{$y = \mbox{$6 \units{ }$}$},
+and \mbox{$k = \mbox{$8 \units{ }$}$} find $z = x^2+y-k$\\
+\textbf{Solution}\\
+\mbox{$z=x^2+y-k  = (2)^2+(6)-(8)$}\\ 
+\hlite{\mbox{$z = \mbox{$2 \units{ }$}$}}
+\end{lstlisting}
+
+The command \textbackslash mbox is used so that inline equations can be used either within or outside other inline equations.  The command \textbackslash units is used to improve the font when displaying units (there are no units for this example).
+
+In the same testBasic.zip file, the second example basic01.prb contains the following text:
+\begin{lstlisting}
+\runParam{V_1 = [2, 3, 4, 5]# \units{V}}
+\runParam{R_1 = [6, 7, 8, 9]# \units{k \Omega}}
+\question Given \val={V_1} and \val={R_1}, find the current  $I_R = V_1/R_1$\\
+\textbf{Solution}\\
+\run(){I_R=V_1/R_1}\\
+\hlite{\val={I_R}}
+\end{lstlisting}
+ 
+What is interesting here is that units can be assigned to parameters and the expression solver takes into account unit prefixes to generate the correct solution value prefix (i.e, f, p, n, $\mu$, m, k, M, G, etc). 
+
+Also related to units, the units for any variable can be set using the \textbackslash units\{\} command.  In addition, a parameter in runConfig called defaultUnits can be used to set the default units depending on the first letter of the variable. (see runConfig)
+
+\textbf{NOTE: micro uses \textbackslash mu (and not the letter u)}
+
+In this example, the above 2 problem files are included in a filed called basic.tex which contains the following text:
+\begin{lstlisting}
+\documentclass[11pt]{exam}
+\usepackage{import,xcolor}
+\newcommand{\incProb}[1]{
+    \immediate\write18{problem2tex -export=Problems/tmp/#1.tex 
+    -random=false -sigDigits=4 Problems/#1.prb} 
+  \import{Problems/tmp/}{#1.tex}
+}
+\newcommand{\hlite}[1]{%
+  \colorbox{yellow!50}{#1} }
+\newcommand{\units}{\,\mathrm}
+
+\begin{document} 
+\begin{questions}
+
+\incProb{basic01}
+\incProb{basic02}
+
+\end{questions}
+\end{document}
+\end{lstlisting}
+
+The tex file is using the exam class (for question numbering) and has 3 commands defined: \textbackslash incProb; \textbackslash hlite; \textbackslash units.
+
+When the above basic.tex is compiled as a text document, the following output is generated:
+
+\begin{itemize}
+% Created with problem2tex: version = 0.8.2 (2021-02-09)
+\item[1.] Given \mbox{$x = \mbox{$2 \units{ }$}$}, \mbox{$y = \mbox{$6 \units{ }$}$}, and \mbox{$k = \mbox{$8 \units{ }$}$} find $z = x^2+y-k$
+\item[] \textbf{Solution}\\
+\mbox{$z=x^2+y-k  = (2)^2+(6)-(8)$}\\
+\hlite{\mbox{$z = \mbox{$2 \units{ }$}$}}
+
+\vspace{10px}
+% Created with problem2tex: version = 0.8.2 (2021-02-09)
+\item[2.] Given \mbox{$V_{1} = \mbox{$2 \units{ V}$}$} and \mbox{$R_{1} = \mbox{$6 \units{k \Omega}$}$}, find the current  $I_R = V_1/R_1$
+\item[] \textbf{Solution}\\
+\mbox{$I_{R}=V_{1}/R_{1}  = (2)/(6e3)$}\\
+\hlite{\mbox{$I_{R} = \mbox{$333.3 \units{\mu A}$}$}}
+\end{itemize}
+
+In this case, all default parameters are used but it is one line change to obtain random parameters and change the significant number of digits.
+
+\begin{lstlisting}
+problem2tex -export=Problems/tmp/#1.tex -random=true -sigDigits=6 Problems/#1.prb
+\end{lstlisting}
+
+When run using the above random flag, one example random case is the following:
+(each run will be random) 
+
+\begin{itemize}
+% Created with problem2tex: version = 0.8.2 (2021-02-09)
+\item[1.] Given \mbox{$x = \mbox{$5 \units{ }$}$}, \mbox{$y = \mbox{$8 \units{ }$}$}, and \mbox{$k = \mbox{$8 \units{ }$}$} find $z = x^2+y-k$
+\item[] \textbf{Solution}\\
+\mbox{$z=x^2+y-k  = (5)^2+(8)-(8)$}\\
+\hlite{\mbox{$z = \mbox{$25 \units{ }$}$}}
+
+\vspace{10px}
+% Created with problem2tex: version = 0.8.2 (2021-02-09)
+\item[2.] Given \mbox{$V_{1} = \mbox{$3 \units{ V}$}$} and \mbox{$R_{1} = \mbox{$7 \units{k \Omega}$}$}, find the current  $I_R = V_1/R_1$
+\item[] \textbf{Solution}\\
+\mbox{$I_{R}=V_{1}/R_{1}  = (3)/(7e3)$}\\
+\hlite{\mbox{$I_{R} = \mbox{$428.571 \units{\mu A}$}$}}
+\end{itemize} 
+
+\subsection{Configuration settings}
+Configuration settings can be changed at any time and then they are used going forward until
+changed again.  Configuration settings can be changed using the \textbackslash runConfig command.
+
+Example: \textbackslash runConfig\{random = min\}
+
+\begin{itemize}
+\item random - choice of false, true, min, max, minMax and positive integer
+\begin{itemize}
+\item[] - false:  defaults elements chosen
+\item[] - true: random elements chosen
+\item[] - min: min sized elements chosen 
+\item[] - max: max sized elements chosen
+\item[] - minMax: random choice of min and max sized elements chosen
+\item[] - positive integer: seed for random generator so same elements can be chosen
+\end{itemize}
+\item fmtVal - format of output values for \textbackslash val
+\begin{itemize}
+\item[] - set as \textbackslash runConfig\{format=X\} where X is one of ...\\
+(the number of significant digits can be from 1-9)
+\item[] - E4 for engineering format with 4 significant digits
+\item[] - S4 for scientific format with 4 significant digits
+\item[] - D4 for decimal format with 4 significant digits
+\item[] - \$ for dollar format (always has 2 digits after decimal point)
+\item[] - U4 for SI format (including units) with 4 significant digits
+\item[] - DEFAULT IS U4
+\end{itemize}
+\item fmtRun= - format of output values after equal in \textbackslash run= or \textbackslash run()= commands
+\begin{itemize}
+\item[] - Same as format above 
+\item[] - DEFAULT IS U4
+\end{itemize}
+\item fmtRun() - format of output values in bracketed numbers in \textbackslash run() or \textbackslash run()= commands
+\begin{itemize}
+\item[] - Same as format above except U format not allowed
+\item[] - DEFAULT IS E4 
+\end{itemize}
+\item KFactor - Used for default set generation if \textbackslash runParam sets var to a nominal number.
+\begin{itemize}
+\item[] - Set KFactor example: \textbackslash runConfig\{KFactor = 1.5:5\} where 1.5 is the factor and 5 is the number of elements in the set.  
+\item[] - Factor must be a number greater than 1.
+\item[] - The range of the elements are from nominal/factor to nominal*factor and are geometrically spaced.
+\end{itemize}
+\item defaultUnits - used to set the default units depending on the first letter of a variable
+\begin{itemize}
+\item[] - example: \textbackslash runConfig\{defaultUnits = [[iI:A][vV:V][R:\textbackslash Omega]]\}
+\item[] - above example results in variables starting with the letter i or I having default units of "A"
+\item[] - variables starting with letter v or V having default units of "V"
+\item[] - variables starting with letter R having default units of "\textbackslash Omega"
+\item[] - use of \textbackslash units within a run command will override the default unit setting
+\end{itemize}
+\item verbose - choice of true or false (default false)
+\begin{itemize}
+\item[] - prints out the elements sets in commented out lines in the .tex file (useful for debugging)\item[] - Also prints out the configuration settings
+\end{itemize}
+\end{itemize}
+
+\subsection{Commands for .prb files}
+
+There are 4 main commands for problem to tex:
+\begin{itemize}
+\item \textbackslash runConfig (discussed above)
+\item \textbackslash runParam
+\item \textbackslash run
+\item \textbackslash val
+\end{itemize}
+
+\subsubsection{\textbackslash runParam command}
+The command \textbackslash runParam can be used to set configuration parameters (see above) as well as being used for setting the randomly generated parameters.
+
+\begin{itemize}
+\item \textbackslash runParam\{var = [x1, x2, x3, ...]\# \textbackslash units\{\textcolor{blue}{units}\} \textbackslash symbol\{\textcolor{blue}{varLatex}\} \}
+\begin{itemize}
+\item[] - var will be a random selection from the set of x1, x2, x3, ...
+\item[] - if random=false, the default value for var is the first element
+\item[] - if \textbackslash units\{\textcolor{blue}{units}\} is present, then the units for that variable will be \textcolor{blue}{units}
+\item[] - if \textbackslash symbol\{\textcolor{blue}{varLatex}\} is present, then when printing out, var will be replaced with \textcolor{blue}{varLatex}
+\end{itemize}
+\item \textbackslash runParam\{var = min;max;stepsize\# \textbackslash units\{\textcolor{blue}{units}\} \textbackslash symbol\{\textcolor{blue}{varLatex}\} \}
+\begin{itemize}
+\item[] - The set for var will be generated from min;max;stepsize
+\item[] - The first element will be min so the default will be the min element
+\item[] - Otherwise, it is the same as the array generation above
+\end{itemize}
+\item \textbackslash runParam\{var = nominal\# \textbackslash units\{\textcolor{blue}{units}\} \textbackslash symbol\{\textcolor{blue}{varLatex}\} \}
+\begin{itemize}
+\item[] - The set for var will be generated from nominal and the KFactor configuration parameter
+\item[] - KFactor: factor:numElements... factor is a number greater than 1 and numElements is a positive integer (numElements is the number of elements in the set).
+\item[] - Elements range from nominal/factor to nominal*factor and are geometrically spaced
+\item[] - Example: if nominal is 10 and factor is 1.5, then the range is from 6.667 to 15
+\item[] - The default is nominal which would be 10 in the above example
+\item[] - Otherwise, it is the same as the array generation above
+\end{itemize}
+\end{itemize}
+\subsubsection{\textbackslash run commands}
+
+The commands \textbackslash run are used for evaluating expressions and setting new variables.
+
+\textbf{The format for an expression is the same as Matlab or Julia (NOT a latex equation).}
+
+See the Expression Solver section below for more information.
+
+Options are the same as in \textbackslash runParam.
+
+\textbf{In all cases below, the \textcolor{blue}{expr} is evaluated and the result is assigned to \textcolor{blue}{var}}
+
+\begin{itemize}
+\item \textbackslash run\{\textcolor{blue}{var} = \textcolor{blue}{expr} \# \textcolor{blue}{options} \}
+\begin{itemize}
+\item[] - Print out \textcolor{blue}{var} = \textcolor{blue}{expr}.  
+\item[] - There can be multiple \textcolor{blue}{var} = \textcolor{blue}{expr} separated by ";" 
+\end{itemize}
+\item \textbackslash runSilent\{\textcolor{blue}{var} = \textcolor{blue}{expr} \# \textcolor{blue}{options}\}
+\begin{itemize}
+\item[] - Do not print anything out
+\end{itemize}
+\item \textbackslash run()\{\textcolor{blue}{var} = \textcolor{blue}{expr} \# \textcolor{blue}{options}\}
+\begin{itemize}
+\item[] - Print out \textcolor{blue}{var} = \textcolor{blue}{expr} AND print out intermediate () \textcolor{blue}{expr} for clarity
+\end{itemize}
+\item \textbackslash run=\{\textcolor{blue}{var} = \textcolor{blue}{expr} \# \textcolor{blue}{options}\}
+\begin{itemize}
+\item[] - Print out \textcolor{blue}{var} = \textcolor{blue}{expr} AND print out  "= result"
+\end{itemize}
+\item \textbackslash run()=\{\textcolor{blue}{var} = \textcolor{blue}{expr} \# \textcolor{blue}{options}\}
+\begin{itemize}
+\item[] - Print out \textcolor{blue}{var} = \textcolor{blue}{expr} AND print out intermediate () \textcolor{blue}{expr} AND print out "= result"
+\end{itemize}
+\end{itemize}
+
+\subsubsection{\textbackslash val command}
+Below is the \textbackslash val command for printing out variable value or an expression value.  
+\begin{itemize}
+\item \textbackslash val\{\textcolor{blue}{expr,format}\}
+\begin{itemize}
+\item[] - Print out the result of \textcolor{blue}{expr} with format set by \textcolor{blue}{format} (see \textbackslash runConfig)
+\item[] - \textcolor{blue}{,format} is optional.  If not present, then the default setting for format is used which was set by \textbackslash runConfig\{format = X\}
+\item[] - \textcolor{blue}{expr} in a \textbackslash val command should NOT contain a ","
+\item[] - \textcolor{blue}{expr} in a \textbackslash run command may contain ","s
+\item[] - \textcolor{blue}{expr} can be a single variable or a full expression
+\end{itemize}
+
+\end{itemize}
+
+\subsection{Expression Solver}
+
+Problem to tex makes use of a built in expression solver to solve \textcolor{blue}{expr} within \textbackslash run\{\textcolor{blue}{expr}\}.  Expressions are made similar to Julia or Matlab.  
+
+Example valid  \textcolor{blue}{expr} are:
+\begin{itemize}
+\item \textbackslash run\{A = sqrt(B)*abs(-4)\}
+\item \textbackslash run\{R\_4 = parll(R\_1,parll(R\_2,R\_3))\}
+\end{itemize}
+
+\subsubsection{Functions}
+
+The functions currently known in problem2tex are:
+
+\begin{itemize}
+\item[] abs, asin, asinh, acos, acosh, atan, atanh, ceil, cos, cosh, exp, floor, log, log10, round, sin, sinh, sqrt, tan, tanh
+\end{itemize}
+
+the above make use of the math package for golang.
+
+In addition, extra functions are:
+
+\begin{itemize}
+\item cosd(x), sind(x), tand(x)
+\begin{itemize}
+\item[] returns cos(x)/sin(x)/tan(x) but x value is in degrees
+\end{itemize}
+\item acosd(x), asind(x), atand(x)
+\begin{itemize}
+\item[] returns acos(x)/asin(x)/atan(x) but returns the value in degrees
+\end{itemize}
+\item dB(x)
+\begin{itemize}
+\item[] returns 10*log10(x)
+\end{itemize}
+\item dbV(x)
+\begin{itemize}
+\item[] returns 20*log10(x)
+\end{itemize}
+\item parll(a,b)
+\begin{itemize}
+\item[] returns the numeric parallel value (returns $(1/a + 1/b)^{-1}$)
+\item[] the latex printout of this function is $||$ to make it more readable
+\end{itemize}
+\end{itemize}
+
+\subsubsection{More on Units}
+
+problem2tex will automatically calculate proper unit prefixes IF SI unit notation is used.  For micro, "\textbackslash mu" must be used instead of "u". In some situations, one might want to use a unit notation that is NOT SI proper.  For example, one might want to use $\units{V/\mu m}$ instead of $\units{MV/m}$.  In this case a way to achieve this is shown with the following example...
+
+\begin{lstlisting}
+\runParam{VAprime = [5,3,4,6]# \units{V/\mu m} \symbol{V_A'}}
+\runParam{V_A = [6, 7, 8, 9]}
+\question Given \val={VAprime} and \val={V_A}, find $L$ \\
+\textbf{Solution}\\
+\runSilent{VAprime = 1e6*VAprime}
+\run()={L=V_A/VAprime#\units{m}}\\
+\end{lstlisting}
+
+The use of \textbackslash runSilent corrects the value for VAprime (since $\units{\mu m}$ is in the denominator of a unit) by multiplying the values by 1e6. In this example, "L" would default to units of "H" so it is corrected to meters using \textbackslash units\{m\}.
+
+The output becomes ...
+
+\begin{itemize}
+% Created with problem2tex: version = 0.8.2 (2021-02-09)
+\item[1.] Given \mbox{$V_A' = \mbox{$5 \units{ V/\mu m}$}$} and \mbox{$V_{A} = \mbox{$6 \units{ V}$}$}, find $L$ \\
+\textbf{Solution}\\
+\mbox{$L=V_{A}/V_A'  = (6)/(5e6) = \mbox{$1.2 \units{\mu m}$}$}\\
+\end{itemize}
+
+\section{License}
+
+\subsection{Files created by problem2tex}
+
+All files created by problem2tex are owned by the creators of the work (that is you) and/or by the original authors of the work in cases you use derivative works.
+
+\subsection{Software License}
+
+Copyright \textcopyright\ 2021 David Johns. 
+
+This license applies to problem2tex the program, it's packages, extensions and source code as published or made available through any third party.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+\end{document}
