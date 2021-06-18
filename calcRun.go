@@ -20,8 +20,8 @@ func runCode(inString string, varAll map[string]varSingle, configParam map[strin
 	var reBeforeComment = regexp.MustCompile(`(?mU)^(?P<res1>.*)#.*$`)
 	var reOptions = regexp.MustCompile(`(?mU)^.*#(?P<res1>.*)$`)
 	//	var reGetFirstWord = regexp.MustCompile(`(?m)^\s*(?P<res1>\w*)`)
-	var reUnits = regexp.MustCompile(`(?m)\\paramUnits(?P<res1>{.*)$`)
-	var reLatex = regexp.MustCompile(`(?m)\\paramLatex(?P<res1>{.*)$`)
+	var reUnits = regexp.MustCompile(`(?m)\\units(?P<res1>{.*)$`)
+	var reLatex = regexp.MustCompile(`(?m)\\symbol(?P<res1>{.*)$`)
 
 	if reOptions.MatchString(inString) {
 		options = reOptions.FindStringSubmatch(inString)[1]

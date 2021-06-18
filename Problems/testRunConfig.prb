@@ -1,6 +1,8 @@
-\runConfig{format()=E2}
-\runConfig{defaultUnits=[[iI:A][vV:V][rR:\Omega][lL:H][cC:F][gG:A/V]]} # comment
+\runConfig{fmtRun()=E2}
+\runConfig{defaultUnits=[[iI:A][vV:V][rR:\Omega][lL:H][cC:F][gG:A/V]]} % comment
 \runConfig{verbose=true}
 \runParam{V_1=2}
 \runParam{R_1=6000}
+\val{V_1,=}\\
+\val{R_1,=}\\
 \run()={I_1 = V_1/R_1}

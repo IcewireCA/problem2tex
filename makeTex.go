@@ -24,15 +24,15 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 	// these are configuration parameters
 	// for format, the number represents the number of significant digits
 	// in the case of $, digits is forced to 2 after the decimal sign.
-	// format: when \val is used
-	// format(): the values inside brackets when \run() is used
-	// formatEQN: when \run= or \val{value,=} is used
+	// fmtVal: when \val is used
+	// fmtRun(): the values inside brackets when \run() is used
+	// fmtRun=: when \run= is used
 	var configParam = map[string]string{ // defaults shown below
 		"random":       randomStr, // can be false, true, any positive integer, min, max, minMax
 		"KFactor":      "1.3:5",   // variation from x/k to kx : number of choices
-		"format":       "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
-		"format()":     "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
-		"formatEQN":    "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
+		"fmtVal":       "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
+		"fmtRun()":     "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
+		"fmtRun=":      "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
 		"verbose":      "false",   // can be true or false
 		"defaultUnits": "",        // place defaultUnits here [[iI:A][vV:V][rR:\Omega]]  etc
 		// if first letter of a variable is i or I then default units is A
@@ -186,7 +186,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	case "run": // run statement and print statement (ex: v_2 = 3*V_t)
 		assignVar, runCmd, answer, logOut = runCode(runCmd, varAll, configParam)
 		if assignVar == "" {
-			replace = value2Str(answer, configParam["format"]) // not an assignment statment so just return  answer
+			replace = value2Str(answer, configParam["fmtVal"]) // not an assignment statment so just return  answer
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + "$}"
 		}
@@ -195,7 +195,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
 		} else {
-			_, sigDigits, _ = parseFormat(configParam["formatEQN"])
+			_, sigDigits, _ = parseFormat(configParam["fmtRun="])
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
 		}
 	case "run()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
@@ -203,7 +203,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
 	case "run()=": // same as run() but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
 		assignVar, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
-		_, sigDigits, _ = parseFormat(configParam["formatEQN"])
+		_, sigDigits, _ = parseFormat(configParam["fmtRun="])
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
 	default:
 		// if here, then error as \run**something else** is here
@@ -234,7 +234,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 			formatType = formatStr
 		case "U":
 			formatType = formatStr
-			_, sigDigits, _ = parseFormat(configParam["format"])
+			_, sigDigits, _ = parseFormat(configParam["fmtVal"])
 		default:
 			formatType, sigDigits, logOut = parseFormat(formatStr)
 			if logOut != "" {
@@ -243,7 +243,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 		}
 	} else { // no comma and so no format given then use default
 		exp = expAndFormat
-		formatType, sigDigits, _ = parseFormat(configParam["format"])
+		formatType, sigDigits, _ = parseFormat(configParam["fmtVal"])
 		formatStr = formatType + sigDigits
 	}
 	// we now know the formatType and sigDigits to use so carry on ...
@@ -256,11 +256,11 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 		case "U":
 			replace = valueInSI(exp, varAll, sigDigits)
 		case "=":
-			if string(configParam["formatEQN"][0]) == "U" {
-				sigDigits = string(configParam["formatEQN"][1])
+			if string(configParam["fmtRun="][0]) == "U" {
+				sigDigits = string(configParam["fmtRun="][1])
 				replace = "\\mbox{$" + varAll[exp].latex + "=" + valueInSI(exp, varAll, sigDigits) + "$}"
 			} else { // if format not equal to U, then
-				replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, configParam["formatEQN"]) + "$}"
+				replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, configParam["fmtRun="]) + "$}"
 			}
 		case "L": // if L then print out latex symbol instead of value
 			replace = "\\mbox{$" + varAll[exp].latex + "$}"
@@ -368,19 +368,19 @@ func runConfigFunc(statement string, configParam map[string]string) (string, str
 			switch assignVar { // do some checks on rightSide to ensure it is valid
 			case "random":
 				_, logOut = checkRandom(rightSide)
-			case "format", "formatEQN":
+			case "fmtVal", "fmtRun=":
 				formatType, _, logOut = parseFormat(rightSide)
 				switch formatType {
 				case "E", "S", "D", "$", "U":
 				default:
-					logOut = "format/formatEQN config setting can be either E, S, D, $ or U"
+					logOut = "fmtVal/fmtRun= config setting can be either E, S, D, $ or U"
 				}
-			case "format()":
+			case "fmtRun()":
 				formatType, _, logOut = parseFormat(rightSide)
 				switch formatType {
 				case "E", "S", "D", "$":
 				default:
-					logOut = "format() config setting can be either E, S, D, or $"
+					logOut = "fmtRun() config setting can be either E, S, D, or $"
 				}
 			case "KFactor":
 				_, _, logOut = convertKFactor(rightSide)
@@ -429,8 +429,8 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 	var reEqual = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\s*=\s*(?P<res2>.*)\s*`)
 	var reArray = regexp.MustCompile(`(?m)^\s*\[(?P<res1>.*)\]\s*(?P<res2>.*)`)
 	var reOptions = regexp.MustCompile(`(?m)#(?P<res1>.*)$`)
-	var reUnits = regexp.MustCompile(`(?m)\\paramUnits(?P<res1>{.*)$`)
-	var reLatex = regexp.MustCompile(`(?m)\\paramLatex(?P<res1>{.*)$`)
+	var reUnits = regexp.MustCompile(`(?m)\\units(?P<res1>{.*)$`)
+	var reLatex = regexp.MustCompile(`(?m)\\symbol(?P<res1>{.*)$`)
 	var reStep = regexp.MustCompile(`(?m)^\s*(?P<res1>\S+)\s*;\s*(?P<res2>\S+)\s*;\s*(?P<res3>\S+)[#|\s]*`)
 	var reKFactor = regexp.MustCompile(`(?m)^\s*(?P<res1>[^#|\s]+)`) // match everything up to a # or space
 	if reEqual.MatchString(statement) {
@@ -671,7 +671,7 @@ func bracketed(statement string, varAll map[string]varSingle, configParam map[st
 			_, ok := varAll[result[i]]
 			if ok {
 				re2 = regexp.MustCompile(`(?m)` + result[i])
-				sub = "(" + value2Str(varAll[result[i]].value, configParam["format()"]) + ")"
+				sub = "(" + value2Str(varAll[result[i]].value, configParam["fmtRun()"]) + ")"
 				backPart = re2.ReplaceAllString(backPart, sub)
 			}
 		}

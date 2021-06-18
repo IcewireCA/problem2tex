@@ -2,10 +2,10 @@
 default: \val{1/3} E6: \val{1/3,E6} S3: \val{1/3,S3}\\
 D4: \val{1/3,D4} \$: \val{1/3,$}\\
 
-\runSilent{V_1 = 100000/3#\paramUnits{V}}
+\runSilent{V_1 = 100000/3#\units{V}}
 \val{V_1} \\
 equal: \val{V_1,=} units: \val{V_1,U6} unitsDefault: \val{V_1,U}\\
-latex: \val{V_1,L}\\
+symbol: \val{V_1,L}\\
 
 \runSilent{tmp=100000/3}
 default: \val{tmp} E6: \val{tmp,E6} S6: \val{tmp,S6}\\
