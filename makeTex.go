@@ -34,6 +34,7 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 		"fmtRun()":     "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
 		"fmtRun=":      "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
 		"verbose":      "false",   // can be true or false
+		"simpleSyntax": "false",   // can be true or false
 		"defaultUnits": "",        // place defaultUnits here [[iI:A][vV:V][rR:\Omega]]  etc
 		// if first letter of a variable is i or I then default units is A
 	}
@@ -54,6 +55,11 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 	// }
 
 	inLines = strings.Split(problemInput, "\n")
+	if checkSimpleSyntax(inLines[0]) {
+		configParam["simpleSyntax"] = "true"
+		inLines[0] = ""
+		inLines = convertSimpleSyntax(inLines)
+	}
 	for i := range inLines {
 		inLines[i], comment = deCommentLatex(inLines[i])
 		logOut = syntaxWarning(inLines[i])
@@ -405,6 +411,8 @@ func runConfigFunc(statement string, configParam map[string]string) (string, str
 				if logOut != "" {
 					return "defaultUnits syntax is incorrect", logOut
 				}
+			case "simpleSyntax": // if here, send out message that this line should ONLY occur as the first line of .prb file.
+				return "simpleSyntax setting should ONLY occur as first line of .prb file", ""
 			default:
 				logOut = "should never be here 05"
 			}
@@ -1079,4 +1087,43 @@ func defaultUnitsVar(assignVar string, configParam map[string]string) string {
 		units = configParam[firstLetter]
 	}
 	return units
+}
+
+func checkSimpleSyntax(inString string) bool {
+	// check if line has CONFIG{simpleSyntax=true} in it and if so return true
+	var re0 = regexp.MustCompile(`(?m)^\s?CONFIG\{\s?simpleSyntax\s?=\s?true\s?\}\s?$`)
+	var decision bool
+	decision = false
+	if re0.MatchString(inString) {
+		decision = true
+	}
+	return decision
+}
+
+func convertSimpleSyntax(inLines []string) []string {
+	var outLines []string
+	var reConfig = regexp.MustCompile(`(?m)CONFIG\{`)
+	var reParam = regexp.MustCompile(`(?m)PARAM\{`)
+	var reVal = regexp.MustCompile(`(?m)VAL\{`)
+	var reRun = regexp.MustCompile(`(?m)RUN\{`)
+	var reRunEq = regexp.MustCompile(`(?m)RUN=\{`)
+	var reRunBr = regexp.MustCompile(`(?m)RUN\(\)\{`)
+	var reRunBrEq = regexp.MustCompile(`(?m)RUN\(\)=\{`)
+	var reRunSilent = regexp.MustCompile(`(?m)RUNSILENT{`)
+	var reUnits = regexp.MustCompile(`(?m)UNITS{`)
+	var reSymbol = regexp.MustCompile(`(?m)SYMBOL{`)
+	for i := range inLines {
+		outLines = append(outLines, inLines[i])
+		outLines[i] = reConfig.ReplaceAllString(outLines[i], "\\runConfig{")
+		outLines[i] = reParam.ReplaceAllString(outLines[i], "\\runParam{")
+		outLines[i] = reVal.ReplaceAllString(outLines[i], "\\val{")
+		outLines[i] = reRun.ReplaceAllString(outLines[i], "\\run{")
+		outLines[i] = reRunEq.ReplaceAllString(outLines[i], "\\run={")
+		outLines[i] = reRunBr.ReplaceAllString(outLines[i], "\\run(){")
+		outLines[i] = reRunBrEq.ReplaceAllString(outLines[i], "\\run()={")
+		outLines[i] = reRunSilent.ReplaceAllString(outLines[i], "\\runSilent{")
+		outLines[i] = reUnits.ReplaceAllString(outLines[i], "\\units{")
+		outLines[i] = reSymbol.ReplaceAllString(outLines[i], "\\symbol{")
+	}
+	return outLines
 }
