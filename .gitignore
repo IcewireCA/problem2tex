@@ -1,3 +1,9 @@
 problem2tex*
 binaries*
 binaries/*
+vendor*
+vendor/*
+tmp*
+tmp/*
+runBackup.sh
+
