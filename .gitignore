@@ -6,4 +6,6 @@ vendor/*
 tmp*
 tmp/*
 runBackup.sh
+bugList.txt
+buildExecutables.sh
 
