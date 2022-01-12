@@ -173,7 +173,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	result = reFirstRunCmd.FindStringSubmatch(inString)
 	head = result[1]
 	runCmdType = result[2]
-	runCmd, tail, logOut = matchBrackets(result[3], "{")
+	runCmd, tail, _ = matchBrackets(result[3], "{")
 	replace = "" // so the old replace is not used
 	switch runCmdType {
 	case "runConfig": // Used for setting configuration settings
@@ -532,7 +532,7 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			}
 			if reLatex.MatchString(options) {
 				tmp := reLatex.FindStringSubmatch(options)[1]
-				latex, _, logOut = matchBrackets(tmp, "{")
+				latex, _, _ = matchBrackets(tmp, "{")
 				tmp2.latex = latex
 			}
 		}
@@ -544,7 +544,7 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 					outVerbose = outVerbose + ","
 				}
 			}
-			outVerbose = outVerbose + "]"
+			outVerbose = outVerbose + "] units: " + prefix + units + " latexSymbol: " + tmp2.latex
 		}
 		random, logOut = checkRandom(configParam["random"])
 		switch random {
@@ -1050,7 +1050,7 @@ func defaultUnitsFunc(inString string, configParam map[string]string) string {
 	var tail, logOut, letters, units string
 	var result []string
 	var re0 = regexp.MustCompile(`(?m)(?P<res1>[a-zA-Z]+):(?P<res2>.+)`)
-	inString, tail, logOut = matchBrackets(inString, "[") // removing outside brackets and just left with inside ... eg: [iI:A][g:mA/V]
+	inString, tail, _ = matchBrackets(inString, "[") // removing outside brackets and just left with inside ... eg: [iI:A][g:mA/V]
 	if tail != "" {
 		logOut = "defaultUnits syntax is incorrect: extra characters after final \"]\""
 		return logOut
