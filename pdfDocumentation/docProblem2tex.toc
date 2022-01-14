@@ -1,18 +1,18 @@
 \babel@toc {american}{}
 \contentsline {section}{\numberline {1}The need for problem to tex}{1}{section.1}%
 \contentsline {section}{\numberline {2}Installation and Setup}{1}{section.2}%
-\contentsline {section}{\numberline {3}Running problem2tex}{1}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Command Line Options}{1}{subsection.3.1}%
+\contentsline {section}{\numberline {3}Running problem2tex}{2}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Command Line Options}{2}{subsection.3.1}%
 \contentsline {subsection}{\numberline {3.2}Error Logging}{2}{subsection.3.2}%
 \contentsline {subsection}{\numberline {3.3}Examples}{2}{subsection.3.3}%
 \contentsline {subsection}{\numberline {3.4}Configuration settings}{4}{subsection.3.4}%
 \contentsline {subsection}{\numberline {3.5}Commands for .prb files}{5}{subsection.3.5}%
-\contentsline {subsubsection}{\numberline {3.5.1}\textbackslash runParam command}{5}{subsubsection.3.5.1}%
-\contentsline {subsubsection}{\numberline {3.5.2}\textbackslash run commands}{6}{subsubsection.3.5.2}%
-\contentsline {subsubsection}{\numberline {3.5.3}\textbackslash val command}{6}{subsubsection.3.5.3}%
+\contentsline {subsubsection}{\numberline {3.5.1}PARAM command}{6}{subsubsection.3.5.1}%
+\contentsline {subsubsection}{\numberline {3.5.2}RUN commands}{6}{subsubsection.3.5.2}%
+\contentsline {subsubsection}{\numberline {3.5.3}VAL command}{7}{subsubsection.3.5.3}%
 \contentsline {subsection}{\numberline {3.6}Expression Solver}{7}{subsection.3.6}%
 \contentsline {subsubsection}{\numberline {3.6.1}Functions}{7}{subsubsection.3.6.1}%
-\contentsline {subsubsection}{\numberline {3.6.2}More on Units}{7}{subsubsection.3.6.2}%
+\contentsline {subsubsection}{\numberline {3.6.2}More on Units}{8}{subsubsection.3.6.2}%
 \contentsline {section}{\numberline {4}License}{8}{section.4}%
 \contentsline {subsection}{\numberline {4.1}Files created by problem2tex}{8}{subsection.4.1}%
 \contentsline {subsection}{\numberline {4.2}Software License}{8}{subsection.4.2}%

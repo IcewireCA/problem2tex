@@ -34,7 +34,6 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 		"fmtRun()":     "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
 		"fmtRun=":      "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
 		"verbose":      "false",   // can be true or false
-		"simpleSyntax": "false",   // can be true or false
 		"defaultUnits": "",        // place defaultUnits here [[iI:A][vV:V][rR:\Omega]]  etc
 		// if first letter of a variable is i or I then default units is A
 	}
@@ -55,11 +54,6 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 	// }
 
 	inLines = strings.Split(problemInput, "\n")
-	if checkSimpleSyntax(inLines[0]) {
-		configParam["simpleSyntax"] = "true"
-		inLines[0] = ""
-		inLines = convertSimpleSyntax(inLines)
-	}
 	for i := range inLines {
 		inLines[i], comment = deCommentLatex(inLines[i])
 		logOut = syntaxWarning(inLines[i])
@@ -112,44 +106,60 @@ func logOutError(logOut string, lineNum int, typeErr string) string {
 	return outString
 }
 
-// commandReplace looks for \val, \run and \runConfig commands, executes those commands and replaces each with appropriate output
+// commandReplace looks for VAL and RUN  commands, executes those commands and replaces each with appropriate output
 func commandReplace(inString string, varAll map[string]varSingle, configParam map[string]string, ltSpice bool) (string, string) {
 	// ltSpice is a bool that if true implies we are replacing things in a .asc file (instead of a .prb file)
-	var head, tail, replace, logOut, newLog, leftMost string
-	var reFirstValMatch = regexp.MustCompile(`(?mU)\\val{`)
-	var reFirstRunMatch = regexp.MustCompile(`(?mU)\\run`)
-	var reFixSpice = regexp.MustCompile(`(?mU)\\(?P<res1>\\val{)`)
-	if ltSpice { // fix ltSpice file so all \\val{ are changed to \val{
-		if reFixSpice.MatchString(inString) {
-			inString = reFixSpice.ReplaceAllString(inString, "$res1")
+	var head, tail, replace, logOut, newLog, leftMost, tmpCmd string
+	var result []string
+	var reFirstValMatch = regexp.MustCompile(`(?mU)VAL{`)
+	// below is to match RUN{ or RUN={ or RUN(){ or RUN()={ or RUNSILENT{
+	var reFirstRunMatch = regexp.MustCompile(`(?mU)RUN(|=|\(\)|\(\)=|SILENT){`)
+	var reConfigCmd = regexp.MustCompile(`(?mU)^.*CONFIG(?P<res1>{.*)$`)
+	var reParamCmd = regexp.MustCompile(`(?mU)^.*PARAM(?P<res1>{.*)$`)
+	if reConfigCmd.MatchString(inString) {
+		result = reConfigCmd.FindStringSubmatch(inString)
+		tmpCmd, _, _ = matchBrackets(result[1], "{")
+		replace, logOut = runConfigFunc(tmpCmd, configParam)
+		if replace == "" {
+			replace = "**deletethis**"
 		}
+		return replace, logOut
 	}
-	for reFirstValMatch.MatchString(inString) || reFirstRunMatch.MatchString(inString) { // chec for val or run command
-		// keep doing this loop until all \val, \run, \runConfig commands are done (\runConfig are done with \run command list)
+	if reParamCmd.MatchString(inString) {
+		result = reParamCmd.FindStringSubmatch(inString)
+		tmpCmd, _, _ = matchBrackets(result[1], "{")
+		replace, logOut = runParamFunc(tmpCmd, varAll, configParam)
+		if replace == "" {
+			replace = "**deletethis**"
+		}
+		return replace, logOut
+	}
+	for reFirstValMatch.MatchString(inString) || reFirstRunMatch.MatchString(inString) { // chec for VAL or RUN command
+		// keep doing this loop until all VAL, RUN, CONFIG commands are done
 		if reFirstValMatch.MatchString(inString) && reFirstRunMatch.MatchString(inString) {
-			// if true, then both \val and \run are in inString and must do the most left one first
+			// if true, then both VAL and RUN are in inString and must do the most left one first
 			locateVal := reFirstValMatch.FindStringIndex(inString)
 			locateRun := reFirstRunMatch.FindStringIndex(inString)
 			if locateVal[0] < locateRun[0] {
-				leftMost = "Val"
+				leftMost = "VAL"
 			} else {
-				leftMost = "Run"
+				leftMost = "RUN"
 			}
-		} else { // if only one of \val or \run found then do the most leftmost for that one
+		} else { // if only one of VAL or RUN found then do the most leftmost for that one
 			locateVal := reFirstValMatch.FindStringIndex(inString)
 			if locateVal == nil {
-				leftMost = "Run"
+				leftMost = "RUN"
 			} else {
-				leftMost = "Val"
+				leftMost = "VAL"
 			}
 		}
 		switch leftMost {
-		case "Val":
+		case "VAL":
 			head, tail, replace, newLog = valReplace(inString, varAll, configParam)
 			if newLog != "" {
 				logOut = logOut + " " + newLog
 			}
-		case "Run":
+		case "RUN":
 			if !ltSpice { // also run these commands below if ltSpice is false
 				head, tail, replace, newLog = runReplace(inString, varAll, configParam)
 				if newLog != "" {
@@ -169,34 +179,25 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	var head, tail, logOut, runCmdType, runCmd, replace, assignVar, sigDigits string
 	var answer float64
 	var result []string
-	var reFirstRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)\\(?P<res2>run.*)(?P<res3>{.*)$`)
+	// below is to match RUN{ or RUN={ or RUN(){ or RUN()={ or RUNSILENT{
+	var reFirstRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)(?P<res2>RUN(?:|=|\(\)|\(\)=|SILENT))(?P<res3>{.*)$`)
 	result = reFirstRunCmd.FindStringSubmatch(inString)
 	head = result[1]
 	runCmdType = result[2]
 	runCmd, tail, _ = matchBrackets(result[3], "{")
 	replace = "" // so the old replace is not used
 	switch runCmdType {
-	case "runConfig": // Used for setting configuration settings
-		replace, logOut = runConfigFunc(runCmd, configParam)
-		if replace == "" {
-			replace = "**deletethis**"
-		}
-	case "runParam": // Used for setting parameters
-		replace, logOut = runParamFunc(runCmd, varAll, configParam)
-		if replace == "" {
-			replace = "**deletethis**"
-		}
-	case "runSilent": // run statement but do not print anything
+	case "RUNSILENT": // run statement but do not print anything
 		replace = "**deletethis**"
 		_, _, _, logOut = runCode(runCmd, varAll, configParam)
-	case "run": // run statement and print statement (ex: v_2 = 3*V_t)
+	case "RUN": // run statement and print statement (ex: v_2 = 3*V_t)
 		assignVar, runCmd, answer, logOut = runCode(runCmd, varAll, configParam)
 		if assignVar == "" {
 			replace = value2Str(answer, configParam["fmtVal"]) // not an assignment statment so just return  answer
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + "$}"
 		}
-	case "run=": // run statement and print out statement = result (with units) (ex: v_2 = 3*V_t = 75mV)
+	case "RUN=": // run statement and print out statement = result (with units) (ex: v_2 = 3*V_t = 75mV)
 		assignVar, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
@@ -204,10 +205,10 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 			_, sigDigits, _ = parseFormat(configParam["fmtRun="])
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
 		}
-	case "run()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
+	case "RUN()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
 		_, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
-	case "run()=": // same as run() but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
+	case "RUN()=": // same as run() but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
 		assignVar, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
 		_, sigDigits, _ = parseFormat(configParam["fmtRun="])
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
@@ -224,7 +225,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 	var ok bool
 	var value float64
 	var result []string
-	var reFirstValCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)\\val(?P<res2>{.*)$`)
+	var reFirstValCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)VAL(?P<res2>{.*)$`)
 	var reComma = regexp.MustCompile(`(?m)^\s*(?P<res1>.*)\s*,\s*(?P<res2>.*)\s*$`)
 	result = reFirstValCmd.FindStringSubmatch(inString) // found a val command
 	head = result[1]
@@ -411,8 +412,6 @@ func runConfigFunc(statement string, configParam map[string]string) (string, str
 				if logOut != "" {
 					return "defaultUnits syntax is incorrect", logOut
 				}
-			case "simpleSyntax": // if here, send out message that this line should ONLY occur as the first line of .prb file.
-				return "simpleSyntax setting should ONLY occur as first line of .prb file", ""
 			default:
 				logOut = "should never be here 05"
 			}
@@ -539,12 +538,12 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 		if configParam["verbose"] == "true" {
 			outVerbose = "% " + assignVar + " = ["
 			for i := range values {
-				outVerbose = outVerbose + fmt.Sprintf("%g", values[i]*prefix2float(prefix))
+				outVerbose = outVerbose + fmt.Sprintf("%g", values[i])
 				if i < len(values)-1 {
 					outVerbose = outVerbose + ","
 				}
 			}
-			outVerbose = outVerbose + "] units: " + prefix + units + " latexSymbol: " + tmp2.latex
+			outVerbose = outVerbose + "] units:[" + prefix + units + "] latexSymbol:" + tmp2.latex
 		}
 		random, logOut = checkRandom(configParam["random"])
 		switch random {
@@ -1087,43 +1086,4 @@ func defaultUnitsVar(assignVar string, configParam map[string]string) string {
 		units = configParam[firstLetter]
 	}
 	return units
-}
-
-func checkSimpleSyntax(inString string) bool {
-	// check if line has CONFIG{simpleSyntax=true} in it and if so return true
-	var re0 = regexp.MustCompile(`(?m)^\s?CONFIG\{\s?simpleSyntax\s?=\s?true\s?\}\s?$`)
-	var decision bool
-	decision = false
-	if re0.MatchString(inString) {
-		decision = true
-	}
-	return decision
-}
-
-func convertSimpleSyntax(inLines []string) []string {
-	var outLines []string
-	var reConfig = regexp.MustCompile(`(?m)CONFIG\{`)
-	var reParam = regexp.MustCompile(`(?m)PARAM\{`)
-	var reVal = regexp.MustCompile(`(?m)VAL\{`)
-	var reRun = regexp.MustCompile(`(?m)RUN\{`)
-	var reRunEq = regexp.MustCompile(`(?m)RUN=\{`)
-	var reRunBr = regexp.MustCompile(`(?m)RUN\(\)\{`)
-	var reRunBrEq = regexp.MustCompile(`(?m)RUN\(\)=\{`)
-	var reRunSilent = regexp.MustCompile(`(?m)RUNSILENT{`)
-	var reUnits = regexp.MustCompile(`(?m)UNITS{`)
-	var reSymbol = regexp.MustCompile(`(?m)SYMBOL{`)
-	for i := range inLines {
-		outLines = append(outLines, inLines[i])
-		outLines[i] = reConfig.ReplaceAllString(outLines[i], "\\runConfig{")
-		outLines[i] = reParam.ReplaceAllString(outLines[i], "\\runParam{")
-		outLines[i] = reVal.ReplaceAllString(outLines[i], "\\val{")
-		outLines[i] = reRun.ReplaceAllString(outLines[i], "\\run{")
-		outLines[i] = reRunEq.ReplaceAllString(outLines[i], "\\run={")
-		outLines[i] = reRunBr.ReplaceAllString(outLines[i], "\\run(){")
-		outLines[i] = reRunBrEq.ReplaceAllString(outLines[i], "\\run()={")
-		outLines[i] = reRunSilent.ReplaceAllString(outLines[i], "\\runSilent{")
-		outLines[i] = reUnits.ReplaceAllString(outLines[i], "\\units{")
-		outLines[i] = reSymbol.ReplaceAllString(outLines[i], "\\symbol{")
-	}
-	return outLines
 }

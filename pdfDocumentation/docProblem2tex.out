@@ -1,17 +1,17 @@
-\BOOKMARK [1][-]{section.1}{The need for problem to tex}{}% 1
-\BOOKMARK [1][-]{section.2}{Installation and Setup}{}% 2
-\BOOKMARK [1][-]{section.3}{Running problem2tex}{}% 3
-\BOOKMARK [2][-]{subsection.3.1}{Command Line Options}{section.3}% 4
-\BOOKMARK [2][-]{subsection.3.2}{Error Logging}{section.3}% 5
-\BOOKMARK [2][-]{subsection.3.3}{Examples}{section.3}% 6
-\BOOKMARK [2][-]{subsection.3.4}{Configuration settings}{section.3}% 7
-\BOOKMARK [2][-]{subsection.3.5}{Commands for .prb files}{section.3}% 8
-\BOOKMARK [3][-]{subsubsection.3.5.1}{\134runParam command}{subsection.3.5}% 9
-\BOOKMARK [3][-]{subsubsection.3.5.2}{\134run commands}{subsection.3.5}% 10
-\BOOKMARK [3][-]{subsubsection.3.5.3}{\134val command}{subsection.3.5}% 11
-\BOOKMARK [2][-]{subsection.3.6}{Expression Solver}{section.3}% 12
-\BOOKMARK [3][-]{subsubsection.3.6.1}{Functions}{subsection.3.6}% 13
-\BOOKMARK [3][-]{subsubsection.3.6.2}{More on Units}{subsection.3.6}% 14
-\BOOKMARK [1][-]{section.4}{License}{}% 15
-\BOOKMARK [2][-]{subsection.4.1}{Files created by problem2tex}{section.4}% 16
-\BOOKMARK [2][-]{subsection.4.2}{Software License}{section.4}% 17
+\BOOKMARK [1][-]{section.1}{\376\377\000T\000h\000e\000\040\000n\000e\000e\000d\000\040\000f\000o\000r\000\040\000p\000r\000o\000b\000l\000e\000m\000\040\000t\000o\000\040\000t\000e\000x}{}% 1
+\BOOKMARK [1][-]{section.2}{\376\377\000I\000n\000s\000t\000a\000l\000l\000a\000t\000i\000o\000n\000\040\000a\000n\000d\000\040\000S\000e\000t\000u\000p}{}% 2
+\BOOKMARK [1][-]{section.3}{\376\377\000R\000u\000n\000n\000i\000n\000g\000\040\000p\000r\000o\000b\000l\000e\000m\0002\000t\000e\000x}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{\376\377\000C\000o\000m\000m\000a\000n\000d\000\040\000L\000i\000n\000e\000\040\000O\000p\000t\000i\000o\000n\000s}{section.3}% 4
+\BOOKMARK [2][-]{subsection.3.2}{\376\377\000E\000r\000r\000o\000r\000\040\000L\000o\000g\000g\000i\000n\000g}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.3}{\376\377\000E\000x\000a\000m\000p\000l\000e\000s}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.4}{\376\377\000C\000o\000n\000f\000i\000g\000u\000r\000a\000t\000i\000o\000n\000\040\000s\000e\000t\000t\000i\000n\000g\000s}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.5}{\376\377\000C\000o\000m\000m\000a\000n\000d\000s\000\040\000f\000o\000r\000\040\000.\000p\000r\000b\000\040\000f\000i\000l\000e\000s}{section.3}% 8
+\BOOKMARK [3][-]{subsubsection.3.5.1}{\376\377\000P\000A\000R\000A\000M\000\040\000c\000o\000m\000m\000a\000n\000d}{subsection.3.5}% 9
+\BOOKMARK [3][-]{subsubsection.3.5.2}{\376\377\000R\000U\000N\000\040\000c\000o\000m\000m\000a\000n\000d\000s}{subsection.3.5}% 10
+\BOOKMARK [3][-]{subsubsection.3.5.3}{\376\377\000V\000A\000L\000\040\000c\000o\000m\000m\000a\000n\000d}{subsection.3.5}% 11
+\BOOKMARK [2][-]{subsection.3.6}{\376\377\000E\000x\000p\000r\000e\000s\000s\000i\000o\000n\000\040\000S\000o\000l\000v\000e\000r}{section.3}% 12
+\BOOKMARK [3][-]{subsubsection.3.6.1}{\376\377\000F\000u\000n\000c\000t\000i\000o\000n\000s}{subsection.3.6}% 13
+\BOOKMARK [3][-]{subsubsection.3.6.2}{\376\377\000M\000o\000r\000e\000\040\000o\000n\000\040\000U\000n\000i\000t\000s}{subsection.3.6}% 14
+\BOOKMARK [1][-]{section.4}{\376\377\000L\000i\000c\000e\000n\000s\000e}{}% 15
+\BOOKMARK [2][-]{subsection.4.1}{\376\377\000F\000i\000l\000e\000s\000\040\000c\000r\000e\000a\000t\000e\000d\000\040\000b\000y\000\040\000p\000r\000o\000b\000l\000e\000m\0002\000t\000e\000x}{section.4}% 16
+\BOOKMARK [2][-]{subsection.4.2}{\376\377\000S\000o\000f\000t\000w\000a\000r\000e\000\040\000L\000i\000c\000e\000n\000s\000e}{section.4}% 17

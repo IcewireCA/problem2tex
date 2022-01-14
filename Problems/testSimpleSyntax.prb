@@ -1,9 +1,8 @@
-CONFIG{simpleSyntax=true}
 CONFIG{fmtRun()=E2}
 CONFIG{defaultUnits=[[iI:A][vV:V][rR:\Omega][lL:H][cC:F][gG:A/V]]}
 CONFIG{verbose=true}
 PARAM{V_1=2}
-PARAM{R_1=6000}
+PARAM{R_1=6#\units{k \Omega}}
 VAL{V_1,=}
 VAL{R_1,=}
 RUN()={I_1 = V_1/R_1}
