@@ -12,11 +12,10 @@ import (
 )
 
 func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo) (string, string) {
-	var inLines []string
+	var inLines, outLines []string
+	var inLine string
 	var logOut, comment, errorHeader, spiceFile, spiceFilename string
 	var texOut string
-	var linesToRemove []int
-	var reDeletethis = regexp.MustCompile(`(?m)\*\*deletethis\*\*`)
 	var reNotBlankLine = regexp.MustCompile(`(?m)\S`)
 
 	// using map here as I want to be able to iterate over key names as well
@@ -55,38 +54,35 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
-		inLines[i], comment = deCommentLatex(inLines[i])
-		logOut = syntaxWarning(inLines[i])
+		inLine = inLines[i]
+		if !reNotBlankLine.MatchString(inLine) { // if inLine is a blank line then do ...
+			outLines = append(outLines, "\\vspace{1ex}")
+			continue // skip to end of for loop and don't add another element to outLines
+		}
+		inLine, comment = deCommentLatex(inLine)
+		logOut = syntaxWarning(inLine)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "WARNING")
 		}
-		inLines[i], logOut = commandReplace(inLines[i], varAll, configParam, false)
+		inLine, logOut = commandReplace(inLine, varAll, configParam, false)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		}
-		inLines[i] = fixParll(inLines[i])
-		inLines[i] = inLines[i] + comment // add back comment that was removed above
-		inLines[i] = function2Latex(inLines[i])
-		if reDeletethis.MatchString(inLines[i]) {
-			inLines[i] = reDeletethis.ReplaceAllString(inLines[i], "")
-			if !reNotBlankLine.MatchString(inLines[i]) { // if a blank line then add line number to linesToRemove list
-				linesToRemove = append(linesToRemove, i) // do it later so that line numbers still correct if an error is reported after a line removal
-			}
+		inLine = fixParll(inLine)
+		inLine = inLine + comment // add back comment that was removed above
+		if inLine == "" {         // if inLine is blank, don't add any element to outLines
+			continue
 		}
-		spiceFile, spiceFilename, logOut = checkLTSpice(inLines[i], inFile, outFile, sigDigits, varAll, configParam)
+		inLine = function2Latex(inLine)
+		spiceFile, spiceFilename, logOut = checkLTSpice(inLine, inFile, outFile, sigDigits, varAll, configParam)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		} else {
 			fileWriteString(spiceFile, filepath.Join(outFile.path, spiceFilename+"_update.asc"))
 		}
+		outLines = append(outLines, inLine)
 	}
-	// remove lines that are slated for removal
-	k := 0
-	for i := range linesToRemove {
-		inLines = remove(inLines, linesToRemove[i]-k) // need to subtract k as that those number of lines have already been removed
-		k++
-	}
-	texOut = strings.Join(inLines, "\n")
+	texOut = strings.Join(outLines, "\n\n") // add 2 \n here so that each line is a paragraph in latex
 	return texOut, errorHeader
 }
 
@@ -120,22 +116,16 @@ func commandReplace(inString string, varAll map[string]varSingle, configParam ma
 		result = reConfigCmd.FindStringSubmatch(inString)
 		tmpCmd, _, _ = matchBrackets(result[1], "{")
 		replace, logOut = runConfigFunc(tmpCmd, configParam)
-		if replace == "" {
-			replace = "**deletethis**"
-		}
 		return replace, logOut
 	}
 	if reParamCmd.MatchString(inString) {
 		result = reParamCmd.FindStringSubmatch(inString)
 		tmpCmd, _, _ = matchBrackets(result[1], "{")
 		replace, logOut = runParamFunc(tmpCmd, varAll, configParam)
-		if replace == "" {
-			replace = "**deletethis**"
-		}
 		return replace, logOut
 	}
 	for reFirstValMatch.MatchString(inString) || reFirstRunMatch.MatchString(inString) { // chec for VAL or RUN command
-		// keep doing this loop until all VAL, RUN, CONFIG commands are done
+		// keep doing this loop until all VAL, RUN commands are done
 		if reFirstValMatch.MatchString(inString) && reFirstRunMatch.MatchString(inString) {
 			// if true, then both VAL and RUN are in inString and must do the most left one first
 			locateVal := reFirstValMatch.FindStringIndex(inString)
@@ -188,7 +178,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	replace = "" // so the old replace is not used
 	switch runCmdType {
 	case "RUNSILENT": // run statement but do not print anything
-		replace = "**deletethis**"
+		replace = ""
 		_, _, _, logOut = runCode(runCmd, varAll, configParam)
 	case "RUN": // run statement and print statement (ex: v_2 = 3*V_t)
 		assignVar, runCmd, answer, logOut = runCode(runCmd, varAll, configParam)

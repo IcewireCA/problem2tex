@@ -1,11 +1,13 @@
+
+
 CONFIG{fmtRun()=E2}
 CONFIG{defaultUnits=[[iI:A][vV:V][rR:\Omega][lL:H][cC:F][gG:A/V]]}
 CONFIG{verbose=true}
+% some words here here
 PARAM{V_1=2}
 PARAM{R_1=6#\units{k \Omega}}
-VAL{V_1,=}
-VAL{R_1,=}
-RUN()={I_1 = V_1/R_1}
+VAL{V_1,=} VAL{R_1,=}
+RUN()={I_1 = V_1/R_1} RUN()={J_45=7+8} VAL{J_45}
 RUN(){I_1 = V_1/R_1}
 RUN={I_3=2/3}
 RUNSILENT{L_1=8}
