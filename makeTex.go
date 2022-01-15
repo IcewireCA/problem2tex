@@ -56,7 +56,7 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 	for i := range inLines {
 		inLine = inLines[i]
 		if !reNotBlankLine.MatchString(inLine) { // if inLine is a blank line then do ...
-			outLines = append(outLines, "\\vspace{1ex}")
+			outLines = append(outLines, "\\skipLine")
 			continue // skip to end of for loop and don't add another element to outLines
 		}
 		inLine, comment = deCommentLatex(inLine)
@@ -426,8 +426,8 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 	var reEqual = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\s*=\s*(?P<res2>.*)\s*`)
 	var reArray = regexp.MustCompile(`(?m)^\s*\[(?P<res1>.*)\]\s*(?P<res2>.*)`)
 	var reOptions = regexp.MustCompile(`(?m)#(?P<res1>.*)$`)
-	var reUnits = regexp.MustCompile(`(?m)\\units(?P<res1>{.*)$`)
-	var reLatex = regexp.MustCompile(`(?m)\\symbol(?P<res1>{.*)$`)
+	var reUnits = regexp.MustCompile(`(?m)UNITS(?P<res1>{.*)$`)
+	var reLatex = regexp.MustCompile(`(?m)SYMBOL(?P<res1>{.*)$`)
 	var reStep = regexp.MustCompile(`(?m)^\s*(?P<res1>\S+)\s*;\s*(?P<res2>\S+)\s*;\s*(?P<res3>\S+)[#|\s]*`)
 	var reKFactor = regexp.MustCompile(`(?m)^\s*(?P<res1>[^#|\s]+)`) // match everything up to a # or space
 	if reEqual.MatchString(statement) {
