@@ -10,6 +10,9 @@
 \sectionfont{\color{blue}}  % sets colour of sections
 \subsectionfont{\color{blue}}
 
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
@@ -100,10 +103,10 @@ PARAM{x = [2, 3, 4, 5]}
 PARAM{y = [6, 7, 8, 9] }
 PARAM{k = [8]}
 Given VAL{x,=}, VAL{y,=}, and VAL{k,=} find $z = x^2+y-k$
-BEGIN{SOLUTION}
+
+Solution:
 RUN(){z=x^2+y-k}
-HILITE{VAL{z,=}}
-END{SOLUTION}
+VAL{z,=}
 \end{lstlisting}
 
 For the above problem, $x$, $y$ and $k$ are all parameters where $x$ is any one of 2,3,4 or 5 and
@@ -125,10 +128,10 @@ In the same testBasic.zip file, the second example basic01.prb contains the foll
 PARAM{V_1 = [2, 3, 4, 5]# UNITS{V}}
 PARAM{R_1 = [6, 7, 8, 9]# UNITS{k \Omega}}
 Given VAL{V_1,=} and VAL{R_1,=}, find the current  $I_R = V_1/R_1$
-BEGIN{SOLUTION}
-RUN(){I_R=V_1/R_1}
-HILITE{\val={I_R}}
-END{SOLUTION}
+
+Solution:
+RUN(){I_R=V_1/R_1#UNITS{A}}
+VAL{I_R,=}
 \end{lstlisting}
  
 What is interesting here is that units can be assigned to parameters and the expression solver takes into account unit prefixes to generate the correct solution value prefix (i.e, f, p, n, $\mu$, m, k, M, G, etc). 
@@ -137,71 +140,61 @@ Also related to units, the units for any variable can be set using the UNITS\{\}
 
 \textbf{NOTE: micro uses \textbackslash mu (and not the letter u)}
 
-In this example, the above 2 problem files are included in a filed called basic.tex which contains the following text:
+A latex file can be used to run problem2tex and then include the resulting .tex files into the document as shown in the example below for the file named basic.tex
+
 \begin{lstlisting}
-\documentclass[11pt]{exam}
-\usepackage{import,xcolor}
+\documentclass{article}
+\usepackage{import}
+\newlength{\currentparindent} % used to store current parindent
+\newlength{\currentparskip}
 \newcommand{\incProb}[1]{
     \immediate\write18{problem2tex -export=Problems/tmp/#1.tex 
-    -random=false -sigDigits=4 Problems/#1.prb} 
-  \import{Problems/tmp/}{#1.tex}
+    -random=false -sigDigits=4 Problems/#1.prb}
+    \setlength{\currentparindent}{\parindent} % store current parindent
+    \setlength{\currentparskip}{\parskip}
+    \setlength{\parindent}{0em}
+    \setlength{\parskip}{0em}
+    \import{Problems/tmp/}{#1.tex}
+    \setlength{\parindent}{\currentparindent} % restore parindent
+    \setlength{\parskip}{\currentparskip}
 }
-\newcommand{\hlite}[1]{%
-  \colorbox{yellow!50}{#1} }
+    
 \newcommand{\units}{\,\mathrm}
+\newcommand{\skipLine}{\vspace{2ex}}
 
-\begin{document} 
-\begin{questions}
+\begin{document}
+
+Question 1:
 
 \incProb{basic01}
+
+\vspace{3ex}
+
+Question 2:
+
 \incProb{basic02}
 
-\end{questions}
 \end{document}
 \end{lstlisting}
 
-The tex file is using the exam class (for question numbering) and has 3 commands defined: \textbackslash incProb; \textbackslash hlite; \textbackslash units.
+For the above example, a new command "\textbackslash incProb" has been defined that is used to bring in problems basic01 and basic02 (both should be in the directory Problems below the main directory with basic.tex).  The command "\textbackslash incProb" first runs problem2tex using the \textbackslash immediate\textbackslash write18 command, next the current paragraph settings are stored, then the paragraph settings are set to no indent and no spacing, then the import of the newly generated .tex file is done and finally, the original paragraph settings are restored.
 
 When the above basic.tex is compiled as a text document, the following output is generated:
 
-\begin{itemize}
-% Created with problem2tex: version = 0.8.2 (2021-02-09)
-\item[1.] Given \mbox{$x = \mbox{$2 \units{ }$}$}, \mbox{$y = \mbox{$6 \units{ }$}$}, and \mbox{$k = \mbox{$8 \units{ }$}$} find $z = x^2+y-k$
-\item[] \textbf{Solution}\\
-\mbox{$z=x^2+y-k  = (2)^2+(6)-(8)$}\\
-\hlite{\mbox{$z = \mbox{$2 \units{ }$}$}}
+\fbox{\includegraphics[width=0.6\textwidth]{basicStandAlone}}
 
-\vspace{10px}
-% Created with problem2tex: version = 0.8.2 (2021-02-09)
-\item[2.] Given \mbox{$V_{1} = \mbox{$2 \units{ V}$}$} and \mbox{$R_{1} = \mbox{$6 \units{k \Omega}$}$}, find the current  $I_R = V_1/R_1$
-\item[] \textbf{Solution}\\
-\mbox{$I_{R}=V_{1}/R_{1}  = (2)/(6e3)$}\\
-\hlite{\mbox{$I_{R} = \mbox{$333.3 \units{\mu A}$}$}}
-\end{itemize}
-
-In this case, all default parameters are used but it is one line change to obtain random parameters and change the significant number of digits.
+In this case, all default parameters are used but it is one line change to obtain random parameters and change the significant number of digits. An example might be ...
 
 \begin{lstlisting}
 problem2tex -export=Problems/tmp/#1.tex -random=true -sigDigits=6 Problems/#1.prb
 \end{lstlisting}
 
-When run using the above random flag, one example random case is the following:
-(each run will be random) 
+\subsection{Syntax difference with Latex}
 
-\begin{itemize}
-% Created with problem2tex: version = 0.8.2 (2021-02-09)
-\item[1.] Given \mbox{$x = \mbox{$5 \units{ }$}$}, \mbox{$y = \mbox{$8 \units{ }$}$}, and \mbox{$k = \mbox{$8 \units{ }$}$} find $z = x^2+y-k$
-\item[] \textbf{Solution}\\
-\mbox{$z=x^2+y-k  = (5)^2+(8)-(8)$}\\
-\hlite{\mbox{$z = \mbox{$25 \units{ }$}$}}
+In the above examples, there are 3 main changes from regular latex.  First, the problem2tex commands do not make use of \textbackslash but instead are determined by keywords that are capitalized.  Second, PARAM, CONFIG and RUNSILENT statements are not printed. Finally, the paragraph and line spacing is modified from regular latex (so that non-latex users could easily generate problems as well).  
 
-\vspace{10px}
-% Created with problem2tex: version = 0.8.2 (2021-02-09)
-\item[2.] Given \mbox{$V_{1} = \mbox{$3 \units{ V}$}$} and \mbox{$R_{1} = \mbox{$7 \units{k \Omega}$}$}, find the current  $I_R = V_1/R_1$
-\item[] \textbf{Solution}\\
-\mbox{$I_{R}=V_{1}/R_{1}  = (3)/(7e3)$}\\
-\hlite{\mbox{$I_{R} = \mbox{$428.571 \units{\mu A}$}$}}
-\end{itemize} 
+Each carriage return in the .prb file results in a new paragraph. However, the spacing between paragraphs is the same as regular line spacing.  In addition, if extra blank lines are included in the .prb file, they result in extra spacing in the final output.  So visually, a new paragraph in the final output can be achieved using a blank line.  Note that more blank lines in a row will result in more spacing.
+
 
 \subsection{Configuration settings}
 Configuration settings can be changed at any time and then they are used going forward until
@@ -432,6 +425,13 @@ The output becomes ...
 \textbf{Solution}\\
 \mbox{$L=V_{A}/V_A'  = (6)/(5e6) = \mbox{$1.2 \units{\mu m}$}$}\\
 \end{itemize}
+
+\section{Graphics}
+
+LTSPICE\{filename\}\{size\}\{horizMove\}\{vertMove\}
+
+SVGLATEX\{filename\}\{size\}\{horizMove\}\{vertMove\}
+
 
 \section{License}
 

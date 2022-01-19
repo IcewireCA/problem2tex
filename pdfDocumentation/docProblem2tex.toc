@@ -1,18 +1,20 @@
 \babel@toc {american}{}
-\contentsline {section}{\numberline {1}The need for problem to tex}{1}{section.1}%
-\contentsline {section}{\numberline {2}Installation and Setup}{1}{section.2}%
+\contentsline {section}{\numberline {1}The need for problem to tex}{2}{section.1}%
+\contentsline {section}{\numberline {2}Installation and Setup}{2}{section.2}%
 \contentsline {section}{\numberline {3}Running problem2tex}{2}{section.3}%
 \contentsline {subsection}{\numberline {3.1}Command Line Options}{2}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Error Logging}{2}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Examples}{2}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Configuration settings}{4}{subsection.3.4}%
-\contentsline {subsection}{\numberline {3.5}Commands for .prb files}{5}{subsection.3.5}%
-\contentsline {subsubsection}{\numberline {3.5.1}PARAM command}{6}{subsubsection.3.5.1}%
-\contentsline {subsubsection}{\numberline {3.5.2}RUN commands}{6}{subsubsection.3.5.2}%
-\contentsline {subsubsection}{\numberline {3.5.3}VAL command}{7}{subsubsection.3.5.3}%
-\contentsline {subsection}{\numberline {3.6}Expression Solver}{7}{subsection.3.6}%
-\contentsline {subsubsection}{\numberline {3.6.1}Functions}{7}{subsubsection.3.6.1}%
-\contentsline {subsubsection}{\numberline {3.6.2}More on Units}{8}{subsubsection.3.6.2}%
-\contentsline {section}{\numberline {4}License}{8}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Files created by problem2tex}{8}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Software License}{8}{subsection.4.2}%
+\contentsline {subsection}{\numberline {3.2}Error Logging}{3}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Examples}{3}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Syntax difference with Latex}{5}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Configuration settings}{5}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Commands for .prb files}{7}{subsection.3.6}%
+\contentsline {subsubsection}{\numberline {3.6.1}PARAM command}{7}{subsubsection.3.6.1}%
+\contentsline {subsubsection}{\numberline {3.6.2}RUN commands}{7}{subsubsection.3.6.2}%
+\contentsline {subsubsection}{\numberline {3.6.3}VAL command}{8}{subsubsection.3.6.3}%
+\contentsline {subsection}{\numberline {3.7}Expression Solver}{9}{subsection.3.7}%
+\contentsline {subsubsection}{\numberline {3.7.1}Functions}{9}{subsubsection.3.7.1}%
+\contentsline {subsubsection}{\numberline {3.7.2}More on Units}{9}{subsubsection.3.7.2}%
+\contentsline {section}{\numberline {4}Graphics}{10}{section.4}%
+\contentsline {section}{\numberline {5}License}{10}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Files created by problem2tex}{10}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Software License}{10}{subsection.5.2}%

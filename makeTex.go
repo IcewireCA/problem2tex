@@ -14,7 +14,7 @@ import (
 func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo) (string, string) {
 	var inLines, outLines []string
 	var inLine string
-	var logOut, comment, errorHeader, spiceFile, spiceFilename string
+	var logOut, comment, errorHeader string
 	var texOut string
 	var reNotBlankLine = regexp.MustCompile(`(?m)\S`)
 
@@ -74,11 +74,9 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 			continue
 		}
 		inLine = function2Latex(inLine)
-		spiceFile, spiceFilename, logOut = checkLTSpice(inLine, inFile, outFile, sigDigits, varAll, configParam)
+		logOut = checkGraphic(inLine, inFile, outFile, sigDigits, varAll, configParam)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
-		} else {
-			fileWriteString(spiceFile, filepath.Join(outFile.path, spiceFilename+"_update.asc"))
 		}
 		outLines = append(outLines, inLine)
 	}
@@ -277,29 +275,43 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 	return head, tail, replace, logOut
 }
 
-func checkLTSpice(inString string, inFile, outFile fileInfo, sigDigits string, varAll map[string]varSingle, configParam map[string]string) (string, string, string) {
-	var spiceFilename, spiceFile, logOut string
+func checkGraphic(inString string, inFile, outFile fileInfo, sigDigits string, varAll map[string]varSingle, configParam map[string]string) string {
+	var graphicFilename, graphicFile, fileExtension, logOut string
 	var inLines []string
-	var reLTSpice = regexp.MustCompile(`(?mU)\\incProbLTspice.*{\s*(?P<res1>\S*)\s*}`)
-	if reLTSpice.MatchString(inString) {
-		spiceFilename = reLTSpice.FindStringSubmatch(inString)[1]
-		spiceFile, logOut = fileReadString(filepath.Join(inFile.path, spiceFilename+".asc"))
-		if logOut != "" {
-			return "", "", logOut
-		}
-		spiceFile, _ = convertIfUtf16(spiceFile)
-		inLines = strings.Split(spiceFile, "\n")
-		for i := range inLines {
-			inLines[i], logOut = commandReplace(inLines[i], varAll, configParam, true)
-			if logOut != "" {
-				logOut = logOut + " - error in " + spiceFilename + ".asc"
-				return "", "", logOut
-			}
-		}
-		spiceFile = strings.Join(inLines, "\n")
-		fileWriteString(spiceFile, filepath.Join(outFile.path, spiceFilename+"_update.asc"))
+	var reLTSpice = regexp.MustCompile(`(?mU)LTSPICE{\s*(?P<res1>\S*)\s*}`)
+	var reSVGLatex = regexp.MustCompile(`(?mU)SVGLATEX{\s*(?P<res1>\S*)\s*}`)
+	if !reLTSpice.MatchString(inString) && !reSVGLatex.MatchString(inString) {
+		return logOut
 	}
-	return spiceFile, spiceFilename, logOut
+	if reLTSpice.MatchString(inString) {
+		fileExtension = ".asc"
+		graphicFilename = reLTSpice.FindStringSubmatch(inString)[1]
+		graphicFile, logOut = fileReadString(filepath.Join(inFile.path, graphicFilename+fileExtension))
+		if logOut != "" {
+			return logOut
+		}
+		graphicFile, _ = convertIfUtf16(graphicFile)
+	}
+	if reSVGLatex.MatchString(inString) {
+		fileExtension = ".svg"
+		graphicFilename = reSVGLatex.FindStringSubmatch(inString)[1]
+		graphicFile, logOut = fileReadString(filepath.Join(inFile.path, graphicFilename+fileExtension))
+		if logOut != "" {
+			return logOut
+		}
+	}
+	inLines = strings.Split(graphicFile, "\n")
+	for i := range inLines {
+		inLines[i], logOut = commandReplace(inLines[i], varAll, configParam, true)
+		if logOut != "" {
+			logOut = logOut + " - error in " + graphicFilename + fileExtension
+			return logOut
+		}
+	}
+	graphicFile = strings.Join(inLines, "\n")
+	fileWriteString(graphicFile, filepath.Join(outFile.path, graphicFilename+"_update"+fileExtension))
+
+	return logOut
 }
 
 func syntaxWarning(statement string) (logOut string) { // check that syntax seems okay and give warning if not okay
