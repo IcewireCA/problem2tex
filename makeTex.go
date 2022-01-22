@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 )
 
-func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo) (string, string) {
+func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
 	var inLines, outLines []string
 	var inLine string
 	var logOut, comment, errorHeader string
@@ -64,7 +63,7 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "WARNING")
 		}
-		inLine, logOut = commandReplace(inLine, varAll, configParam, false)
+		inLine, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		}
@@ -74,10 +73,6 @@ func makeTex(problemInput, sigDigits, randomStr string, inFile, outFile fileInfo
 			continue
 		}
 		inLine = function2Latex(inLine)
-		logOut = checkGraphic(inLine, inFile, outFile, sigDigits, varAll, configParam)
-		if logOut != "" {
-			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
-		}
 		outLines = append(outLines, inLine)
 	}
 	texOut = strings.Join(outLines, "\n\n") // add 2 \n here so that each line is a paragraph in latex
@@ -101,25 +96,38 @@ func logOutError(logOut string, lineNum int, typeErr string) string {
 }
 
 // commandReplace looks for VAL and RUN  commands, executes those commands and replaces each with appropriate output
-func commandReplace(inString string, varAll map[string]varSingle, configParam map[string]string, ltSpice bool) (string, string) {
-	// ltSpice is a bool that if true implies we are replacing things in a .asc file (instead of a .prb file)
+func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, graphic bool) (string, string) {
+	// graphic is a bool that if true implies we are replacing things in a graphic file (instead of a .prb file)
+	// in this case, only VAL commands are done (no RUN commands)
 	var head, tail, replace, logOut, newLog, leftMost, tmpCmd string
-	var result []string
 	var reFirstValMatch = regexp.MustCompile(`(?mU)VAL{`)
 	// below is to match RUN{ or RUN={ or RUN(){ or RUN()={ or RUNSILENT{
 	var reFirstRunMatch = regexp.MustCompile(`(?mU)RUN(|=|\(\)|\(\)=|SILENT){`)
-	var reConfigCmd = regexp.MustCompile(`(?mU)^.*CONFIG(?P<res1>{.*)$`)
-	var reParamCmd = regexp.MustCompile(`(?mU)^.*PARAM(?P<res1>{.*)$`)
-	if reConfigCmd.MatchString(inString) {
-		result = reConfigCmd.FindStringSubmatch(inString)
-		tmpCmd, _, _ = matchBrackets(result[1], "{")
+	// var reConfigCmd = regexp.MustCompile(`(?mU)^.*CONFIG(?P<res1>{.*)$`)
+	// var reParamCmd = regexp.MustCompile(`(?mU)^.*PARAM(?P<res1>{.*)$`)
+	// var reIncludeCmd = regexp.MustCompile(`(?mU)^.*INCLUDE(?P<res1>{.*)$`)
+	tmpCmd, newLog = getInsideStuff(inString, "CONFIG")
+	if newLog != "" {
+		logOut = logOut + " " + newLog
+	}
+	if tmpCmd != "" {
 		replace, logOut = runConfigFunc(tmpCmd, configParam)
 		return replace, logOut
 	}
-	if reParamCmd.MatchString(inString) {
-		result = reParamCmd.FindStringSubmatch(inString)
-		tmpCmd, _, _ = matchBrackets(result[1], "{")
+	tmpCmd, newLog = getInsideStuff(inString, "PARAM")
+	if newLog != "" {
+		logOut = logOut + " " + newLog
+	}
+	if tmpCmd != "" {
 		replace, logOut = runParamFunc(tmpCmd, varAll, configParam)
+		return replace, logOut
+	}
+	tmpCmd, newLog = getInsideStuff(inString, "INCLUDE")
+	if newLog != "" {
+		logOut = logOut + " " + newLog
+	}
+	if tmpCmd != "" {
+		replace, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam)
 		return replace, logOut
 	}
 	for reFirstValMatch.MatchString(inString) || reFirstRunMatch.MatchString(inString) { // chec for VAL or RUN command
@@ -148,7 +156,7 @@ func commandReplace(inString string, varAll map[string]varSingle, configParam ma
 				logOut = logOut + " " + newLog
 			}
 		case "RUN":
-			if !ltSpice { // also run these commands below if ltSpice is false
+			if !graphic { // also run these commands below if ltSpice is false
 				head, tail, replace, newLog = runReplace(inString, varAll, configParam)
 				if newLog != "" {
 					logOut = logOut + " " + newLog
@@ -161,6 +169,16 @@ func commandReplace(inString string, varAll map[string]varSingle, configParam ma
 		inString = head + replace + tail
 	}
 	return inString, logOut
+}
+
+func getInsideStuff(inString, word string) (string, string) {
+	var reWordCmd = regexp.MustCompile(`(?mU)^\s*` + word + `(?P<res1>{.*)$`)
+	var insideStuff, logOut string
+	if !reWordCmd.MatchString(inString) {
+		return "", logOut
+	}
+	insideStuff, _, logOut = matchBrackets(reWordCmd.FindStringSubmatch(inString)[1], "{")
+	return insideStuff, logOut
 }
 
 func runReplace(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, string, string) {
@@ -275,44 +293,53 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 	return head, tail, replace, logOut
 }
 
-func checkGraphic(inString string, inFile, outFile fileInfo, sigDigits string, varAll map[string]varSingle, configParam map[string]string) string {
-	var graphicFilename, graphicFile, fileExtension, logOut string
-	var inLines []string
-	var reLTSpice = regexp.MustCompile(`(?mU)LTSPICE{\s*(?P<res1>\S*)\s*}`)
-	var reSVGLatex = regexp.MustCompile(`(?mU)SVGLATEX{\s*(?P<res1>\S*)\s*}`)
-	if !reLTSpice.MatchString(inString) && !reSVGLatex.MatchString(inString) {
-		return logOut
-	}
-	if reLTSpice.MatchString(inString) {
-		fileExtension = ".asc"
-		graphicFilename = reLTSpice.FindStringSubmatch(inString)[1]
-		graphicFile, logOut = fileReadString(filepath.Join(inFile.path, graphicFilename+fileExtension))
-		if logOut != "" {
-			return logOut
-		}
-		graphicFile, _ = convertIfUtf16(graphicFile)
-	}
-	if reSVGLatex.MatchString(inString) {
-		fileExtension = ".svg"
-		graphicFilename = reSVGLatex.FindStringSubmatch(inString)[1]
-		graphicFile, logOut = fileReadString(filepath.Join(inFile.path, graphicFilename+fileExtension))
-		if logOut != "" {
-			return logOut
-		}
-	}
-	inLines = strings.Split(graphicFile, "\n")
-	for i := range inLines {
-		inLines[i], logOut = commandReplace(inLines[i], varAll, configParam, true)
-		if logOut != "" {
-			logOut = logOut + " - error in " + graphicFilename + fileExtension
-			return logOut
-		}
-	}
-	graphicFile = strings.Join(inLines, "\n")
-	fileWriteString(graphicFile, filepath.Join(outFile.path, graphicFilename+"_update"+fileExtension))
+// func includeFile(inString string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) (string, string) {
+// 	var filename, graphicFile, fileExtension, incCmd, outString, logOut string
+// 	var inLines, result []string
+// 	var reInclude = regexp.MustCompile(`(?mU)^.*INCLUDE(?P<res1>{.*)$`)
+// 	var reUpdate = regexp.MustCompile(`(?P<res1>\w+)\.(?P<res2>\w+)`) // used to replace filname.ext with filename_update.ext
+// 	// re.ReplaceAllString(str, "${res1}_update.${res2}")
 
-	return logOut
-}
+// 	if reInclude.MatchString(inString) {
+// 		result = reInclude.FindStringSubmatch(inString)
+// 		incCmd, _, _ = matchBrackets(result[1], "{")
+// 		return outString, logOut
+// 	}
+// 	return outString, logOut
+
+// if !reLTSpice.MatchString(inString) && !reSVGLatex.MatchString(inString) {
+// 	return inString, logOut
+// }
+// if reLTSpice.MatchString(inString) {
+// 	fileExtension = ".asc"
+// 	graphicFilename = reLTSpice.FindStringSubmatch(inString)[1]
+// 	graphicFile, logOut = fileReadString(filepath.Join(inFile.path, graphicFilename+fileExtension))
+// 	if logOut != "" {
+// 		return inString, logOut
+// 	}
+// 	graphicFile, _ = convertIfUtf16(graphicFile)
+// } else {
+// 	if reSVGLatex.MatchString(inString) {
+// 		fileExtension = ".svg"
+// 		graphicFilename = reSVGLatex.FindStringSubmatch(inString)[1]
+// 		graphicFile, logOut = fileReadString(filepath.Join(inFile.path, graphicFilename+fileExtension))
+// 		if logOut != "" {
+// 			return inString, logOut
+// 		}
+// 	}
+// }
+// inLines = strings.Split(graphicFile, "\n")
+// for i := range inLines {
+// 	inLines[i], logOut = commandReplace(inLines[i], varAll, configParam, true)
+// 	if logOut != "" {
+// 		logOut = logOut + " - error in " + graphicFilename + fileExtension
+// 		return inString, logOut
+// 	}
+// }
+// graphicFile = strings.Join(inLines, "\n")
+// fileWriteString(graphicFile, filepath.Join(outFile.path, graphicFilename+"_update"+fileExtension))
+// return inString, logOut
+//}
 
 func syntaxWarning(statement string) (logOut string) { // check that syntax seems okay and give warning if not okay
 	var reDollar = regexp.MustCompile(`(?m)\$`)
@@ -358,6 +385,35 @@ func bracketCheck(inString string, leftBrac string) (logOut string) {
 		logOut = "-- Unmatched brackets: more " + leftBrac + " than " + rightBrac + " --"
 	}
 	return
+}
+
+func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) (string, string) {
+	var replace, options, logOut string
+	//var scale, font, align, horiz, above, below, noinkscape string
+	var result []string
+	var fileName, fileExt string
+	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
+	if !reNameInfo.MatchString(inCmd) {
+		logOut = "INCLUDE command does not have filename in correct format\n Should look like filename.ext"
+	}
+	result = reNameInfo.FindStringSubmatch(inCmd)
+	fileName = result[1]
+	fileExt = result[2]
+	options = getAfter(inCmd, "#") // get options after "#" character
+	_ = fileName
+	_ = fileExt
+	_ = options
+	// options are SCALE, FONT, ALIGN, SPACEHORIZ, SPACEABOVE, SPACEBELOW, NOINKSCAPE
+	// default values
+	// scale = "1.0"
+	// font = "12:10"
+	// align = "center"
+	// horiz = "0"
+	// above = "0"
+	// below = "0"
+	// noinkscape = "false"
+
+	return replace, logOut
 }
 
 func runConfigFunc(statement string, configParam map[string]string) (string, string) {
@@ -437,7 +493,6 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 	var min, max, stepSize float64
 	var reEqual = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\s*=\s*(?P<res2>.*)\s*`)
 	var reArray = regexp.MustCompile(`(?m)^\s*\[(?P<res1>.*)\]\s*(?P<res2>.*)`)
-	var reOptions = regexp.MustCompile(`(?m)#(?P<res1>.*)$`)
 	var reUnits = regexp.MustCompile(`(?m)UNITS(?P<res1>{.*)$`)
 	var reLatex = regexp.MustCompile(`(?m)SYMBOL(?P<res1>{.*)$`)
 	var reStep = regexp.MustCompile(`(?m)^\s*(?P<res1>\S+)\s*;\s*(?P<res2>\S+)\s*;\s*(?P<res3>\S+)[#|\s]*`)
@@ -523,19 +578,17 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			logOut = "not a valid \\runParam statement"
 			return "", logOut
 		}
-		if reOptions.MatchString(rightSide) {
-			options := reOptions.FindStringSubmatch(rightSide)[1] // the options stuff after #
-			if reUnits.MatchString(options) {
-				tmp := reUnits.FindStringSubmatch(options)[1] // just the stuff {.*$
-				preUnits, _, _ := matchBrackets(tmp, "{")     // a string that has prefix and units together
-				prefix, units = getPrefixUnits(preUnits)      // separate preUnits into prefix and units
-				tmp2.units = units
-			}
-			if reLatex.MatchString(options) {
-				tmp := reLatex.FindStringSubmatch(options)[1]
-				latex, _, _ = matchBrackets(tmp, "{")
-				tmp2.latex = latex
-			}
+		options := getAfter(rightSide, "#") // the options stuff after #
+		if reUnits.MatchString(options) {
+			tmp := reUnits.FindStringSubmatch(options)[1] // just the stuff {.*$
+			preUnits, _, _ := matchBrackets(tmp, "{")     // a string that has prefix and units together
+			prefix, units = getPrefixUnits(preUnits)      // separate preUnits into prefix and units
+			tmp2.units = units
+		}
+		if reLatex.MatchString(options) {
+			tmp := reLatex.FindStringSubmatch(options)[1]
+			latex, _, _ = matchBrackets(tmp, "{")
+			tmp2.latex = latex
 		}
 		if configParam["verbose"] == "true" {
 			outVerbose = "% " + assignVar + " = ["
@@ -578,6 +631,16 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 		varAll[assignVar] = tmp2
 	}
 	return outVerbose, logOut
+}
+
+func getAfter(inString, charac string) string { // used to find rest of string after "charac" string in inString
+	var outString string
+	var reAfter = regexp.MustCompile(`(?m)` + charac + `(?P<res1>.*)$`)
+	if !reAfter.MatchString(inString) {
+		return ""
+	}
+	outString = reAfter.FindStringSubmatch(inString)[1]
+	return outString
 }
 
 func convertKFactor(inString string) (float64, int, string) {
@@ -855,8 +918,9 @@ func deCommentLatex(inString string) (string, string) {
 }
 
 func matchBrackets(inString, leftBrac string) (string, string, string) {
-	// returns the FIRST enclosed values inside outside matching brackets
-	// as well as rest of string after outside matching brackets
+	// returns the enclosed values inside outside matching brackets - first return
+	// as well as rest of string after outside matching brackets - second return
+	// also return logOut - third return
 	// eg: inString = "{here 1{a}}{here 2}" results in... inside = "here 1{a}" and tail="{here 2}"
 	var inside, rightBrac, tail, logOut string
 	switch leftBrac {

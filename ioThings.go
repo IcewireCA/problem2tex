@@ -16,12 +16,10 @@ import (
 // get flag info and argument
 // NOTE: arg MUST occur AFTER flags when calling program
 // icemaker -export=tmp/outfilename.tex -sigDigits=4 infilename.prb
-func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr, sigDigits, logOut string) {
+func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr, logOut string) {
 	var inFileStr string
 
 	outFilePtr := flag.String("export", "", "outFile - REQUIRED FLAG\nFile extension should be .tex")
-	sigDigitsPtr := flag.String("sigDigits", "4", "number of significant digits for output\n")
-	// determines sig digits number for prob2tex
 	randomPtr := flag.String("random", "false", "Choices are false, true, min, max, minMax, or positive integer")
 	// determines whether parameters are default or random chosen from a set
 	versionPtr := flag.Bool("version", false, "Print out version")
@@ -52,8 +50,6 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 	if logOut != "" {
 		return
 	}
-	sigDigits, logOut = checkSigDigits(*sigDigitsPtr, logOut)
-	// sigDigits = strIncrement(sigDigits, -1) // needed so that TOTAL significant digits is sigDigits
 	if outFile.ext != ".tex" {
 		outFile.ext = ".log"
 		outFile.full = filepath.Join(outFile.path, outFile.name+outFile.ext)

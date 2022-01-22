@@ -15,7 +15,7 @@ import (
 
 func main() {
 	var inFileStr, logOut, header, outStr string
-	var sigDigits, randomStr, errorHeader, errorHeader2 string
+	var randomStr, errorHeader, errorHeader2 string
 	var inFile, outFile fileInfo
 	var version string
 
@@ -24,7 +24,7 @@ func main() {
 	//	todayDate = currentTime.Format("2006-01-02")
 	version = "0.8.6" + " (" + "2022-01-13" + ")"
 
-	inFile, outFile, randomStr, sigDigits, logOut = commandFlags(version) // outFile depends on inFile file extension
+	inFile, outFile, randomStr, logOut = commandFlags(version) // outFile depends on inFile file extension
 	fileWriteString("", outFile.full)
 	if logOut != "" {
 		errorHeader = logOutError(logOut, -1, "ERROR") // first time assigning errorHeader so no need to concatenate
@@ -38,7 +38,7 @@ func main() {
 	if logOut != "" {
 		errorHeader = errorHeader + logOutError(logOut, -1, "ERROR")
 	}
-	outStr, errorHeader2 = makeTex(inFileStr, sigDigits, randomStr, inFile, outFile)
+	outStr, errorHeader2 = makeTex(inFileStr, randomStr, inFile, outFile)
 	outStr = errorHeader + errorHeader2 + outStr
 	fileAppendString(outStr, outFile.full)
 
