@@ -12,19 +12,17 @@ import (
 // also returns answer (float64) where it is the last answer calculated if there are multiple statements in one line
 func runCode(inString string, varAll map[string]varSingle, configParam map[string]string) (assignVar, outString string, answer float64, errCode string) {
 	var result, lineCode []string
-	var infixCode, rpnCode, options, units, latex string
+	var allOptions []option
+	var infixCode, rpnCode, optionStr, units string
 	var errorInfix, errorRpn string
 	var tmp2 varSingle
 	var reAssignment = regexp.MustCompile(`(?m)^\s*(?P<res1>\w*)\s*=\s*(?P<res2>.*)$`)
 	var reGetFirst = regexp.MustCompile(`(?mU)^(?P<res1>.*);(?P<res2>.*)$`)
 	var reBeforeComment = regexp.MustCompile(`(?mU)^(?P<res1>.*)#.*$`)
 	var reOptions = regexp.MustCompile(`(?mU)^.*#(?P<res1>.*)$`)
-	//	var reGetFirstWord = regexp.MustCompile(`(?m)^\s*(?P<res1>\w*)`)
-	var reUnits = regexp.MustCompile(`(?m)UNITS(?P<res1>{.*)$`)
-	var reLatex = regexp.MustCompile(`(?m)SYMBOL(?P<res1>{.*)$`)
 
 	if reOptions.MatchString(inString) {
-		options = reOptions.FindStringSubmatch(inString)[1]
+		optionStr = reOptions.FindStringSubmatch(inString)[1]
 	}
 	if reBeforeComment.MatchString(inString) {
 		inString = reBeforeComment.FindStringSubmatch(inString)[1] // strip off comments after #
@@ -77,17 +75,22 @@ func runCode(inString string, varAll map[string]varSingle, configParam map[strin
 			} else {
 				tmp2 = varAll[assignVar] // use existing map location
 			}
-			if reUnits.MatchString(options) {
-				tmp := reUnits.FindStringSubmatch(options)[1] // just the stuff {.*$
-				preUnits, _, _ := matchBrackets(tmp, "{")     // a string that has prefix and units together
-				_, units = getPrefixUnits(preUnits)           // separate preUnits into prefix and units
-				tmp2.units = units
-			}
-			if reLatex.MatchString(options) {
-				tmp := reLatex.FindStringSubmatch(options)[1]
-				latex, _, errCode = matchBrackets(tmp, "{")
-				tmp2.latex = latex
-			}
+
+			// Now deal with options in the RUN command
+			allOptions = getAllOptions(optionStr)
+			for i := 0; i < len(allOptions); i++ {
+				switch allOptions[i].name {
+				case "units":
+					_, units = getPrefixUnits(allOptions[i].value) // separate preUnits into prefix and units
+					tmp2.units = units
+				case "symbol":
+					tmp2.latex = allOptions[i].value
+				default:
+					errCode = allOptions[i].name + " is not a valid option"
+					return
+				}
+			} // done with options
+
 			tmp2.value = answer
 			varAll[assignVar] = tmp2
 

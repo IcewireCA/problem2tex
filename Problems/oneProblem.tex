@@ -1,5 +1,6 @@
 \documentclass[11pt]{exam}
-\usepackage{import,xcolor}
+\usepackage{import,xcolor,graphicx}
+\newcommand{\skipLine}{\vspace{1em}}
 \newcommand{\incProb}[1]{
     \immediate\write18{problem2tex -export=tmp/#1.tex -random=true -sigDigits=4 #1.prb} 
   \import{tmp/}{#1.tex}
@@ -12,7 +13,7 @@
 %\begin{questions}
 
 %\incProb{testSimpleSyntax}
-\import{tmp/}{testSimpleSyntax.tex}
+\import{tmp/}{includeTest.tex}
 
 %\end{questions}
 \end{document}

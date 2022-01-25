@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+type option struct {
+	name  string
+	value string
+}
+
 func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
 	var inLines, outLines []string
 	var inLine string
@@ -127,7 +132,7 @@ func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string
 		logOut = logOut + " " + newLog
 	}
 	if tmpCmd != "" {
-		replace, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam)
+		replace, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam) //need inFile/outFile to know where to get/put files
 		return replace, logOut
 	}
 	for reFirstValMatch.MatchString(inString) || reFirstRunMatch.MatchString(inString) { // chec for VAL or RUN command
@@ -171,8 +176,8 @@ func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string
 	return inString, logOut
 }
 
-func getInsideStuff(inString, word string) (string, string) {
-	var reWordCmd = regexp.MustCompile(`(?mU)^\s*` + word + `(?P<res1>{.*)$`)
+func getInsideStuff(inString, command string) (string, string) { // get the stuff between brackets ...  command{inside stuff}
+	var reWordCmd = regexp.MustCompile(`(?mU)^\s*` + command + `(?P<res1>{.*)$`)
 	var insideStuff, logOut string
 	if !reWordCmd.MatchString(inString) {
 		return "", logOut
@@ -388,8 +393,16 @@ func bracketCheck(inString string, leftBrac string) (logOut string) {
 }
 
 func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) (string, string) {
-	var replace, options, logOut string
-	//var scale, font, align, horiz, above, below, noinkscape string
+	var options = map[string]string{ // defaults shown below
+		"SCALE":      "1.0",    //
+		"FONT":       "12:10",  //
+		"ALIGN":      "center", //
+		"SPACEHORIZ": "0",      //
+		"SPACEABOVE": "0",      //
+		"SPACEBELOW": "0",      //
+		"NOINKSCAPE": "false",  //
+	}
+	var replace, optionsString, tmp, key, logOut string
 	var result []string
 	var fileName, fileExt string
 	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
@@ -399,19 +412,47 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 	result = reNameInfo.FindStringSubmatch(inCmd)
 	fileName = result[1]
 	fileExt = result[2]
-	options = getAfter(inCmd, "#") // get options after "#" character
+	optionsString = getAfter(inCmd, "#") // get options after "#" character
 	_ = fileName
 	_ = fileExt
-	_ = options
-	// options are SCALE, FONT, ALIGN, SPACEHORIZ, SPACEABOVE, SPACEBELOW, NOINKSCAPE
-	// default values
-	// scale = "1.0"
-	// font = "12:10"
-	// align = "center"
-	// horiz = "0"
-	// above = "0"
-	// below = "0"
-	// noinkscape = "false"
+	_ = optionsString
+	for key = range options {
+		tmp, logOut = getInsideStuff(optionsString, key)
+		if logOut != "" {
+			logOut = key + " format is incorrect"
+		}
+		if tmp != "" {
+			switch key {
+			case "FONT":
+				// put font change here
+			case "ALIGN":
+				switch options[key] {
+				case "center": // do nothing
+				case "left":
+					options[key] = "flushleft"
+				case "right":
+					options[key] = "flushright"
+				default:
+					logOut = "not a valid ALIGN option: " + options[key]
+				}
+			default: // do nothing
+			}
+			options[key] = tmp
+		}
+	}
+	switch fileExt {
+	case "png", "jpg", "jpeg", "pdf":
+		replace = `\begin{` + options["ALIGN"] + `}
+\vspace{` + options["SPACEABOVE"] + `pt}
+\hspace{` + options["SPACEHORIZ"] + `pt} \includegraphics[scale=` + options["SCALE"] + `]{` + fileName + `.` + fileExt + `}
+\vspace{` + options["SPACEBELOW"] + `pt}
+\end{` + options["ALIGN"] + `}`
+	case "svg":
+	case "asc":
+	default:
+		logOut = "file extension not recognized"
+
+	}
 
 	return replace, logOut
 }
@@ -485,16 +526,15 @@ func runConfigFunc(statement string, configParam map[string]string) (string, str
 
 func runParamFunc(statement string, varAll map[string]varSingle, configParam map[string]string) (string, string) {
 	var assignVar, rightSide, logOut string
-	var units, latex, prefix, outVerbose string
+	var units, prefix, outVerbose, optionStr string
 	var value, factor, nominal float64
+	var allOptions []option
 	var values []float64
 	var num, random int
 	var result []string
 	var min, max, stepSize float64
 	var reEqual = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\s*=\s*(?P<res2>.*)\s*`)
 	var reArray = regexp.MustCompile(`(?m)^\s*\[(?P<res1>.*)\]\s*(?P<res2>.*)`)
-	var reUnits = regexp.MustCompile(`(?m)UNITS(?P<res1>{.*)$`)
-	var reLatex = regexp.MustCompile(`(?m)SYMBOL(?P<res1>{.*)$`)
 	var reStep = regexp.MustCompile(`(?m)^\s*(?P<res1>\S+)\s*;\s*(?P<res2>\S+)\s*;\s*(?P<res3>\S+)[#|\s]*`)
 	var reKFactor = regexp.MustCompile(`(?m)^\s*(?P<res1>[^#|\s]+)`) // match everything up to a # or space
 	if reEqual.MatchString(statement) {
@@ -578,17 +618,20 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			logOut = "not a valid \\runParam statement"
 			return "", logOut
 		}
-		options := getAfter(rightSide, "#") // the options stuff after #
-		if reUnits.MatchString(options) {
-			tmp := reUnits.FindStringSubmatch(options)[1] // just the stuff {.*$
-			preUnits, _, _ := matchBrackets(tmp, "{")     // a string that has prefix and units together
-			prefix, units = getPrefixUnits(preUnits)      // separate preUnits into prefix and units
-			tmp2.units = units
-		}
-		if reLatex.MatchString(options) {
-			tmp := reLatex.FindStringSubmatch(options)[1]
-			latex, _, _ = matchBrackets(tmp, "{")
-			tmp2.latex = latex
+		// Now deal with options in the PARAM command
+		optionStr = getAfter(rightSide, "#") // the options stuff after #
+		allOptions = getAllOptions(optionStr)
+		for i := 0; i < len(allOptions); i++ {
+			switch allOptions[i].name {
+			case "units":
+				prefix, units = getPrefixUnits(allOptions[i].value) // separate preUnits into prefix and units
+				tmp2.units = units
+			case "symbol":
+				tmp2.latex = allOptions[i].value
+			default:
+				logOut = allOptions[i].name + " is not a valid option"
+				return "", logOut
+			}
 		}
 		if configParam["verbose"] == "true" {
 			outVerbose = "% " + assignVar + " = ["
@@ -598,7 +641,7 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 					outVerbose = outVerbose + ","
 				}
 			}
-			outVerbose = outVerbose + "] units:[" + prefix + units + "] latexSymbol:" + tmp2.latex
+			outVerbose = outVerbose + "] units=" + prefix + units + "   symbol=" + tmp2.latex
 		}
 		random, logOut = checkRandom(configParam["random"])
 		switch random {
@@ -1152,4 +1195,45 @@ func defaultUnitsVar(assignVar string, configParam map[string]string) string {
 		units = configParam[firstLetter]
 	}
 	return units
+}
+
+func getNextOption(inString string) (string, string) {
+	var outString, tail string
+	var result []string
+	var reWithComma = regexp.MustCompile(`(?mU)^\s*(?P<res>\S.*[^\\]),\s*(?P<res2>\S.*)$`)
+	var reNoComma = regexp.MustCompile(`(?mU)^\s*(?P<res1>\S.*)\s*$`)
+	if reWithComma.MatchString(inString) {
+		result = reWithComma.FindStringSubmatch(inString)
+		outString = result[1]
+		tail = result[2]
+		return outString, tail
+	}
+	if reNoComma.MatchString(inString) {
+		outString = reNoComma.FindStringSubmatch(inString)[1]
+		tail = ""
+	}
+	return outString, tail
+}
+
+func getAllOptions(inString string) []option {
+	var nextOption, tail string
+	var result []string
+	var newOption option
+	var allOptions []option
+	var reGetOptions = regexp.MustCompile(`(?m)(?P<res1>\S+)\s*=\s*(?P<res2>.*)$`)
+	for inString != "" {
+		nextOption, tail = getNextOption(inString)
+		if nextOption == "" {
+			return allOptions
+		}
+		if reGetOptions.MatchString(nextOption) {
+			result = reGetOptions.FindStringSubmatch(nextOption)
+			newOption = option{result[1], result[2]}
+		} else {
+			newOption = option{nextOption, "true"}
+		}
+		allOptions = append(allOptions, newOption)
+		inString = tail
+	}
+	return allOptions
 }
