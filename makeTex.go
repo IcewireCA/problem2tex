@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"math/rand"
+	"os/exec"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -111,29 +114,31 @@ func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string
 	// var reConfigCmd = regexp.MustCompile(`(?mU)^.*CONFIG(?P<res1>{.*)$`)
 	// var reParamCmd = regexp.MustCompile(`(?mU)^.*PARAM(?P<res1>{.*)$`)
 	// var reIncludeCmd = regexp.MustCompile(`(?mU)^.*INCLUDE(?P<res1>{.*)$`)
-	tmpCmd, newLog = getInsideStuff(inString, "CONFIG")
-	if newLog != "" {
-		logOut = logOut + " " + newLog
-	}
-	if tmpCmd != "" {
-		replace, logOut = runConfigFunc(tmpCmd, configParam)
-		return replace, logOut
-	}
-	tmpCmd, newLog = getInsideStuff(inString, "PARAM")
-	if newLog != "" {
-		logOut = logOut + " " + newLog
-	}
-	if tmpCmd != "" {
-		replace, logOut = runParamFunc(tmpCmd, varAll, configParam)
-		return replace, logOut
-	}
-	tmpCmd, newLog = getInsideStuff(inString, "INCLUDE")
-	if newLog != "" {
-		logOut = logOut + " " + newLog
-	}
-	if tmpCmd != "" {
-		replace, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam) //need inFile/outFile to know where to get/put files
-		return replace, logOut
+	if !graphic {
+		tmpCmd, newLog = getInsideStuff(inString, "CONFIG") // get the string INSIDE of { }
+		if newLog != "" {
+			logOut = logOut + " " + newLog
+		}
+		if tmpCmd != "" {
+			replace, logOut = runConfigFunc(tmpCmd, configParam)
+			return replace, logOut
+		}
+		tmpCmd, newLog = getInsideStuff(inString, "PARAM")
+		if newLog != "" {
+			logOut = logOut + " " + newLog
+		}
+		if tmpCmd != "" {
+			replace, logOut = runParamFunc(tmpCmd, varAll, configParam)
+			return replace, logOut
+		}
+		tmpCmd, newLog = getInsideStuff(inString, "INCLUDE")
+		if newLog != "" {
+			logOut = logOut + " " + newLog
+		}
+		if tmpCmd != "" {
+			replace, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam) //need inFile/outFile to know where to get/put files
+			return replace, logOut
+		}
 	}
 	for reFirstValMatch.MatchString(inString) || reFirstRunMatch.MatchString(inString) { // chec for VAL or RUN command
 		// keep doing this loop until all VAL, RUN commands are done
@@ -298,54 +303,6 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 	return head, tail, replace, logOut
 }
 
-// func includeFile(inString string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) (string, string) {
-// 	var filename, graphicFile, fileExtension, incCmd, outString, logOut string
-// 	var inLines, result []string
-// 	var reInclude = regexp.MustCompile(`(?mU)^.*INCLUDE(?P<res1>{.*)$`)
-// 	var reUpdate = regexp.MustCompile(`(?P<res1>\w+)\.(?P<res2>\w+)`) // used to replace filname.ext with filename_update.ext
-// 	// re.ReplaceAllString(str, "${res1}_update.${res2}")
-
-// 	if reInclude.MatchString(inString) {
-// 		result = reInclude.FindStringSubmatch(inString)
-// 		incCmd, _, _ = matchBrackets(result[1], "{")
-// 		return outString, logOut
-// 	}
-// 	return outString, logOut
-
-// if !reLTSpice.MatchString(inString) && !reSVGLatex.MatchString(inString) {
-// 	return inString, logOut
-// }
-// if reLTSpice.MatchString(inString) {
-// 	fileExtension = ".asc"
-// 	graphicFilename = reLTSpice.FindStringSubmatch(inString)[1]
-// 	graphicFile, logOut = fileReadString(filepath.Join(inFile.path, graphicFilename+fileExtension))
-// 	if logOut != "" {
-// 		return inString, logOut
-// 	}
-// 	graphicFile, _ = convertIfUtf16(graphicFile)
-// } else {
-// 	if reSVGLatex.MatchString(inString) {
-// 		fileExtension = ".svg"
-// 		graphicFilename = reSVGLatex.FindStringSubmatch(inString)[1]
-// 		graphicFile, logOut = fileReadString(filepath.Join(inFile.path, graphicFilename+fileExtension))
-// 		if logOut != "" {
-// 			return inString, logOut
-// 		}
-// 	}
-// }
-// inLines = strings.Split(graphicFile, "\n")
-// for i := range inLines {
-// 	inLines[i], logOut = commandReplace(inLines[i], varAll, configParam, true)
-// 	if logOut != "" {
-// 		logOut = logOut + " - error in " + graphicFilename + fileExtension
-// 		return inString, logOut
-// 	}
-// }
-// graphicFile = strings.Join(inLines, "\n")
-// fileWriteString(graphicFile, filepath.Join(outFile.path, graphicFilename+"_update"+fileExtension))
-// return inString, logOut
-//}
-
 func syntaxWarning(statement string) (logOut string) { // check that syntax seems okay and give warning if not okay
 	var reDollar = regexp.MustCompile(`(?m)\$`)
 	logOut = bracketCheck(statement, "{")
@@ -392,69 +349,148 @@ func bracketCheck(inString string, leftBrac string) (logOut string) {
 	return
 }
 
+// used to update the VAL{} commands in .svg or .asc files and write updated file in outFile location with fileNameAdd appended to name
+func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) string {
+	var fileOrig, fileUpdate, logOut string
+	var inLines []string
+	switch fileExt {
+	case "svg", "asc":
+		fileOrig, logOut = fileReadString(filepath.Join(inFile.path, fileName+"."+fileExt))
+		if logOut != "" {
+			return logOut
+		}
+		if fileExt == "asc" { // if asc file, need to convert to regular UTF8 format if in UTF16 format
+			fileOrig, _ = convertIfUtf16(fileOrig)
+		}
+		inLines = strings.Split(fileOrig, "\n")
+		for i := range inLines {
+			inLines[i], logOut = commandReplace(inLines[i], inFile, outFile, varAll, configParam, true)
+			if logOut != "" {
+				logOut = logOut + " - error in " + fileName + "." + fileExt
+				return logOut
+			}
+		}
+		fileUpdate = strings.Join(inLines, "\n")
+		fileWriteString(fileUpdate, filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt))
+		return logOut
+	case "png", "jpg", "jpeg", "pdf": // not update made to these types of file
+	default:
+		logOut = "File extension not recognized"
+
+	}
+	return logOut
+}
+
 func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) (string, string) {
 	var options = map[string]string{ // defaults shown below
-		"SCALE":      "1.0",    //
-		"FONT":       "12:10",  //
-		"ALIGN":      "center", //
-		"SPACEHORIZ": "0",      //
-		"SPACEABOVE": "0",      //
-		"SPACEBELOW": "0",      //
-		"NOINKSCAPE": "false",  //
+		"textScale":  "1.0",        // Scale size of text (in case where latex is creating text for say svg file)
+		"spaceHoriz": "0",          //  Positive value moves figure to right while negative value moves to left (in ex)
+		"spaceAbove": "0",          //  negative value will trim above figure and positive value gives space above (in ex)
+		"spaceBelow": "0",          // negative value will trim below figure and positive value gives space below (in ex)
+		"width":      "mustDefine", //  Determines size of figure (in mm). There is no default and width must be given
+		"caption":    "",           // the default caption for figure (blank)
+		"svgFormat":  "latex",      // svgFormat is either latex, noLatex or noLatexSlow
 	}
-	var replace, optionsString, tmp, key, logOut string
+	var allOptions []option
+	var replace, optionStr, logOut string
+	var fileNameAdd, fullFileName, latexCmd string
 	var result []string
 	var fileName, fileExt string
 	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
 	if !reNameInfo.MatchString(inCmd) {
 		logOut = "INCLUDE command does not have filename in correct format\n Should look like filename.ext"
+		return "", logOut
 	}
+	fileNameAdd = "NEW"
 	result = reNameInfo.FindStringSubmatch(inCmd)
 	fileName = result[1]
 	fileExt = result[2]
-	optionsString = getAfter(inCmd, "#") // get options after "#" character
-	_ = fileName
-	_ = fileExt
-	_ = optionsString
-	for key = range options {
-		tmp, logOut = getInsideStuff(optionsString, key)
-		if logOut != "" {
-			logOut = key + " format is incorrect"
-		}
-		if tmp != "" {
-			switch key {
-			case "FONT":
-				// put font change here
-			case "ALIGN":
-				switch options[key] {
-				case "center": // do nothing
-				case "left":
-					options[key] = "flushleft"
-				case "right":
-					options[key] = "flushright"
-				default:
-					logOut = "not a valid ALIGN option: " + options[key]
-				}
-			default: // do nothing
+	optionStr = getAfter(inCmd, "#") // get options after "#" character
+	allOptions = getAllOptions(optionStr)
+	for i := 0; i < len(allOptions); i++ {
+		switch allOptions[i].name {
+		case "textScale", "spaceHoriz", "spaceBelow", "width":
+			_, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
+			if err != nil {
+				logOut = allOptions[i].value + " is not a valid decimal number"
+				return "", logOut
 			}
-			options[key] = tmp
+			options[allOptions[i].name] = allOptions[i].value
+		case "spaceAbove":
+			float1, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
+			if err != nil {
+				logOut = allOptions[i].value + " is not a valid decimal number"
+				return "", logOut
+			}
+			float1 = -1 * float1 // invert the sign of this value since negative move figure up and positive should move figure down
+			// but we are using a trim here so inversion is necessary
+			options[allOptions[i].name] = fmt.Sprintf("%.3f", float1)
+		case "caption", "svgFormat":
+			options[allOptions[i].name] = allOptions[i].value
+		default:
+			logOut = allOptions[i].name + " is not a valid option"
+			return "", logOut
 		}
+	}
+	if options["width"] == "mustDefine" {
+		logOut = "Width for figure MUST be defined"
+		return "", logOut
 	}
 	switch fileExt {
 	case "png", "jpg", "jpeg", "pdf":
-		replace = `\begin{` + options["ALIGN"] + `}
-\vspace{` + options["SPACEABOVE"] + `pt}
-\hspace{` + options["SPACEHORIZ"] + `pt} \includegraphics[scale=` + options["SCALE"] + `]{` + fileName + `.` + fileExt + `}
-\vspace{` + options["SPACEBELOW"] + `pt}
-\end{` + options["ALIGN"] + `}`
+		fullFileName = fileName + `.` + fileExt
+		latexCmd = `\incPic`
 	case "svg":
+		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
+		switch options["svgFormat"] {
+		case "latex":
+			latexCmd = `\incSvg`
+		case "noLatexSlow":
+			latexCmd = `\incSvgNoLatexSlow`
+		case "noLatex":
+			latexCmd = `\incSvgNoLatex`
+		default:
+			logOut = "ERROR: svgFormat: " + options["svgFormat"] + " is not a valid option"
+			return "", logOut
+		}
+		fullFileName = fileName + fileNameAdd // don't want the file extension here as latex needs just the filename
 	case "asc":
+		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
+		latexCmd = `\incAsc`
+		fullFileName = fileName + fileNameAdd
 	default:
 		logOut = "file extension not recognized"
-
 	}
+	// make a new latex command for including picture (one possibility is shown below)
+	// \newcommand{\incPic}[6]{
+	// 	\begin{minipage}{\linewidth}
+	// 	\centering
+	// 	\hspace*{#4ex} \includegraphics[width= #2mm, trim=0 0 0 #3ex, clip]{../#1}
+	// 	\vspace{#5ex}
+	// 	\captionof{figure}{#6}
+	// 	\end{minipage}`
+	// 	}
+	replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+		options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+		options["spaceBelow"] + `}{` + options["caption"] + `}{` + options["textScale"] + `}`
 
 	return replace, logOut
+}
+
+// to run a command line instruction
+func runCommand(program string, args ...string) string {
+	var out bytes.Buffer    // used for cmd.run for better output errors
+	var stderr bytes.Buffer // used for cmd.run for better output errors
+	var logOut string
+	cmd := exec.Command(program, args...)
+	//	cmd.Dir = inFile.path
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		logOut = fmt.Sprint(fmt.Sprint(err) + ": " + stderr.String())
+	}
+	return logOut
 }
 
 func runConfigFunc(statement string, configParam map[string]string) (string, string) {
@@ -1230,7 +1266,7 @@ func getAllOptions(inString string) []option {
 			result = reGetOptions.FindStringSubmatch(nextOption)
 			newOption = option{result[1], result[2]}
 		} else {
-			newOption = option{nextOption, "true"}
+			newOption = option{nextOption, "true"} // if option has no = sign, then option is a word and set that word option to true
 		}
 		allOptions = append(allOptions, newOption)
 		inString = tail

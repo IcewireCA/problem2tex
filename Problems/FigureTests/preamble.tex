@@ -1,0 +1,67 @@
+\renewcommand{\figurename}{Fig.}
+\usepackage{import, amsmath}
+\newlength{\currentparindent} % used to store current parindent
+\newlength{\currentparskip}
+\newcommand{\incProb}[1]{
+    \immediate\write18{problem2tex -export=Problems/tmp/#1.tex 
+    -random=false Problems/#1.prb}
+    \setlength{\currentparindent}{\parindent} % store current parindent
+    \setlength{\currentparskip}{\parskip}
+    \setlength{\parindent}{0em}
+    \setlength{\parskip}{0em}
+    \import{Problems/tmp/}{#1.tex}
+    \setlength{\parindent}{\currentparindent} %restore parindent
+    \setlength{\parskip}{\currentparskip}
+}
+\newcommand{\incPic}[7]{
+\begin{minipage}{\linewidth}
+\centering
+\hspace*{#4ex} \includegraphics[width= #2mm, trim=0 0 0 #3ex, clip]{../#1}
+\vspace{#5ex}
+\captionof{figure}{#6}
+\end{minipage}
+}
+\newcommand{\incSvg}[7]{
+\begin{minipage}{\linewidth}
+\centering
+\hbox{\hspace{#4ex}\begin{adjustbox}{trim=0 0 0 #3ex, clip, center}
+\includesvg[width=#2mm,pretex=\relscale{#7},inkscapelatex=true]{#1}
+\end{adjustbox} }
+\vspace{#5ex}
+\captionof{figure}{#6}
+\end{minipage}
+}
+\newcommand{\incSvgNoLatexSlow}[7]{
+\begin{minipage}{\linewidth}
+\centering
+\hbox{\hspace{#4ex}\begin{adjustbox}{trim=0 0 0 #3ex, clip, center}
+\includesvg[width=#2mm,pretex=\relscale{#7},inkscapelatex=false]{#1}
+\end{adjustbox} }
+\vspace{#5ex}
+\captionof{figure}{#6}
+\end{minipage}
+}
+\newcommand{\incSvgNoLatex}[7]{
+\immediate\write18{rsvg-convert -f pdf -o Problems/tmp/#1.pdf Problems/tmp/#1.svg}
+\begin{minipage}{\linewidth}
+\centering
+\hspace*{#4ex} \includegraphics[width= #2mm, trim=0 0 0 #3ex, clip]{#1.pdf}
+\vspace{#5ex}
+\captionof{figure}{#6}
+\end{minipage}
+}
+\newcommand{\incAsc}[7]{
+\immediate\write18{ltspice2svg -export=Problems/tmp/#1asc.svg -text=latex Problems/tmp/#1.asc}
+\begin{minipage}{\linewidth}
+\centering
+\hbox{\hspace{#4ex}\begin{adjustbox}{trim=0 0 0 #3ex, clip, center}
+\includesvg[width=#2mm,pretex=\relscale{#7},inkscapelatex=true]{#1asc}
+\end{adjustbox} }
+\vspace{#5ex}
+\captionof{figure}{#6}
+\end{minipage}
+}
+
+\newcommand{\tab}{\hspace*{4ex}}  
+\newcommand{\units}{\,\mathrm}
+\newcommand{\skipLine}{\vspace{2ex}}
