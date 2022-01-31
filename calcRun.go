@@ -13,7 +13,7 @@ import (
 func runCode(inString string, varAll map[string]varSingle, configParam map[string]string) (assignVar, outString string, answer float64, errCode string) {
 	var result, lineCode []string
 	var allOptions []option
-	var infixCode, rpnCode, optionStr, units string
+	var infixCode, rpnCode, optionStr, prefix, units string
 	var errorInfix, errorRpn string
 	var tmp2 varSingle
 	var reAssignment = regexp.MustCompile(`(?m)^\s*(?P<res1>\w*)\s*=\s*(?P<res2>.*)$`)
@@ -81,7 +81,11 @@ func runCode(inString string, varAll map[string]varSingle, configParam map[strin
 			for i := 0; i < len(allOptions); i++ {
 				switch allOptions[i].name {
 				case "units":
-					_, units = getPrefixUnits(allOptions[i].value) // separate preUnits into prefix and units
+					prefix, units = getPrefixUnits(allOptions[i].value) // separate preUnits into prefix and units
+					if prefix != "" {                                   // there should be NO prefix in RUN commands (it would not make sense since many variables are allowed on right side)
+						outString = "option units CAN NOT have prefix in RUN commands"
+						errCode = outString
+					}
 					tmp2.units = units
 				case "symbol":
 					tmp2.latex = allOptions[i].value

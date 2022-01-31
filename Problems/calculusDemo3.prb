@@ -1,5 +1,6 @@
-CONFIG{fmtVal=D4,fmtRun()=D4,fmtRunEQ=D4}
-RUN()={G_R=0.01195643}
+CONFIG{fmtVal=D4,fmtRun()=D4,fmtRunEQ=D4, verbose}
+RUN{x=0.01195643}
+RUN()={G_R=x}
 VAL{G_R}
 %PARAM{t_1 = [20,19,18,17]}
 %PARAM{Q_1 = 88.2;90;0.1}

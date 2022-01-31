@@ -192,7 +192,7 @@ func getInsideStuff(inString, command string) (string, string) { // get the stuf
 }
 
 func runReplace(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, string, string) {
-	var head, tail, logOut, runCmdType, runCmd, replace, assignVar, sigDigits string
+	var head, tail, logOut, runCmdType, runCmd, replace, assignVar string
 	var answer float64
 	var result []string
 	// below is to match RUN{ or RUN={ or RUN(){ or RUN()={ or RUNSILENT{
@@ -209,7 +209,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	case "RUN": // run statement and print statement (ex: v_2 = 3*V_t)
 		assignVar, runCmd, answer, logOut = runCode(runCmd, varAll, configParam)
 		if assignVar == "" {
-			replace = value2Str(answer, configParam["fmtVal"]) // not an assignment statment so just return  answer
+			replace = value2Str(answer, "", configParam["fmtVal"]) // not an assignment statment so just return  answer
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + "$}"
 		}
@@ -218,16 +218,14 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
 		} else {
-			_, sigDigits, _ = parseFormat(configParam["fmtRunEQ"])
-			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
+			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
 		}
 	case "RUN()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
 		_, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
 	case "RUN()=": // same as run() but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
 		assignVar, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
-		_, sigDigits, _ = parseFormat(configParam["fmtRunEQ"])
-		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
+		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
 	default:
 		// if here, then error as \run**something else** is here
 		logOut = "\\" + runCmdType + " *** NOT A VALID COMMAND\n"
@@ -258,6 +256,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 		case "U":
 			formatType = formatStr
 			_, sigDigits, _ = parseFormat(configParam["fmtVal"])
+			formatStr = formatType + sigDigits
 		default:
 			formatType, sigDigits, logOut = parseFormat(formatStr)
 			if logOut != "" {
@@ -274,17 +273,10 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 	if ok {
 		// exp is a variable in varAll map
 		switch formatType {
-		case "E", "S", "D", "$":
-			replace = value2Str(varAll[exp].value, formatStr)
-		case "U":
-			replace = valueInSI(exp, varAll, sigDigits)
+		case "E", "S", "D", "$", "U":
+			replace = value2Str(varAll[exp].value, varAll[exp].units, formatStr)
 		case "=":
-			if string(configParam["fmtRunEQ"][0]) == "U" {
-				sigDigits = string(configParam["fmtRunEQ"][1])
-				replace = "\\mbox{$" + varAll[exp].latex + "=" + valueInSI(exp, varAll, sigDigits) + "$}"
-			} else { // if format not equal to U, then
-				replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, configParam["fmtRunEQ"]) + "$}"
-			}
+			replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, varAll[exp].units, configParam["fmtVal"]) + "$}"
 		case "L": // if L then print out latex symbol instead of value
 			replace = "\\mbox{$" + varAll[exp].latex + "$}"
 		default:
@@ -298,7 +290,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 			logOut = "expression: " + exp + " *** NOT A VALID EXPRESSION"
 			return head, tail, errCode, logOut
 		}
-		replace = value2Str(value, formatStr)
+		replace = value2Str(value, varAll[exp].units, formatStr)
 	}
 	return head, tail, replace, logOut
 }
@@ -354,7 +346,7 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 	var fileOrig, fileUpdate, logOut string
 	var inLines []string
 	switch fileExt {
-	case "svg", "asc":
+	case "svg", "asc", "tex":
 		fileOrig, logOut = fileReadString(filepath.Join(inFile.path, fileName+"."+fileExt))
 		if logOut != "" {
 			return logOut
@@ -373,9 +365,9 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 		fileUpdate = strings.Join(inLines, "\n")
 		fileWriteString(fileUpdate, filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt))
 		return logOut
-	case "png", "jpg", "jpeg", "pdf": // not update made to these types of file
+	case "png", "jpg", "jpeg", "pdf": // no update made to these types of file
 	default:
-		logOut = "File extension not recognized"
+		logOut = "File extension not recognized: " + fileExt
 
 	}
 	return logOut
@@ -432,7 +424,7 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 			return "", logOut
 		}
 	}
-	if options["width"] == "mustDefine" {
+	if options["width"] == "mustDefine" && fileExt != "tex" {
 		logOut = "Width for figure MUST be defined"
 		return "", logOut
 	}
@@ -458,8 +450,18 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
 		latexCmd = `\incAsc`
 		fullFileName = fileName + fileNameAdd
+	case "tex":
+		if len(allOptions) > 0 { // there should be no options with a tex file
+			logOut = "INCLUDE{filename.tex} should not have any options"
+			return "", logOut
+		}
+		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
+		latexCmd = `\incTex`
+		fullFileName = fileName + fileNameAdd + `.tex`
+		replace = `\incTex{` + fullFileName + `}`
+		return replace, logOut
 	default:
-		logOut = "file extension not recognized"
+		logOut = "File extension not recognized: " + fileExt
 	}
 	// make a new latex command for including picture (one possibility is shown below)
 	// \newcommand{\incPic}[6]{
@@ -520,7 +522,7 @@ func runConfigFunc(optionStr string, configParam map[string]string) (string, str
 			}
 		case "verbose":
 			switch allOptions[i].value {
-			case "true":
+			case "true", "":
 				configParam["verbose"] = "true"
 				outString = "% Configuration Settings\n"
 				for key = range configParam {
@@ -813,7 +815,7 @@ func bracketed(statement string, varAll map[string]varSingle, configParam map[st
 			_, ok := varAll[result[i]]
 			if ok {
 				re2 = regexp.MustCompile(`(?m)` + result[i])
-				sub = "(" + value2Str(varAll[result[i]].value, configParam["fmtRun()"]) + ")"
+				sub = "(" + value2Str(varAll[result[i]].value, "", configParam["fmtRun()"]) + ")"
 				backPart = re2.ReplaceAllString(backPart, sub)
 			}
 		}
@@ -822,39 +824,50 @@ func bracketed(statement string, varAll map[string]varSingle, configParam map[st
 	return
 }
 
-func valueInSI(variable string, varAll map[string]varSingle, sigDigits string) (outSI string) {
-	significand, exponent, prefix := float2Parts(varAll[variable].value, strIncrement(sigDigits, -1))
-	if varAll[variable].units == "" { // if no units defined for that variable
-		if exponent == "0" {
-			outSI = significand
-		} else {
-			outSI = significand + "e" + exponent
-		}
-	} else {
-		outSI = "\\mbox{$" + significand + " \\units{" + prefix + " " + varAll[variable].units + "}$}"
-	}
-	return
-}
+// func valueInSI(variable string, varAll map[string]varSingle, sigDigits string) (outSI string) {
+// 	significand, exponent, prefix := float2Parts(varAll[variable].value, strIncrement(sigDigits, -1))
+// 	if varAll[variable].units == "" { // if no units defined for that variable
+// 		if exponent == "0" {
+// 			outSI = significand
+// 		} else {
+// 			outSI = significand + "e" + exponent
+// 		}
+// 	} else {
+// 		outSI = "\\mbox{$" + significand + " \\units{" + prefix + " " + varAll[variable].units + "}$}"
+// 	}
+// 	return
+// }
 
-func value2Str(x float64, formatStr string) (outString string) {
+func value2Str(x float64, units, formatStr string) (outString string) {
 	var formatType, sigDigits string
 	formatType, sigDigits, _ = parseFormat(formatStr)
 	switch formatType {
-	case "E":
+	case "E": // engineering notation (powers of 3 for exponent)
 		significand, exponent, _ := float2Parts(x, strIncrement(sigDigits, -1))
 		if exponent == "0" {
 			outString = significand
 		} else {
 			outString = significand + "e" + exponent
 		}
-	case "S", "U":
+	case "S": // scientific notation
 		outString = fmt.Sprintf("%."+strIncrement(sigDigits, -1)+"e", x)
-	case "D": // decimal
+	case "D": // decimal notation
 		outString = fmt.Sprintf("%."+strIncrement(sigDigits, 0)+"f", x)
 	case "$": // dollar notation (2 decimal places and rounded off)
 		outString = fmt.Sprintf("%.2f", math.Round(x*100)/100)
+	case "U": // SI notation and includes units if available
+		significand, exponent, prefix := float2Parts(x, strIncrement(sigDigits, -1))
+		if units == "" {
+			if exponent == "0" {
+				outString = significand
+			} else {
+				outString = significand + "e" + exponent
+			}
+		} else {
+			outString = "\\mbox{$" + significand + " \\units{" + prefix + " " + units + "}$}"
+		}
 	default:
-		outString = "format not recognized"
+		outString = "format not recognized: " + formatType
 	}
 	return
 }

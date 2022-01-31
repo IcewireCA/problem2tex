@@ -1,5 +1,6 @@
-RUNSILENT{I_D=3.4e-6#units=A}
-
+PARAM{I_D=[3.4e-6]#units=A}
+PARAM{R_1=[1]# units=k\Omega}
+PARAM{C_1=[10]#units=pF}
 first figure is svg with latex
 INCLUDE{currMirror01a.svg# width=100, spaceHoriz=10, spaceBelow=-7.5, spaceAbove=0, caption= svg with latex, textScale=0.8}
 
@@ -20,3 +21,6 @@ INCLUDE{currMirror01a.png#width=50, spaceBelow=0, svgFormat=noLatex, caption=png
 
 seventh figure is jpg
 INCLUDE{currMirror01a.jpg#width=50, spaceBelow=0, svgFormat=noLatex, caption=jpg figure}
+
+Last figure is a TIKZ figure 
+INCLUDE{circuit01.tex}

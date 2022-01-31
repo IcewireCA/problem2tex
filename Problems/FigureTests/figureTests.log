@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  30 JAN 2022 13:51
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  31 JAN 2022 18:25
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -30,71 +30,6 @@ Package: helvet 2020/03/25 PSNFSS-v9.3 (WaS)
 Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
 \KV@toks@=\toks15
 ))
-(/usr/local/texlive/2021/texmf-dist/tex/latex/sfmath/sfmath.sty
-Package: sfmath 2007/08/27 v0.8 sans serif maths
-LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/cmr/m/n --> OT1/phv/m/n on input line 329.
-LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmr/bx/n --> OT1/phv/bx/n on input line 330.
-\symSFMath=\mathgroup4
-LaTeX Font Info:    Overwriting symbol font `SFMath' in version `normal'
-(Font)                  OT1/phv/m/sl --> OT1/phv/m/sl on input line 343.
-LaTeX Font Info:    Overwriting symbol font `SFMath' in version `bold'
-(Font)                  OT1/phv/m/sl --> OT1/phv/bx/sl on input line 344.
-LaTeX Font Info:    Redeclaring math symbol \imath on input line 398.
-LaTeX Font Info:    Redeclaring math symbol \jmath on input line 399.
-\symSFMathUp=\mathgroup5
-LaTeX Font Info:    Overwriting symbol font `SFMathUp' in version `normal'
-(Font)                  OT1/phv/m/n --> OT1/phv/m/n on input line 406.
-LaTeX Font Info:    Overwriting symbol font `SFMathUp' in version `bold'
-(Font)                  OT1/phv/m/n --> OT1/phv/bx/n on input line 407.
-LaTeX Font Info:    Redeclaring math symbol \ldotp on input line 410.
-\symSFMathGreek=\mathgroup6
-LaTeX Font Info:    Overwriting symbol font `SFMathGreek' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/cmss/m/n on input line 419.
-LaTeX Font Info:    Overwriting symbol font `SFMathGreek' in version `bold'
-(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 420.
-LaTeX Font Info:    Redeclaring math symbol \Gamma on input line 422.
-LaTeX Font Info:    Redeclaring math symbol \Delta on input line 423.
-LaTeX Font Info:    Redeclaring math symbol \Theta on input line 424.
-LaTeX Font Info:    Redeclaring math symbol \Lambda on input line 425.
-LaTeX Font Info:    Redeclaring math symbol \Xi on input line 426.
-LaTeX Font Info:    Redeclaring math symbol \Pi on input line 427.
-LaTeX Font Info:    Redeclaring math symbol \Sigma on input line 428.
-LaTeX Font Info:    Redeclaring math symbol \Upsilon on input line 429.
-LaTeX Font Info:    Redeclaring math symbol \Phi on input line 430.
-LaTeX Font Info:    Redeclaring math symbol \Psi on input line 431.
-LaTeX Font Info:    Redeclaring math symbol \Omega on input line 432.
-\symSFMathUpGreek=\mathgroup7
-LaTeX Font Info:    Overwriting symbol font `SFMathUpGreek' in version `normal'
-
-(Font)                  OT1/cmss/m/n --> OT1/cmss/m/n on input line 436.
-LaTeX Font Info:    Overwriting symbol font `SFMathUpGreek' in version `bold'
-(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 437.
-LaTeX Font Info:    Overwriting math alphabet `\mathnormal' in version `normal'
-
-(Font)                  OML/cmm/m/it --> OT1/phv/m/sl on input line 446.
-LaTeX Font Info:    Overwriting math alphabet `\mathnormal' in version `bold'
-(Font)                  OML/cmm/b/it --> OT1/phv/bx/sl on input line 447.
-LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `normal'
-(Font)                  OT1/phv/m/n --> OT1/phv/m/n on input line 449.
-LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `bold'
-(Font)                  OT1/phv/bx/n --> OT1/phv/bx/n on input line 450.
-LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
-(Font)                  OT1/cmr/bx/n --> OT1/phv/bx/n on input line 452.
-LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  OT1/cmr/bx/n --> OT1/phv/bx/n on input line 453.
-LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
-(Font)                  OT1/cmr/m/it --> OT1/phv/m/sl on input line 455.
-LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmr/bx/it --> OT1/phv/bx/sl on input line 456.
-LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/phv/m/n on input line 458.
-LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/cmss/bx/n --> OT1/phv/bx/n on input line 459.
-LaTeX Font Info:    Overwriting math alphabet `\mathsl' in version `bold'
-(Font)                  OT1/phv/m/sl --> OT1/phv/bx/sl on input line 466.
-)
 (/usr/local/texlive/2021/texmf-dist/tex/latex/geometry/geometry.sty
 Package: geometry 2020/01/02 v5.9 Page Geometry
 
@@ -511,40 +446,328 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 744.
 LaTeX Info: Redefining \[ on input line 2923.
 LaTeX Info: Redefining \] on input line 2924.
 )
+(/usr/local/texlive/2021/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty
+(/usr/local/texlive/2021/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty
+Package: pgf 2020/12/27 v3.1.8b (3.1.8b)
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/pgf/basiclayer/pgfcore.sty
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcore.code.tex
+Package: pgfcore 2020/12/27 v3.1.8b (3.1.8b)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex
+\pgfmath@dimen=\dimen191
+\pgfmath@count=\count282
+\pgfmath@box=\box53
+\pgfmath@toks=\toks31
+\pgfmath@stack@operand=\toks32
+\pgfmath@stack@operation=\toks33
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.
+tex
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.basic
+.code.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.trigo
+nometric.code.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.rando
+m.code.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.compa
+rison.code.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.
+code.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round
+.code.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.
+code.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integ
+erarithmetics.code.tex)))
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
+\c@pgfmathroundto@lastzeros=\count283
+)) (/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfint.code.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.co
+de.tex
+File: pgfcorepoints.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgf@picminx=\dimen192
+\pgf@picmaxx=\dimen193
+\pgf@picminy=\dimen194
+\pgf@picmaxy=\dimen195
+\pgf@pathminx=\dimen196
+\pgf@pathmaxx=\dimen197
+\pgf@pathminy=\dimen198
+\pgf@pathmaxy=\dimen199
+\pgf@xx=\dimen256
+\pgf@xy=\dimen257
+\pgf@yx=\dimen258
+\pgf@yy=\dimen259
+\pgf@zx=\dimen260
+\pgf@zy=\dimen261
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconst
+ruct.code.tex
+File: pgfcorepathconstruct.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgf@path@lastx=\dimen262
+\pgf@path@lasty=\dimen263
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathusage
+.code.tex
+File: pgfcorepathusage.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgf@shorten@end@additional=\dimen264
+\pgf@shorten@start@additional=\dimen265
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorescopes.co
+de.tex
+File: pgfcorescopes.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgfpic=\box54
+\pgf@hbox=\box55
+\pgf@layerbox@main=\box56
+\pgf@picture@serial@count=\count284
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregraphicst
+ate.code.tex
+File: pgfcoregraphicstate.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgflinewidth=\dimen266
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransform
+ations.code.tex
+File: pgfcoretransformations.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgf@pt@x=\dimen267
+\pgf@pt@y=\dimen268
+\pgf@pt@temp=\dimen269
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorequick.cod
+e.tex
+File: pgfcorequick.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreobjects.c
+ode.tex
+File: pgfcoreobjects.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathproce
+ssing.code.tex
+File: pgfcorepathprocessing.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorearrows.co
+de.tex
+File: pgfcorearrows.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgfarrowsep=\dimen270
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreshade.cod
+e.tex
+File: pgfcoreshade.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgf@max=\dimen271
+\pgf@sys@shading@range@num=\count285
+\pgf@shadingcount=\count286
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreimage.cod
+e.tex
+File: pgfcoreimage.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreexternal.
+code.tex
+File: pgfcoreexternal.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgfexternal@startupbox=\box57
+))
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorelayers.co
+de.tex
+File: pgfcorelayers.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretranspare
+ncy.code.tex
+File: pgfcoretransparency.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepatterns.
+code.tex
+File: pgfcorepatterns.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/basiclayer/pgfcorerdf.code.
+tex
+File: pgfcorerdf.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)))
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/modules/pgfmoduleshapes.cod
+e.tex
+File: pgfmoduleshapes.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgfnodeparttextbox=\box58
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/modules/pgfmoduleplot.code.
+tex
+File: pgfmoduleplot.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version
+-0-65.sty
+Package: pgfcomp-version-0-65 2020/12/27 v3.1.8b (3.1.8b)
+\pgf@nodesepstart=\dimen272
+\pgf@nodesepend=\dimen273
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version
+-1-18.sty
+Package: pgfcomp-version-1-18 2020/12/27 v3.1.8b (3.1.8b)
+))
+(/usr/local/texlive/2021/texmf-dist/tex/latex/pgf/utilities/pgffor.sty
+(/usr/local/texlive/2021/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex)
+) (/usr/local/texlive/2021/texmf-dist/tex/latex/pgf/math/pgfmath.sty
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex))
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/utilities/pgffor.code.tex
+Package: pgffor 2020/12/27 v3.1.8b (3.1.8b)
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)
+\pgffor@iter=\dimen274
+\pgffor@skip=\dimen275
+\pgffor@stack=\toks34
+\pgffor@toks=\toks35
+))
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.cod
+e.tex
+Package: tikz 2020/12/27 v3.1.8b (3.1.8b)
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothan
+dlers.code.tex
+File: pgflibraryplothandlers.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgf@plot@mark@count=\count287
+\pgfplotmarksize=\dimen276
+)
+\tikz@lastx=\dimen277
+\tikz@lasty=\dimen278
+\tikz@lastxsaved=\dimen279
+\tikz@lastysaved=\dimen280
+\tikz@lastmovetox=\dimen281
+\tikz@lastmovetoy=\dimen282
+\tikzleveldistance=\dimen283
+\tikzsiblingdistance=\dimen284
+\tikz@figbox=\box59
+\tikz@figbox@bg=\box60
+\tikz@tempbox=\box61
+\tikz@tempbox@bg=\box62
+\tikztreelevel=\count288
+\tikznumberofchildren=\count289
+\tikznumberofcurrentchild=\count290
+\tikz@fig@count=\count291
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/modules/pgfmodulematrix.cod
+e.tex
+File: pgfmodulematrix.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgfmatrixcurrentrow=\count292
+\pgfmatrixcurrentcolumn=\count293
+\pgf@matrix@numberofcolumns=\count294
+)
+\tikz@expandcount=\count295
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
+s/tikzlibrarytopaths.code.tex
+File: tikzlibrarytopaths.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)))
+(/usr/local/texlive/2021/texmf-dist/tex/latex/circuitikz/circuitikz.sty
+Package: circuitikz 2021/03/14{} The CircuiTikz circuit drawing package version
+ 1.3.2
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
+s/tikzlibrarycalc.code.tex
+File: tikzlibrarycalc.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/libraries/pgflibraryarrows.
+meta.code.tex
+File: pgflibraryarrows.meta.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgfarrowinset=\dimen285
+\pgfarrowlength=\dimen286
+\pgfarrowwidth=\dimen287
+\pgfarrowlinewidth=\dimen288
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
+s/tikzlibrarybending.code.tex
+File: tikzlibrarybending.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/modules/pgfmodulebending.co
+de.tex
+File: pgfmodulebending.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/modules/pgfmodulenonlineart
+ransformations.code.tex
+File: pgfmodulenonlineartransformations.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgftransformnonlinearflatness=\dimen289
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/libraries/pgflibrarycurvili
+near.code.tex
+File: pgflibrarycurvilinear.code.tex 2020/12/27 v3.1.8b (3.1.8b)
+\pgf@curvilinear@time@a=\dimen290
+\pgf@curvilinear@length@a=\dimen291
+\pgf@curvilinear@length@b=\dimen292
+\pgf@curvilinear@length@c=\dimen293
+\pgf@curvilinear@length@d=\dimen294
+)
+\pgf@arrows@the@rigidity=\dimen295
+))
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
+s/tikzlibraryfpu.code.tex
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pgf/libraries/pgflibraryfpu.cod
+e.tex))
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcirc.defines.tex
+\pgf@circ@count@a=\count296
+\pgf@circ@count@b=\count297
+\pgf@circ@count@c=\count298
+\pgf@circ@res@up=\dimen296
+\pgf@circ@res@down=\dimen297
+\pgf@circ@res@zero=\dimen298
+\pgf@circ@res@left=\dimen299
+\pgf@circ@res@right=\dimen300
+\pgf@circ@res@other=\dimen301
+\pgf@circ@res@step=\dimen302
+\pgf@circ@res@temp=\dimen303
+\pgf@circ@Rlen=\dimen304
+\pgf@circ@scaled@Rlen=\dimen305
+\pgfstartlinewidth=\dimen306
+) (/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcircutils.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcircpath.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcircshapes.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcircmonopoles.tex
+) (/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcircbipoles.tex
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcirctripoles.tex
+\pgf@circ@res@count=\count299
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcircquadpoles.tex
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcircmultipoles.te
+x) (/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcirclabel.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcircvoltage.tex
+\pgfcirc@labelshift=\dimen307
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcirccurrent.tex)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/circuitikz/pgfcircflow.tex))
 \currentparindent=\skip52
 \currentparskip=\skip53
 )
 LaTeX Font Info:    Trying to load font information for OT1+phv on input line 1
-1.
+4.
 
 (/usr/local/texlive/2021/texmf-dist/tex/latex/psnfss/ot1phv.fd
 File: ot1phv.fd 2020/03/25 scalable font definitions for OT1/phv.
 )
 LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 12.0pt on input line 11.
+(Font)              scaled to size 12.0pt on input line 14.
 
 (/usr/local/texlive/2021/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2021-03-18 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count282
-\l__pdf_internal_box=\box53
+\l__color_backend_stack_int=\count300
+\l__pdf_internal_box=\box63
 )
 (./figureTests.aux)
 \openout1 = `figureTests.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 14.
+LaTeX Font Info:    ... okay on input line 14.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -582,37 +805,21 @@ LaTeX Font Info:    ... okay on input line 11.
 
 (/usr/local/texlive/2021/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count283
-\scratchdimen=\dimen191
-\scratchbox=\box54
-\nofMPsegments=\count284
-\nofMParguments=\count285
-\everyMPshowfont=\toks31
-\MPscratchCnt=\count286
-\MPscratchDim=\dimen192
-\MPnumerator=\count287
-\makeMPintoPDFobject=\count288
-\everyMPtoPDFconversion=\toks32
+\scratchcounter=\count301
+\scratchdimen=\dimen308
+\scratchbox=\box64
+\nofMPsegments=\count302
+\nofMParguments=\count303
+\everyMPshowfont=\toks36
+\MPscratchCnt=\count304
+\MPscratchDim=\dimen309
+\MPnumerator=\count305
+\makeMPintoPDFobject=\count306
+\everyMPtoPDFconversion=\toks37
 ) (/usr/local/texlive/2021/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
-
-(/usr/local/texlive/2021/texmf-dist/tex/latex/grfext/grfext.sty
-Package: grfext 2019/12/03 v1.3 Manage graphics extensions (HO)
-
-(/usr/local/texlive/2021/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty
-Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
-)) (/usr/local/texlive/2021/texmf-dist/tex/latex/kvoptions/kvoptions.sty
-Package: kvoptions 2020-10-07 v3.14 Key value format for package options (HO)
-
-(/usr/local/texlive/2021/texmf-dist/tex/generic/kvsetkeys/kvsetkeys.sty
-Package: kvsetkeys 2019/12/15 v1.18 Key value parser (HO)
-))
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 85.
-Package grfext Info: Graphics extension search list:
-(grfext)             [.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPE
-G,.JBIG2,.JB2,.eps]
-(grfext)             \AppendGraphicsExtensions on input line 504.
 
 (/usr/local/texlive/2021/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
@@ -625,7 +832,7 @@ ems/figuresCheck.prb)...executed.
 
 
 (./Problems/tmp/figuresCheck.tex
-Package svg Info: Calling Inkscape on input line 6.
+Package svg Info: Calling Inkscape on input line 4.
 runsystem(inkscape "Problems/tmp//currMirror01aNEW.svg" -D --export-latex --exp
 ort-filename="currMirror01aNEW_svg-tex.pdf")...executed.
 
@@ -638,9 +845,9 @@ runsystem(mv "currMirror01aNEW_svg-tex.pdf_tex" "Problems/tmp/currMirror01aNEW_
 svg-tex.pdf_tex")...executed.
 
 Package svg Info: Last page of `Problems/tmp/currMirror01aNEW_svg-tex.pdf' is 6
- on input line 6.
+ on input line 4.
 LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 10.0pt on input line 6.
+(Font)              scaled to size 10.0pt on input line 4.
 
 (./Problems/tmp/currMirror01aNEW_svg-tex.pdf_tex
 <Problems/tmp/currMirror01aNEW_svg-tex.pdf, id=5, page=1, 421.05302pt x 373.395
@@ -650,16 +857,6 @@ File: Problems/tmp/currMirror01aNEW_svg-tex.pdf Graphic file (type pdf)
 Package pdftex.def Info: Problems/tmp/currMirror01aNEW_svg-tex.pdf , page1 used
  on input line 56.
 (pdftex.def)             Requested size: 284.52756pt x 252.33272pt.
-LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 7.0pt on input line 57.
-LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 5.0pt on input line 57.
-LaTeX Font Info:    Font shape `OT1/phv/m/sl' will be
-(Font)              scaled to size 10.0pt on input line 57.
-LaTeX Font Info:    Font shape `OT1/phv/m/sl' will be
-(Font)              scaled to size 7.0pt on input line 57.
-LaTeX Font Info:    Font shape `OT1/phv/m/sl' will be
-(Font)              scaled to size 5.0pt on input line 57.
 <Problems/tmp/currMirror01aNEW_svg-tex.pdf, id=6, page=2, 421.05302pt x 373.395
 pt>
 File: Problems/tmp/currMirror01aNEW_svg-tex.pdf Graphic file (type pdf)
@@ -696,27 +893,16 @@ Package pdftex.def Info: Problems/tmp/currMirror01aNEW_svg-tex.pdf , page6 used
  on input line 67.
 (pdftex.def)             Requested size: 284.52756pt x 252.33272pt.
 )
-LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 8.0pt on input line 6.
-LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 6.0pt on input line 6.
-LaTeX Font Info:    Font shape `OT1/phv/m/sl' will be
-(Font)              scaled to size 12.0pt on input line 6.
-LaTeX Font Info:    Font shape `OT1/phv/m/sl' will be
-(Font)              scaled to size 8.0pt on input line 6.
-LaTeX Font Info:    Font shape `OT1/phv/m/sl' will be
-(Font)              scaled to size 6.0pt on input line 6.
-
-Overfull \hbox (66.09558pt too wide) in paragraph at lines 6--7
+Overfull \hbox (66.09558pt too wide) in paragraph at lines 4--5
 []$[]$
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 6--7
+Underfull \hbox (badness 10000) in paragraph at lines 4--5
 
  []
 
-Package svg Info: Calling Inkscape on input line 12.
+Package svg Info: Calling Inkscape on input line 10.
 runsystem(inkscape "Problems/tmp//currMirror01aNEW.svg" -D --export-filename="c
 urrMirror01aNEW_svg-raw.pdf")...executed.
 
@@ -729,15 +915,15 @@ raw.pdf")...executed.
 File: Problems/tmp/currMirror01aNEW_svg-raw.pdf Graphic file (type pdf)
 <use Problems/tmp/currMirror01aNEW_svg-raw.pdf>
 Package pdftex.def Info: Problems/tmp/currMirror01aNEW_svg-raw.pdf  used on inp
-ut line 12.
+ut line 10.
 (pdftex.def)             Requested size: 421.052pt x 373.39409pt.
 
-Overfull \hbox (3.33588pt too wide) in paragraph at lines 12--13
+Overfull \hbox (3.33588pt too wide) in paragraph at lines 10--11
 []$[]$
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 12--13
+Underfull \hbox (badness 10000) in paragraph at lines 10--11
 
  []
 
@@ -748,17 +934,17 @@ runsystem(rsvg-convert -f pdf -o Problems/tmp/currMirror01aNEW.pdf Problems/tmp
 File: Problems/tmp//currMirror01aNEW.pdf Graphic file (type pdf)
 <use Problems/tmp//currMirror01aNEW.pdf>
 Package pdftex.def Info: Problems/tmp//currMirror01aNEW.pdf  used on input line
- 18.
+ 16.
 (pdftex.def)             Requested size: 199.16928pt x 225.7192pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 18--19
+Underfull \hbox (badness 10000) in paragraph at lines 16--17
 
  []
 
 runsystem(ltspice2svg -export=Problems/tmp/currMirror01aNEWasc.svg -text=latex 
 Problems/tmp/currMirror01aNEW.asc)...executed.
 
-Package svg Info: Calling Inkscape on input line 24.
+Package svg Info: Calling Inkscape on input line 22.
 runsystem(inkscape "Problems/tmp//currMirror01aNEWasc.svg" -D --export-latex --
 export-filename="currMirror01aNEWasc_svg-tex.pdf")...executed.
 
@@ -771,11 +957,11 @@ runsystem(mv "currMirror01aNEWasc_svg-tex.pdf_tex" "Problems/tmp/currMirror01aN
 EWasc_svg-tex.pdf_tex")...executed.
 
 Package svg Info: Last page of `Problems/tmp/currMirror01aNEWasc_svg-tex.pdf' i
-s 6 on input line 24.
+s 6 on input line 22.
 LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 14.4pt on input line 24.
+(Font)              scaled to size 14.4pt on input line 22.
 LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 13.20007pt on input line 24.
+(Font)              scaled to size 13.20007pt on input line 22.
 (./Problems/tmp/currMirror01aNEWasc_svg-tex.pdf_tex
 <Problems/tmp/currMirror01aNEWasc_svg-tex.pdf, id=15, page=1, 804.7301pt x 373.
 395pt>
@@ -786,10 +972,10 @@ sed on input line 56.
 (pdftex.def)             Requested size: 569.05511pt x 264.05257pt.
 LaTeX Font Info:    Calculating math sizes for size <13.20007> on input line 57
 .
-LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 9.24pt on input line 57.
-LaTeX Font Info:    Font shape `OT1/phv/m/n' will be
-(Font)              scaled to size 6.60004pt on input line 57.
+
+
+LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <13.20007> not available
+(Font)              size <14.4> substituted on input line 57.
 
 
 LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <13.20007> not available
@@ -801,16 +987,6 @@ LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <13.20007> not available
 
 
 LaTeX Font Warning: Font shape `OMX/cmex/m/n' in size <13.20007> not available
-(Font)              size <14.4> substituted on input line 57.
-
-LaTeX Font Info:    Font shape `OT1/phv/m/sl' will be
-(Font)              scaled to size 13.20007pt on input line 57.
-LaTeX Font Info:    Font shape `OT1/phv/m/sl' will be
-(Font)              scaled to size 9.24pt on input line 57.
-LaTeX Font Info:    Font shape `OT1/phv/m/sl' will be
-(Font)              scaled to size 6.60004pt on input line 57.
-
-LaTeX Font Warning: Font shape `OT1/cmss/m/n' in size <13.20007> not available
 (Font)              size <14.4> substituted on input line 57.
 
 <Problems/tmp/currMirror01aNEWasc_svg-tex.pdf, id=16, page=2, 804.7301pt x 373.
@@ -849,12 +1025,12 @@ Package pdftex.def Info: Problems/tmp/currMirror01aNEWasc_svg-tex.pdf , page6 u
 sed on input line 67.
 (pdftex.def)             Requested size: 569.05511pt x 264.05257pt.
 )
-Overfull \hbox (78.64752pt too wide) in paragraph at lines 24--25
+Overfull \hbox (78.64752pt too wide) in paragraph at lines 22--23
 []$[]$
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 24--25
+Underfull \hbox (badness 10000) in paragraph at lines 22--23
 
  []
 
@@ -900,25 +1076,25 @@ pdfTeX warning: /Library/Tex/texbin/pdflatex (file ./Problems/tmp/currMirror01a
 NEW_svg-raw.pdf): PDF inclusion: multiple pdfs with page group included in a si
 ngle page
 >]
-<Problems/tmp//../currMirror01a.pdf, id=56, 481.8pt x 546.04pt>
+<Problems/tmp//../currMirror01a.pdf, id=57, 481.8pt x 546.04pt>
 File: Problems/tmp//../currMirror01a.pdf Graphic file (type pdf)
 <use Problems/tmp//../currMirror01a.pdf>
 Package pdftex.def Info: Problems/tmp//../currMirror01a.pdf  used on input line
- 30.
+ 28.
 (pdftex.def)             Requested size: 199.16928pt x 225.7192pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 30--31
+Underfull \hbox (badness 10000) in paragraph at lines 28--29
 
  []
 
-<Problems/tmp//../currMirror01a.png, id=58, 553.06625pt x 677.53125pt>
+<Problems/tmp//../currMirror01a.png, id=59, 553.06625pt x 677.53125pt>
 File: Problems/tmp//../currMirror01a.png Graphic file (type png)
 <use Problems/tmp//../currMirror01a.png>
 Package pdftex.def Info: Problems/tmp//../currMirror01a.png  used on input line
- 36.
+ 34.
 (pdftex.def)             Requested size: 142.26378pt x 174.2724pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 36--37
+Underfull \hbox (badness 10000) in paragraph at lines 34--35
 
  []
 
@@ -950,21 +1126,26 @@ pdfTeX warning: /Library/Tex/texbin/pdflatex (file ./Problems/tmp/currMirror01a
 NEWasc_svg-tex.pdf): PDF inclusion: multiple pdfs with page group included in a
  single page
 >]
-<Problems/tmp//../currMirror01a.jpg, id=78, 553.06625pt x 677.53125pt>
+<Problems/tmp//../currMirror01a.jpg, id=82, 553.06625pt x 677.53125pt>
 File: Problems/tmp//../currMirror01a.jpg Graphic file (type jpg)
 <use Problems/tmp//../currMirror01a.jpg>
 Package pdftex.def Info: Problems/tmp//../currMirror01a.jpg  used on input line
- 42.
+ 40.
 (pdftex.def)             Requested size: 142.26378pt x 174.2724pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 42--43
+Underfull \hbox (badness 10000) in paragraph at lines 40--41
+
+ []
+
+(./Problems/tmp//circuit01NEW.tex)
+Underfull \hbox (badness 10000) in paragraph at lines 1--47
 
  []
 
 ) [3 <./Problems/tmp//../currMirror01a.jpg>]
 
 LaTeX3 Info: Redefining command \BeforeClosingMainAux with sig. 'm' on line
-(LaTeX3)     18.
+(LaTeX3)     24.
 
  (./figureTests.aux)
 
@@ -973,22 +1154,28 @@ LaTeX Font Warning: Size substitutions with differences
 
  ) 
 Here is how much of TeX's memory you used:
- 7980 strings out of 478994
- 143058 string characters out of 5858183
- 469174 words of memory out of 5000000
- 25240 multiletter control sequences out of 15000+600000
- 432588 words of font info for 81 fonts, out of 8000000 for 9000
+ 30173 strings out of 478994
+ 744111 string characters out of 5858183
+ 1244625 words of memory out of 5000000
+ 47231 multiletter control sequences out of 15000+600000
+ 414527 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 97i,22n,117p,341b,804s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 97i,22n,117p,478b,859s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/te
 xlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/tex
-live/2021/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/local/texlive/20
-21/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb>
-Output written on figureTests.pdf (3 pages, 121757 bytes).
+live/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texli
+ve/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive
+/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2
+021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/202
+1/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2021/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2021/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2021/texm
+f-dist/fonts/type1/urw/helvetic/uhvr8a.pfb>
+Output written on figureTests.pdf (3 pages, 175003 bytes).
 PDF statistics:
- 99 PDF objects out of 1000 (max. 8388607)
- 55 compressed objects within 1 object stream
+ 123 PDF objects out of 1000 (max. 8388607)
+ 73 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  132 words of extra memory for PDF output out of 10000 (max. 10000000)
 

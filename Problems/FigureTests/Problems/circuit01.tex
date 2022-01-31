@@ -1,0 +1,10 @@
+\begin{minipage}{\linewidth}
+\centering
+\begin{circuitikz}[american]
+\draw (0,0) to[vsource, v=$V_s$, invert] (0,3)
+to[R, l=$VAL{R_1}$] (4,3)
+to[C, l=$VAL{C_1}$] (4,0)
+to[short] (0,0);
+\end{circuitikz}
+\captionof{figure}{TIKZ schematic}
+\end{minipage}
