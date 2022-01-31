@@ -31,14 +31,14 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	// for format, the number represents the number of significant digits
 	// in the case of $, digits is forced to 2 after the decimal sign.
 	// fmtVal: when \val is used
-	// fmtRun(): the values inside brackets when \run() is used
-	// fmtRun=: when \run= is used
+	// fmtRun(): the values inside brackets when RUN() is used
+	// fmtRunEQ: when RUN= is used
 	var configParam = map[string]string{ // defaults shown below
 		"random":       randomStr, // can be false, true, any positive integer, min, max, minMax
 		"KFactor":      "1.3:5",   // variation from x/k to kx : number of choices
 		"fmtVal":       "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
 		"fmtRun()":     "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
-		"fmtRun=":      "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
+		"fmtRunEQ":     "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
 		"verbose":      "false",   // can be true or false
 		"defaultUnits": "",        // place defaultUnits here [[iI:A][vV:V][rR:\Omega]]  etc
 		// if first letter of a variable is i or I then default units is A
@@ -218,7 +218,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
 		} else {
-			_, sigDigits, _ = parseFormat(configParam["fmtRun="])
+			_, sigDigits, _ = parseFormat(configParam["fmtRunEQ"])
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
 		}
 	case "RUN()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
@@ -226,7 +226,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
 	case "RUN()=": // same as run() but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
 		assignVar, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
-		_, sigDigits, _ = parseFormat(configParam["fmtRun="])
+		_, sigDigits, _ = parseFormat(configParam["fmtRunEQ"])
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + valueInSI(assignVar, varAll, sigDigits) + "$}"
 	default:
 		// if here, then error as \run**something else** is here
@@ -279,11 +279,11 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 		case "U":
 			replace = valueInSI(exp, varAll, sigDigits)
 		case "=":
-			if string(configParam["fmtRun="][0]) == "U" {
-				sigDigits = string(configParam["fmtRun="][1])
+			if string(configParam["fmtRunEQ"][0]) == "U" {
+				sigDigits = string(configParam["fmtRunEQ"][1])
 				replace = "\\mbox{$" + varAll[exp].latex + "=" + valueInSI(exp, varAll, sigDigits) + "$}"
 			} else { // if format not equal to U, then
-				replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, configParam["fmtRun="]) + "$}"
+				replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, configParam["fmtRunEQ"]) + "$}"
 			}
 		case "L": // if L then print out latex symbol instead of value
 			replace = "\\mbox{$" + varAll[exp].latex + "$}"
@@ -493,69 +493,60 @@ func runCommand(program string, args ...string) string {
 	return logOut
 }
 
-func runConfigFunc(statement string, configParam map[string]string) (string, string) {
-	var outString, logOut, key, formatType string
-	var assignVar, rightSide string
-	var result []string
-	var reEqual = regexp.MustCompile(`(?m)^\s*(?P<res1>\S+)\s*=\s*(?P<res2>.*)\s*`)
-	if reEqual.MatchString(statement) {
-		result = reEqual.FindStringSubmatch(statement)
-		assignVar = result[1]                    // assignVar is the left side of the "=" sign.
-		rightSide = strings.TrimSpace(result[2]) // rightSide is the rightside of "=" sign.  then trim whitespace from beginning and end
-		assignVar, logOut = checkReserved(assignVar, logOut)
+func runConfigFunc(optionStr string, configParam map[string]string) (string, string) {
+	// returns outString that is only used when verbose is selected as an option... otherwise it is a null string
+	// also returns logOut if an error is detected
+	// THIS FUNCTION MODIFIES configParam map!!!! (it is essentially a global variable)
+	var outString, logOut string
+	var formatType, key string
+	var allOptions []option
+	allOptions = getAllOptions(optionStr)
+	for i := 0; i < len(allOptions); i++ {
+		switch allOptions[i].name { // Below is a check to ensure the input is in the correct format
+		case "random":
+			_, logOut = checkRandom(allOptions[i].value)
+		case "kFactor":
+			_, _, logOut = convertKFactor(allOptions[i].value)
+		case "fmtVal", "fmtRun()", "fmtRunEQ":
+			formatType, _, logOut = parseFormat(allOptions[i].value)
+			switch formatType {
+			case "E", "S", "D", "$":
+			case "U":
+				if allOptions[i].name == "fmtRun()" { // U is not allowed in fmtRun()
+					logOut = "ERROR: " + allOptions[i].name + " = " + allOptions[i].value + " -> config setting can be either E, S, D, or $ followed by number"
+				}
+			default:
+				logOut = "ERROR: " + allOptions[i].name + " = " + allOptions[i].value + " -> config setting can be either E, S, D, $ or U followed by number"
+			}
+		case "verbose":
+			switch allOptions[i].value {
+			case "true":
+				configParam["verbose"] = "true"
+				outString = "% Configuration Settings\n"
+				for key = range configParam {
+					if len(key) > 1 { // only print out config settings when key string length is greater than 1
+						outString = outString + "% " + key + " : " + configParam[key] + "\n"
+						// this is done so defaultUnits map values are not each printed
+					}
+				}
+			case "false":
+			default:
+				logOut = "verbose can be either true or false"
+			}
+		case "defaultUnits":
+			configParam["defaultUnits"] = allOptions[i].value
+			logOut = defaultUnitsFunc(allOptions[i].value, configParam) // THIS FUNCTION MODIFIES configParam MAP!!!
+			if logOut != "" {
+				logOut = "defaultUnits syntax is incorrect" + logOut
+			}
+		default:
+			logOut = allOptions[i].name + " is not a valid option"
+			return "", logOut
+		}
 		if logOut != "" {
 			return "", logOut
 		}
-		if _, ok := configParam[assignVar]; ok { // check if assignVar is a valid key in configParam map
-			switch assignVar { // do some checks on rightSide to ensure it is valid
-			case "random":
-				_, logOut = checkRandom(rightSide)
-			case "fmtVal", "fmtRun=":
-				formatType, _, logOut = parseFormat(rightSide)
-				switch formatType {
-				case "E", "S", "D", "$", "U":
-				default:
-					logOut = "fmtVal/fmtRun= config setting can be either E, S, D, $ or U"
-				}
-			case "fmtRun()":
-				formatType, _, logOut = parseFormat(rightSide)
-				switch formatType {
-				case "E", "S", "D", "$":
-				default:
-					logOut = "fmtRun() config setting can be either E, S, D, or $"
-				}
-			case "KFactor":
-				_, _, logOut = convertKFactor(rightSide)
-			case "verbose":
-				switch rightSide {
-				case "true":
-					configParam["verbose"] = "true"
-					outString = "% Configuration Settings\n"
-					for key = range configParam {
-						if len(key) > 1 { // only print out config settings when key string length is greater than 1
-							outString = outString + "% " + key + " : " + configParam[key] + "\n"
-							// this is done so defaultUnits map values are not each printed
-						}
-					}
-				case "false":
-				default:
-					logOut = "verbose can be either true or false"
-				}
-			case "defaultUnits":
-				configParam["defaultUnits"] = rightSide
-				logOut = defaultUnitsFunc(rightSide, configParam) // THIS FUNCTION MODIFIES configParam MAP!!!
-				if logOut != "" {
-					return "defaultUnits syntax is incorrect", logOut
-				}
-			default:
-				logOut = "should never be here 05"
-			}
-			if logOut == "" {
-				configParam[assignVar] = rightSide
-			}
-		} else {
-			logOut = assignVar + " is not a valid configuration setting parameter"
-		}
+		configParam[allOptions[i].name] = allOptions[i].value // everything looks good so update the configParam map
 	}
 	return outString, logOut
 }

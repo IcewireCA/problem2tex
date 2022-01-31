@@ -1,0 +1,44 @@
+CONFIG{fmtVal=D4,fmtRun()=D4,fmtRunEQ=D4}
+RUN()={G_R=0.01195643}
+VAL{G_R}
+%PARAM{t_1 = [20,19,18,17]}
+%PARAM{Q_1 = 88.2;90;0.1}
+%PARAM{t_2 = [23,24,22,21]}
+%PARAM{Q_2 = 91.4;99.9;0.1}
+%PARAM{t_3 = 25}
+%Suppose that $Q = f(t)$ is an exponential function of $t$. If $f(VAL{t_1}) = VAL{Q_1}$ and $f(VAL{t_2}) = VAL{Q_2}$:
+%
+%(a) Find the base.
+%(b) Find the growth rate.
+%(c) Evaluate $f(VAL{t_3})$.
+%
+%
+%% \begin{solution}
+%(a) Let $Q = Q_0a^t$.
+%
+%We are given VAL{Q_1,=} when VAL{t_1,=} and VAL{Q_2,=} when VAL{t_2,=} resulting in 2 equations
+%
+%\tab $Q_1 = Q_0a^{t_1}$ \hfill (1)
+%
+%%\tab $Q_2 = Q_0a^{t_2}$ \hfill (2)
+%
+%Dividing the two equations enables us to eliminate $Q_0$:
+%
+%\tab $\dfrac{Q_1}{Q_2} = \dfrac{Q_0a^{t_1}}{Q_0a^{t_2}} = a^{(t_1-t_2)}$ \hfill (3)
+%
+%Solving for the base, $a$, we have
+%
+%\tab RUN()={a=(Q_1/Q_2)^(1/(t_1-t_2))} \hfill (4)
+%
+%\hlite{The base is VAL{a,=}}
+%
+%(b) The growth rate, $G_R$, is determined by how much $a$ is larger than 1. Specifically, 
+%
+%\tab RUN()={G_R = a-1} \hfill (5)  
+%\VAL{G_R}
+%
+%RUNSILENT{G_RP = G_R*100}
+%
+%\hlite{In percentage, the growth rate is VAL{G_RP}\%}
+
+

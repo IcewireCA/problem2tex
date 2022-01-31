@@ -23,6 +23,8 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 	randomPtr := flag.String("random", "false", "Choices are false, true, min, max, minMax, or positive integer")
 	// determines whether parameters are default or random chosen from a set
 	versionPtr := flag.Bool("version", false, "Print out version")
+	sigDigitsPtr := flag.String("sigDigits", "4", "this flag is not used anymore and left here so webserver does not need to be updated\n")
+	_ = *sigDigitsPtr
 
 	flag.Parse()
 	if *versionPtr {
