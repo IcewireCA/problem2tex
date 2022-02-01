@@ -852,7 +852,7 @@ func value2Str(x float64, units, formatStr string) (outString string) {
 	case "S": // scientific notation
 		outString = fmt.Sprintf("%."+strIncrement(sigDigits, -1)+"e", x)
 	case "D": // decimal notation
-		outString = fmt.Sprintf("%."+strIncrement(sigDigits, 0)+"f", x)
+		outString = removeTrailingZeros(fmt.Sprintf("%."+strIncrement(sigDigits, 0)+"f", x))
 	case "$": // dollar notation (2 decimal places and rounded off)
 		outString = fmt.Sprintf("%.2f", math.Round(x*100)/100)
 	case "U": // SI notation and includes units if available
@@ -882,7 +882,6 @@ func float2Parts(x float64, sigDigits string) (significand string, exponent stri
 	var expInt int
 	var signifFloat float64
 	var reGetParts = regexp.MustCompile(`(?m)^\s*(?P<res1>.*)e(?P<res2>.*)$`)
-	var reZeros = regexp.MustCompile(`(?m)\.?0*$`)
 	xSci = fmt.Sprintf("%."+sigDigits+"e", x)
 	if reGetParts.MatchString(xSci) {
 		result = reGetParts.FindStringSubmatch(xSci)
@@ -900,11 +899,18 @@ func float2Parts(x float64, sigDigits string) (significand string, exponent stri
 			}
 		}
 		significand = fmt.Sprintf("%f", signifFloat)
-		significand = reZeros.ReplaceAllString(significand, "")
+		significand = removeTrailingZeros(significand)
 		exponent = strconv.Itoa(expInt)
 		prefix = exponent2Prefix(exponent)
 	}
 	return
+}
+
+func removeTrailingZeros(inString string) string { // removes .00000 if at end of a string to make a number look better
+	var outString string
+	var reZeros = regexp.MustCompile(`(?m)\.?0*$`)
+	outString = reZeros.ReplaceAllString(inString, "")
+	return outString
 }
 
 func latexStatement(statement string, varAll map[string]varSingle) string {
