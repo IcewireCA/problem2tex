@@ -1,58 +1,46 @@
-PARAM{t1 = [20,19,18,17]}
-PARAM{ft1 = 88.2;90;0.1}
-PARAM{t2 = [23,24,22,21]}
-PARAM{ft2 = 91.4;99.9;0.1}
-PARAM{t3 = 25}
+CONFIG{fmtVal=D3, fmtRun()=D3, fmtRunEQ=D3, verbose}
+PARAM{t_1 = [20,19,18,17]}
+PARAM{f_1 = 88.2;90;0.1}
+PARAM{t_2 = [23,24,22,21]}
+PARAM{f_2 = 91.4;99.9;0.1}
+PARAM{t_3 = 25}
+Suppose that $Q = f(t)$ is an exponential function of $t$. If $f(VAL{t_1}) = VAL{f_1}$ and $f(VAL{t_2}) = VAL{f_2}$
 
-Suppose that $Q = f(t)$ is an exponential function of $t$. If $f(VAL{t1}) = VAL{ft1}$ and $f(VAL{t2}) = VAL{ft2}$:
-\begin{itemize}
-\item[(a)] Find the base.
-\item[(b)] Find the growth rate.
-\item[(c)] Evaluate $f(VAL{t3})$.
-\end{itemize}
+(a) Find the base.
+(b) Find the growth rate.
+(c) Evaluate $f(VAL{t_3})$.
 
-% \begin{solutions}
-    \textbf{Solution} 
-    \begin{itemize}
-    \item[(a)] {
-    \setlength{\parskip}{0em}
-    Let
-    \centerline{$Q = Q_0a^t$.}
-    
-    Substituting $t = VAL{t1}$, $Q = VAL{ft1}$ and $t = VAL{t2}$, $Q = VAL{ft2}$ gives two equations for $Q_0$ and $a$: 
-    \centerline{$VAL{ft1} = Q_0a^{VAL{t1}}$ and $VAL{ft2} = Q_0a^{VAL{t2}}$.}
-     
-    Dividing the two equations enables us to eliminate $Q_0$: RUNSILENT{aexp = t2 - t1}
-    
-\centerline{$\dfrac{VAL{ft2}}{VAL{ft1}} = \dfrac{Q_0a^{VAL{t2}}}{Q_0a^{VAL{t1}}} = a^{VAL{aexp}}$.}
+% \begin{solution}
+(a) Let $Q = Q_0a^t$.
+Substituting $t = VAL{t_1}$, $Q = VAL{f_1}$ and $t = VAL{t_2}$, $Q = VAL{f_2}$ gives two equations for $Q_0$ and $a$:
+\begin{equation}
+VAL{f_1} = Q_0a^{VAL{t_1}} \text{ and } VAL{f_2} = Q_0a^{VAL{t_2}}
+\end{equation}  
+Dividing the two equations enables us to eliminate $Q_0$: RUNSILENT{t21 = t_2 - t_1}
+\begin{equation}
+\frac{VAL{f_2}}{VAL{f_1}} = \frac{Q_0a^{VAL{t_2}}}{Q_0a^{VAL{t_1}}} = a^{VAL{t21}}
+\end{equation}
+Solving for the base, $a$, gives RUNSILENT{a = (f_2 / f_1)^(1 / t21)}
+\begin{equation}
+a = \left( \dfrac{VAL{f_2}}{VAL{f_1}} \right)^{1/{VAL{t21}}} = VAL{a}
+\end{equation}  
+(b) Since $VAL{a,=}$, the growth rate is $VAL{a} - 1 = VAL{a-1} = VAL{(a-1)*100}$\%.
 
-    Solving for the base, $a$, gives RUNSILENT{a_ans = (ft2 / ft1)^(1 / aexp)}
-    \centerline{$a = \left( \dfrac{VAL{ft2}}{VAL{ft1}} \right)^{1/{VAL{aexp}}} = VAL{a_ans}$.}
-    RUNSILENT{gr = a_ans - 1} 
-    RUNSILENT{gr_per = gr * 100}
-    }
-    
-    \item[(b)] {
-    \setlength{\parskip}{0em}
-    Since $a = VAL{a_ans}$, the growth rate is $VAL{a_ans} - 1 = VAL{gr} = VAL{gr_per}$\%.
-    }
-    
-    \item[(c)] {
-    \setlength{\parskip}{0em}
-    We want to evaluate $f(VAL{t3}) = Q_0a^{VAL{t3}} = Q_0(VAL{a_ans})^{VAL{t3}}$. First we need to find $Q_0$ from the equation
-    \centerline{$VAL{ft1} = Q_0(VAL{a_ans})^{VAL{t1}}$}
-    RUNSILENT{q0 = ft1 * (1 / (a_ans^t1))}
-    
-    Solving gives $Q_0 = VAL{q0}$. Thus,
-    
-    RUNSILENT{evaluate_ans = q0 * (a_ans^t3)}
-    \centerline{$f(VAL{t3}) = VAL{q0}(VAL{a_ans})^{VAL{t3}} = VAL{evaluate_ans}$.}
-    }
-    \end{itemize}
-% \end{solutions}
-% \begin{answers}
-    \textbf{Answer}
-    (a) $VAL{a_ans}$
-    (b) $VAL{gr_per}$\%
-    (c) $VAL{evaluate_ans}$
-% \end{answers}
+(c) We want to evaluate $f(VAL{t_3}) = Q_0a^{VAL{t_3}} = Q_0(VAL{a})^{VAL{t_3}}$. First we need to find $Q_0$ from the equation
+\begin{equation}
+VAL{f_1} = Q_0(VAL{a})^{VAL{t_1}}
+\end{equation}
+Solving gives RUNSILENT{Q_0 = f_1/(a^t_1)}
+\begin{equation}
+Q_0 = \frac{VAL{f_1}}{(VAL{a})^{VAL{t_1}}}=VAL{Q_0}
+\end{equation}
+Thus, RUNSILENT{f_3=Q_0*a^t_3}
+\begin{equation}
+f(VAL{t_3})=Q_0*a^{VAL{t_3}} = VAL{f_3}
+\end{equation}
+%\end{solution}
+% \begin{answer}
+    (a) $VAL{a}$
+    (b) $VAL{(a-1)*100}$\%
+    (c) $VAL{f_3}$
+% \end{answer}

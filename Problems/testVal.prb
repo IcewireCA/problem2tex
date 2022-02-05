@@ -2,7 +2,6 @@ CONFIG{verbose=true}
 PARAM{x=[0.3333333333]}
 PARAM{y=[20.0]}
 PARAM{z=[20.3e9]}
-
 x=0.333333333
 default: VAL{x} 
 E6: VAL{x,E6} 

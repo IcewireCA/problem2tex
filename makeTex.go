@@ -83,7 +83,7 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 		inLine = function2Latex(inLine)
 		outLines = append(outLines, inLine)
 	}
-	texOut = strings.Join(outLines, "\n\n") // add 2 \n here so that each line is a paragraph in latex
+	texOut = strings.Join(outLines, "\\\\\n") // add 2 \n here so that each line is a paragraph in latex
 	return texOut, errorHeader
 }
 
@@ -524,10 +524,10 @@ func runConfigFunc(optionStr string, configParam map[string]string) (string, str
 			switch allOptions[i].value {
 			case "true", "":
 				configParam["verbose"] = "true"
-				outString = "% Configuration Settings\n"
+				outString = "% Configuration Settings"
 				for key = range configParam {
 					if len(key) > 1 { // only print out config settings when key string length is greater than 1
-						outString = outString + "% " + key + " : " + configParam[key] + "\n"
+						outString = outString + "\n% " + key + " : " + configParam[key]
 						// this is done so defaultUnits map values are not each printed
 					}
 				}
