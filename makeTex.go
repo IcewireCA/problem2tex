@@ -19,11 +19,12 @@ type option struct {
 }
 
 func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
-	var inLines, outLines []string
+	var inLines []string
 	var inLine string
 	var logOut, comment, errorHeader string
 	var texOut string
 	var reNotBlankLine = regexp.MustCompile(`(?m)\S`)
+	var reLatexCmd = regexp.MustCompile(`(?m)^\s*\\`)
 
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
@@ -63,7 +64,8 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	for i := range inLines {
 		inLine = inLines[i]
 		if !reNotBlankLine.MatchString(inLine) { // if inLine is a blank line then do ...
-			outLines = append(outLines, "\\skipLine")
+			texOut = texOut + "\\skipLine\n"
+			//		outLines = append(outLines, "\\skipLine")
 			continue // skip to end of for loop and don't add another element to outLines
 		}
 		inLine, comment = deCommentLatex(inLine)
@@ -81,9 +83,12 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 			continue
 		}
 		inLine = function2Latex(inLine)
-		outLines = append(outLines, inLine)
+		if reLatexCmd.MatchString(inLine) {
+			texOut = texOut + inLine + "\n" // just add \n when a \command at beginning
+		} else {
+			texOut = texOut + inLine + "\\\\\n" // add two backslash here so that each line is a new paragraph when NOT a \command at beginning
+		}
 	}
-	texOut = strings.Join(outLines, "\\\\\n") // add 2 \n here so that each line is a paragraph in latex
 	return texOut, errorHeader
 }
 
