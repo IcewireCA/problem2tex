@@ -1,0 +1,40 @@
+\documentclass{standalone}
+\usepackage{import}
+\newlength{\currentparindent} % used to store current parindent
+\newlength{\currentparskip}
+\newcommand{\incProb}[1]{
+    \immediate\write18{problem2tex -export=Problems/tmp/#1.tex 
+    -random=false -sigDigits=4 Problems/#1.prb}
+    \setlength{\currentparindent}{\parindent} % store current parindent
+    \setlength{\currentparskip}{\parskip}
+    \setlength{\parindent}{0em}
+    \setlength{\parskip}{0em}
+    \import{Problems/tmp/}{#1.tex}
+    \setlength{\parindent}{\currentparindent} %restore parindent
+    \setlength{\parskip}{\currentparskip}
+}
+    
+\newcommand{\units}{\,\mathrm}
+\newcommand{\skipLine}{\vspace{2ex}}
+
+\begin{document}
+~
+\begin{minipage}{4in}
+\setlength{\parindent}{10pt}
+\setlength{\parskip}{1em}
+\vspace{0ex}
+
+Question 1:
+
+\incProb{basic01}
+
+\vspace{3ex}
+
+Question 2:
+
+\incProb{basic02}
+
+\vspace{1ex}
+
+\end{minipage}
+\end{document}

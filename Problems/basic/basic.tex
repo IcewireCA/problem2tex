@@ -1,0 +1,33 @@
+\documentclass{exam}
+\renewcommand{\familydefault}{\sfdefault} % to make text sans serif
+\usepackage{sfmath} % to make math font sans serif
+\usepackage[scaled=1]{helvet}
+\usepackage{amssymb, amsfonts, amsmath, latexsym, verbatim}
+\usepackage{xspace, setspace, import, multicol, physics}
+\usepackage{tikz, siunitx, enumitem, makecell, wrapfig, multicol, adjustbox}
+\usepackage{pgfplots, etoolbox, graphicx, circuitikz}
+\usepackage{environ}
+\usepackage{etoolbox}
+\setlength{\parindent}{0em}
+\setlength{\parskip}{0em}
+
+\newbool{flagSolution} % questions with solutions
+\newbool{flagAnswer} % questions with answers
+\newbool{flagQuestionBlankSpace} % question with blankSpace for writing solutions
+\newbool{flagQuestion} % just questions
+\newbool{flagSolAns} % questions with solutions and answers (for debugging)
+
+\booltrue{flagSolAns} % whichever one is true will print out (see above)
+\newcommand{\random}{false } % A space is added to make it  "false "
+  
+\input {./preamble.tex}
+
+\begin{document}
+
+% Question 1:
+
+\incProb{calculusDemo}
+%\input{Problems/tmp/calculusDemo.tex}
+
+
+\end{document}
