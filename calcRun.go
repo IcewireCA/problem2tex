@@ -10,7 +10,7 @@ import (
 // runs a line of code that may have several statements in it (separated by ";")
 // returns assignVar where assignVar is the assigned variable.  it is last assigned var if multiple statements
 // also returns answer (float64) where it is the last answer calculated if there are multiple statements in one line
-func runCode(inString string, varAll map[string]varSingle, configParam map[string]string) (assignVar, outString string, answer float64, errCode string) {
+func runCode(inString string, varAll map[string]varSingle, configParam map[string]string) (assignVar, outString string, answer float64, format, errCode string) {
 	var result, lineCode []string
 	var allOptions []option
 	var infixCode, rpnCode, optionStr, prefix, units string
@@ -89,6 +89,8 @@ func runCode(inString string, varAll map[string]varSingle, configParam map[strin
 					tmp2.units = units
 				case "symbol":
 					tmp2.latex = allOptions[i].value
+				case "fmt":
+					format = allOptions[i].value
 				default:
 					errCode = allOptions[i].name + " is not a valid option"
 					return

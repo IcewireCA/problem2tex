@@ -115,8 +115,7 @@ func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string
 	// in this case, only VAL commands are done (no RUN commands)
 	var head, tail, replace, logOut, newLog, leftMost, tmpCmd string
 	var reFirstValMatch = regexp.MustCompile(`(?mU)VAL{`)
-	// below is to match RUN{ or RUN={ or RUN(){ or RUN()={ or RUNSILENT{
-	var reFirstRunMatch = regexp.MustCompile(`(?mU)RUN(|=|\(\)|\(\)=|SILENT){`)
+	var reFirstRunMatch = regexp.MustCompile(`(?mU)RUN{`)
 	// var reConfigCmd = regexp.MustCompile(`(?mU)^.*CONFIG(?P<res1>{.*)$`)
 	// var reParamCmd = regexp.MustCompile(`(?mU)^.*PARAM(?P<res1>{.*)$`)
 	// var reIncludeCmd = regexp.MustCompile(`(?mU)^.*INCLUDE(?P<res1>{.*)$`)
@@ -198,43 +197,38 @@ func getInsideStuff(inString, command string) (string, string) { // get the stuf
 }
 
 func runReplace(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, string, string) {
-	var head, tail, logOut, runCmdType, runCmd, replace, assignVar string
+	var head, tail, logOut, runCmd, replace, assignVar, format string
 	var answer float64
 	var result []string
-	// below is to match RUN{ or RUN={ or RUN(){ or RUN()={ or RUNSILENT{
-	var reFirstRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)(?P<res2>RUN(?:|=|\(\)|\(\)=|SILENT))(?P<res3>{.*)$`)
+	var reFirstRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)RUN(?P<res2>{.*)$`)
 	result = reFirstRunCmd.FindStringSubmatch(inString)
 	head = result[1]
-	runCmdType = result[2]
-	runCmd, tail, _ = matchBrackets(result[3], "{")
-	replace = "" // so the old replace is not used
-	switch runCmdType {
-	case "RUNSILENT": // run statement but do not print anything
+	runCmd, tail, _ = matchBrackets(result[2], "{")
+	assignVar, runCmd, answer, format, logOut = runCode(runCmd, varAll, configParam)
+	if logOut != "" {
+		return head, tail, replace, logOut
+	}
+	switch format {
+	case "silent": // run statement but do not print anything
 		replace = ""
-		_, _, _, logOut = runCode(runCmd, varAll, configParam)
-	case "RUN": // run statement and print statement (ex: v_2 = 3*V_t)
-		assignVar, runCmd, answer, logOut = runCode(runCmd, varAll, configParam)
+	case "": // run statement and print statement (ex: v_2 = 3*V_t)
 		if assignVar == "" {
 			replace = value2Str(answer, "", configParam["fmtVal"]) // not an assignment statment so just return  answer
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + "$}"
 		}
-	case "RUN=": // run statement and print out statement = result (with units) (ex: v_2 = 3*V_t = 75mV)
-		assignVar, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
+	case "EQ": // run statement and print out statement = result (with units) (ex: v_2 = 3*V_t = 75mV)
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
 		}
-	case "RUN()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
-		_, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
+	case "()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
-	case "RUN()=": // same as run() but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
-		assignVar, runCmd, _, logOut = runCode(runCmd, varAll, configParam)
+	case "()EQ": // same as () but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
 	default:
-		// if here, then error as \run**something else** is here
-		logOut = "\\" + runCmdType + " *** NOT A VALID COMMAND\n"
+		logOut = "Not a valid RUN format type: " + format
 	}
 	return head, tail, replace, logOut
 }
@@ -291,7 +285,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 		}
 	} else {
 		// exp is an expression and not in varAll map
-		_, _, value, errCode = runCode(exp, varAll, configParam)
+		_, _, value, _, errCode = runCode(exp, varAll, configParam)
 		if errCode != "" {
 			logOut = "expression: " + exp + " *** NOT A VALID EXPRESSION"
 			return head, tail, errCode, logOut
@@ -1273,6 +1267,7 @@ func getAllOptions(inString string) []option {
 	var newOption option
 	var allOptions []option
 	var reGetOptions = regexp.MustCompile(`(?m)(?P<res1>\S+)\s*=\s*(?P<res2>.*)$`)
+	var reFixCommas = regexp.MustCompile(`(?m)\\,`)
 	for inString != "" {
 		nextOption, tail = getNextOption(inString)
 		if nextOption == "" {
@@ -1280,7 +1275,7 @@ func getAllOptions(inString string) []option {
 		}
 		if reGetOptions.MatchString(nextOption) {
 			result = reGetOptions.FindStringSubmatch(nextOption)
-			newOption = option{result[1], result[2]}
+			newOption = option{result[1], reFixCommas.ReplaceAllString(result[2], ",")}
 		} else {
 			newOption = option{nextOption, "true"} // if option has no = sign, then option is a word and set that word option to true
 		}
