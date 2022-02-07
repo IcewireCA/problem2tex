@@ -375,13 +375,13 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 
 func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) (string, string) {
 	var options = map[string]string{ // defaults shown below
-		"textScale":  "1.0",        // Scale size of text (in case where latex is creating text for say svg file)
-		"spaceHoriz": "0",          //  Positive value moves figure to right while negative value moves to left (in ex)
-		"spaceAbove": "0",          //  negative value will trim above figure and positive value gives space above (in ex)
-		"spaceBelow": "0",          // negative value will trim below figure and positive value gives space below (in ex)
-		"width":      "mustDefine", //  Determines size of figure (in mm). There is no default and width must be given
-		"caption":    "",           // the default caption for figure (blank)
-		"svgFormat":  "latex",      // svgFormat is either latex, noLatex or noLatexSlow
+		"textScale":  "1.0",   // Scale size of text (in case where latex is creating text for say svg file)
+		"spaceHoriz": "0",     //  Positive value moves figure to right while negative value moves to left (in ex)
+		"spaceAbove": "0",     //  negative value will trim above figure and positive value gives space above (in ex)
+		"spaceBelow": "0",     // negative value will trim below figure and positive value gives space below (in ex)
+		"width":      "100",   //  Determines size of figure (in mm).
+		"caption":    "",      // the default caption for figure (blank)
+		"svgFormat":  "latex", // svgFormat is either latex, noLatex or noLatexSlow
 	}
 	var allOptions []option
 	var replace, optionStr, logOut string
@@ -423,10 +423,6 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 			logOut = allOptions[i].name + " is not a valid option"
 			return "", logOut
 		}
-	}
-	if options["width"] == "mustDefine" && fileExt != "tex" {
-		logOut = "Width for figure MUST be defined"
-		return "", logOut
 	}
 	switch fileExt {
 	case "png", "jpg", "jpeg", "pdf":
