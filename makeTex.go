@@ -25,6 +25,7 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	var texOut string
 	var reNotBlankLine = regexp.MustCompile(`(?m)\S`)
 	var reLatexCmd = regexp.MustCompile(`(?m)^\s*\\`)
+	var reLatexMbox = regexp.MustCompile(`(?m)^\s*\\mbox{`)
 
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
@@ -83,10 +84,10 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 			continue
 		}
 		inLine = function2Latex(inLine)
-		if reLatexCmd.MatchString(inLine) {
-			texOut = texOut + inLine + "\n" // just add \n when a \command at beginning
+		if reLatexCmd.MatchString(inLine) && !reLatexMbox.MatchString(inLine) {
+			texOut = texOut + inLine + "\n" // just add \n when a \command at beginning except if it is \mbox{
 		} else {
-			texOut = texOut + inLine + "\\\\\n" // add two backslash here so that each line is a new paragraph when NOT a \command at beginning
+			texOut = texOut + inLine + "\\\\\n" // add two backslash here so that each line is a new paragraph when NOT a \command or \mbox{ at beginning
 		}
 	}
 	return texOut, errorHeader
