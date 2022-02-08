@@ -211,24 +211,25 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 	switch format {
 	case "silent": // run statement but do not print anything
 		replace = ""
-	case "": // run statement and print statement (ex: v_2 = 3*V_t)
+	case "equation": // run statement and print statement (ex: v_2 = 3*V_t)
 		if assignVar == "" {
 			replace = value2Str(answer, "", configParam["fmtVal"]) // not an assignment statment so just return  answer
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + "$}"
 		}
-	case "EQ": // run statement and print out statement = result (with units) (ex: v_2 = 3*V_t = 75mV)
+	case "short": // run statement and print out statement = result (with units) (ex: v_2 = 3*V_t = 75mV)
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
 		}
-	case "()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3))
-		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
-	case "()EQ": // same as () but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV)
+	// case "()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3)) // remove
+	// 	replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
+	case "": // same as () but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV) // THIS IS THE DEFAULT
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
 	default:
 		logOut = "Not a valid RUN format type: " + format
+		replace = logOut
 	}
 	return head, tail, replace, logOut
 }
@@ -380,7 +381,6 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 		"spaceAbove": "0",     //  negative value will trim above figure and positive value gives space above (in ex)
 		"spaceBelow": "0",     // negative value will trim below figure and positive value gives space below (in ex)
 		"width":      "100",   //  Determines size of figure (in mm).
-		"caption":    "",      // the default caption for figure (blank)
 		"svgFormat":  "latex", // svgFormat is either latex, noLatex or noLatexSlow
 	}
 	var allOptions []option
@@ -417,7 +417,7 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 			float1 = -1 * float1 // invert the sign of this value since negative move figure up and positive should move figure down
 			// but we are using a trim here so inversion is necessary
 			options[allOptions[i].name] = fmt.Sprintf("%.3f", float1)
-		case "caption", "svgFormat":
+		case "svgFormat":
 			options[allOptions[i].name] = allOptions[i].value
 		default:
 			logOut = allOptions[i].name + " is not a valid option"
@@ -460,17 +460,16 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 		logOut = "File extension not recognized: " + fileExt
 	}
 	// make a new latex command for including picture (one possibility is shown below)
-	// \newcommand{\incPic}[6]{
+	// \newcommand{\incPic}[5]{
 	// 	\begin{minipage}{\linewidth}
 	// 	\centering
 	// 	\hspace*{#4ex} \includegraphics[width= #2mm, trim=0 0 0 #3ex, clip]{../#1}
 	// 	\vspace{#5ex}
-	// 	\captionof{figure}{#6}
 	// 	\end{minipage}`
 	// 	}
 	replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
 		options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-		options["spaceBelow"] + `}{` + options["caption"] + `}{` + options["textScale"] + `}`
+		options["spaceBelow"] + `}{` + options["textScale"] + `}`
 
 	return replace, logOut
 }
