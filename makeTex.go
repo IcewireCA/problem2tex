@@ -223,9 +223,7 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		} else {
 			replace = "\\mbox{$" + latexStatement(runCmd, varAll) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
 		}
-	// case "()": // same as run but include = bracket values in statement (ex" v_2 = 3*V_t = 3*(25e-3)) // remove
-	// 	replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + "$}"
-	case "": // same as () but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV) // THIS IS THE DEFAULT
+	case "long", "": // same as () but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV) // THIS IS THE DEFAULT
 		replace = "\\mbox{$" + latexStatement(runCmd, varAll) + bracketed(runCmd, varAll, configParam) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
 	default:
 		logOut = "Not a valid RUN format type: " + format

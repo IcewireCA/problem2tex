@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  18 JAN 2022 15:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  9 FEB 2022 12:04
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -288,24 +288,24 @@ File: l3backend-pdftex.def 2021-03-18 L3 backend support: PDF output (pdfTeX)
 (./docProblem2tex.aux)
 \openout1 = `docProblem2tex.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
 
 (/usr/local/texlive/2021/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -329,7 +329,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Link coloring ON on input line 34.
+Package hyperref Info: Link coloring ON on input line 35.
 
 (/usr/local/texlive/2021/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
@@ -343,26 +343,26 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
 \c@section@level=\count282
 )
-LaTeX Info: Redefining \ref on input line 34.
-LaTeX Info: Redefining \pageref on input line 34.
-LaTeX Info: Redefining \nameref on input line 34.
+LaTeX Info: Redefining \ref on input line 35.
+LaTeX Info: Redefining \pageref on input line 35.
+LaTeX Info: Redefining \nameref on input line 35.
  (./docProblem2tex.out) (./docProblem2tex.out)
 \@outlinefile=\write3
 \openout3 = `docProblem2tex.out'.
 
 \c@lstlisting=\count283
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 3
-7.
+8.
 
 (/usr/local/texlive/2021/texmf-dist/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 )
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 37.
+(Font)              <12> on input line 38.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 37.
+(Font)              <8> on input line 38.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 37.
+(Font)              <6> on input line 38.
 
 (./docProblem2tex.toc
 LaTeX Font Info:    External font `cmex10' loaded for size
@@ -376,39 +376,37 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 \openout4 = `docProblem2tex.toc'.
 
  [2]
-Underfull \hbox (badness 10000) in paragraph at lines 120--121
+Underfull \hbox (badness 10000) in paragraph at lines 115--116
 
  []
 
-[3] [4]
-<./Graphics//basicStandAlone.pdf, id=184, 295.7469pt x 171.22168pt>
-File: ./Graphics//basicStandAlone.pdf Graphic file (type pdf)
-<use ./Graphics//basicStandAlone.pdf>
-Package pdftex.def Info: ./Graphics//basicStandAlone.pdf  used on input line 18
-4.
-(pdftex.def)             Requested size: 281.85587pt x 163.19264pt.
 
-Overfull \hbox (16.13004pt too wide) in paragraph at lines 189--190
-[][][][][][][][][][][][][][][][][][][][][][][][][][] 
+Underfull \hbox (badness 10000) in paragraph at lines 124--128
+
  []
 
-[5 <./Graphics//basicStandAlone.pdf>] [6] [7] [8] [9]
-Underfull \hbox (badness 10000) in paragraph at lines 424--427
+[3]
+Underfull \hbox (badness 10000) in paragraph at lines 145--149
+
+ []
+
+[4] [5] [6] [7] [8] [9]
+Underfull \hbox (badness 10000) in paragraph at lines 470--473
 
  []
 
 [10] [11] (./docProblem2tex.aux)
 Package rerunfilecheck Info: File `docProblem2tex.out' has not changed.
-(rerunfilecheck)             Checksum: AECBEBF0CEA16FBC4C81EA043E0961FA;2737.
+(rerunfilecheck)             Checksum: C51F084355CE025EB2AE85857191200F;2815.
  ) 
 Here is how much of TeX's memory you used:
- 11308 strings out of 478994
- 163470 string characters out of 5858183
- 512251 words of memory out of 5000000
- 28560 multiletter control sequences out of 15000+600000
+ 11291 strings out of 478994
+ 163040 string characters out of 5858183
+ 513262 words of memory out of 5000000
+ 28556 multiletter control sequences out of 15000+600000
  412830 words of font info for 47 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 71i,6n,74p,610b,1752s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 71i,6n,74p,709b,1752s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
 }{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}<
 /usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></
@@ -425,10 +423,10 @@ e/2021/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texlive/
 21/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb></usr/local/texlive/2021
 /texmf-dist/fonts/type1/public/cm-super/sftt1200.pfb></usr/local/texlive/2021/t
 exmf-dist/fonts/type1/public/cm-super/sftt1728.pfb>
-Output written on docProblem2tex.pdf (11 pages, 261609 bytes).
+Output written on docProblem2tex.pdf (11 pages, 253942 bytes).
 PDF statistics:
- 321 PDF objects out of 1000 (max. 8388607)
- 290 compressed objects within 3 object streams
- 96 named destinations out of 1000 (max. 500000)
- 158 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 288 PDF objects out of 1000 (max. 8388607)
+ 258 compressed objects within 3 object streams
+ 84 named destinations out of 1000 (max. 500000)
+ 161 words of extra memory for PDF output out of 10000 (max. 10000000)
 

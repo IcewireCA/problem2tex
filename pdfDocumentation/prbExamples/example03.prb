@@ -1,0 +1,6 @@
+PARAM{VAprime = [5,3,4,6]# units=V/\mu m, symbol=V_A'}
+PARAM{V_A = [6, 7, 8, 9]}
+Given VAL{VAprime,=} and VAL{V_A,=}, find $L$ 
+Solution
+RUN{VAprime = 1e6*VAprime#fmt=silent}
+RUN{L=V_A/VAprime#units=m}
