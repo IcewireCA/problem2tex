@@ -370,6 +370,10 @@ Include figures or graphics is an important part of many problems.  To make this
 \item[] - .asc (an LTSpice schematic file where VAL\{\} can be in the schematic)
 \item[] - .svg (a scalar vector graphics file where VAL\{\} can be in the graphic)
 \item[] - .pdf/.png/.jpg (a fixed graphic file where no VAL\{\} are in graphic)
+\item[] - .tex (a tex file that might have Tikz or CircuiTikz in it with VAL\{\} in it)
+\begin{itemize}
+\item[] There are no options for a tex file
+\end{itemize}
 \end{itemize}
 \item The \textcolor{blue}{options} are
 \begin{itemize}
@@ -387,16 +391,80 @@ Include figures or graphics is an important part of many problems.  To make this
 \item[] - textScale
 \begin{itemize}
 \item[] scale size of text when latex is drawing the text
+\item[] Not available as an option for a .pdf/.png/.jpg or noLatex svg files
 \item[] default: 1.0
 \end{itemize}
 \item[] - svgFormat
 \begin{itemize}
 \item[] latex - writes text using latex
 \item[] noLatex - writes text as is with no latex for text
+\item[] Only available as an option for .svg files
 \item[] default: latex
 \end{itemize}
 \end{itemize}
 \end{itemize}
+
+Depending on the filename extension \textcolor{blue}{.ext}, the INCLUDE command line will be replaced in the output .tex file as shown below:
+\begin{itemize}
+\item[] INCLUDE\{schem01.asc\#width=60,spaceAbove=-5,spaceHoriz=4,spaceBelow=-3,\\
+textScale=1.2,svgFormat=latex\}
+\vspace*{-1.5ex}
+\item[$\Rightarrow$] \textbackslash incAsc\{schematic01NEW\}\{60\}\{5.000\}\{4\}\{-3\}\{1.2\}
+\vspace*{2ex}
+\item[] INCLUDE\{picture01.svg\#width=60,spaceAbove=-5,spaceHoriz=4,spaceBelow=-3,\\
+textScale=1.2,svgFormat=latex\}
+\vspace*{-1.5ex}
+\item[$\Rightarrow$] \textbackslash incSvg\{picture01NEW\}\{60\}\{5.000\}\{4\}\{-3\}\{1.2\}
+\vspace*{2ex}
+\item[] INCLUDE\{picture02.svg\#width=60,spaceAbove=-5,spaceHoriz=4,spaceBelow=-3,svgFormat=noLatex\}
+\vspace*{-1.5ex}
+\item[$\Rightarrow$] \textbackslash incSvgNoLatex\{picture02NEW\}\{60\}\{5.000\}\{4\}\{-3\}
+\vspace*{2ex}
+\item[] INCLUDE\{picture03.pdf\#width=60,spaceAbove=-5,spaceHoriz=4,spaceBelow=-3\}
+\vspace*{-1.5ex}
+\item[$\Rightarrow$] \textbackslash incPic\{picture03NEW.pdf\}\{60\}\{5.000\}\{4\}\{-3\}
+\item[] The above is the same for .pdf, .jpg, and .png files
+\end{itemize}
+
+The commands \textbackslash incAsc, \textbackslash incSvg, \textbackslash incSvgNoLatex, and 
+\textbackslash incPic all need to be defined as new commands in the latex document.  Example definitions are shown below:
+\begin{verbatim}
+\newcommand{\incPic}[5]{
+\begin{minipage}{\linewidth}
+\centering
+\hspace*{#4ex} \includegraphics[width= #2mm, trim=0 0 0 #3ex, clip]{../#1}
+\vspace{#5ex}
+\end{minipage}
+}
+\newcommand{\incSvg}[6]{
+\begin{minipage}{\linewidth}
+\centering
+\hbox{\hspace{#4ex}\begin{adjustbox}{trim=0 0 0 #3ex, clip, center}
+\includesvg[width=#2mm,pretex=\relscale{#6},inkscapelatex=true]{#1}
+\end{adjustbox} }
+\vspace{#5ex}
+\end{minipage}
+}
+\newcommand{\incSvgNoLatex}[5]{
+\immediate\write18{rsvg-convert -f pdf -o Problems/tmp/#1.pdf Problems/tmp/#1.svg}
+\begin{minipage}{\linewidth}
+\centering
+\hspace*{#4ex} \includegraphics[width= #2mm, trim=0 0 0 #3ex, clip]{#1.pdf}
+\vspace{#5ex}
+\end{minipage}
+}
+\newcommand{\incAsc}[6]{
+\immediate\write18{ltspice2svg -export=Problems/tmp/#1asc.svg -text=latex Problems/tmp/#1.asc}
+\begin{minipage}{\linewidth}
+\centering
+\hbox{\hspace{#4ex}\begin{adjustbox}{trim=0 0 0 #3ex, clip, center}
+\includesvg[width=#2mm,pretex=\relscale{#6},inkscapelatex=true]{#1asc}
+\end{adjustbox} }
+\vspace{#5ex}
+\end{minipage}
+}
+
+\end{verbatim}
 
 
 
