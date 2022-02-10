@@ -398,6 +398,25 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 	optionStr = getAfter(inCmd, "#") // get options after "#" character
 	allOptions = getAllOptions(optionStr)
 	for i := 0; i < len(allOptions); i++ {
+		switch fileExt {
+		case "png", "jpg", "jpeg", "pdf":
+			if allOptions[i].name == "textScale" {
+				logOut = "textScale is NOT an option for a " + fileExt + " file in an INCLUDE command"
+				return "", logOut
+			}
+			if allOptions[i].name == "svgFormat" {
+				logOut = "svgFormat is NOT an option for a " + fileExt + " file in an INCLUDE command"
+				return "", logOut
+			}
+		case "svg": // do nothing
+		case "asc": // do nothing
+		case "tex": // there should be no options for a tex file
+			logOut = "No options are allowed for a .tex file in an INCLUDE command"
+			return "", logOut
+		default:
+			logOut = "File extension not recognized: " + fileExt + " for this INCLUDE command"
+			return "", logOut
+		}
 		switch allOptions[i].name {
 		case "textScale", "spaceHoriz", "spaceBelow", "width":
 			_, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
@@ -445,10 +464,6 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 		latexCmd = `\incAsc`
 		fullFileName = fileName + fileNameAdd
 	case "tex":
-		if len(allOptions) > 0 { // there should be no options with a tex file
-			logOut = "INCLUDE{filename.tex} should not have any options"
-			return "", logOut
-		}
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
 		latexCmd = `\incTex`
 		fullFileName = fileName + fileNameAdd + `.tex`
@@ -457,14 +472,6 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 	default:
 		logOut = "File extension not recognized: " + fileExt
 	}
-	// make a new latex command for including picture (one possibility is shown below)
-	// \newcommand{\incPic}[5]{
-	// 	\begin{minipage}{\linewidth}
-	// 	\centering
-	// 	\hspace*{#4ex} \includegraphics[width= #2mm, trim=0 0 0 #3ex, clip]{../#1}
-	// 	\vspace{#5ex}
-	// 	\end{minipage}`
-	// 	}
 	replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
 		options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
 		options["spaceBelow"] + `}{` + options["textScale"] + `}`
