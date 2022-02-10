@@ -445,24 +445,39 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 	case "png", "jpg", "jpeg", "pdf":
 		fullFileName = fileName + `.` + fileExt
 		latexCmd = `\incPic`
+		replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+			options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+			options["spaceBelow"] + `}`
 	case "svg":
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
+		fullFileName = fileName + fileNameAdd // don't want the file extension here as latex needs just the filename
 		switch options["svgFormat"] {
 		case "latex":
 			latexCmd = `\incSvg`
+			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+				options["spaceBelow"] + `}{` + options["textScale"] + `}`
 		case "noLatexSlow":
 			latexCmd = `\incSvgNoLatexSlow`
+			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+				options["spaceBelow"] + `}`
 		case "noLatex":
 			latexCmd = `\incSvgNoLatex`
+			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+				options["spaceBelow"] + `}`
 		default:
 			logOut = "ERROR: svgFormat: " + options["svgFormat"] + " is not a valid option"
 			return "", logOut
 		}
-		fullFileName = fileName + fileNameAdd // don't want the file extension here as latex needs just the filename
 	case "asc":
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
 		latexCmd = `\incAsc`
 		fullFileName = fileName + fileNameAdd
+		replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+			options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+			options["spaceBelow"] + `}{` + options["textScale"] + `}`
 	case "tex":
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
 		latexCmd = `\incTex`
@@ -472,10 +487,6 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 	default:
 		logOut = "File extension not recognized: " + fileExt
 	}
-	replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
-		options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-		options["spaceBelow"] + `}{` + options["textScale"] + `}`
-
 	return replace, logOut
 }
 
