@@ -20,12 +20,11 @@ type option struct {
 
 func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
 	var inLines []string
-	var inLine string
+	var inLine, latexCmd string
 	var logOut, comment, errorHeader string
 	var texOut string
 	var reNotBlankLine = regexp.MustCompile(`(?m)\S`)
-	var reLatexCmd = regexp.MustCompile(`(?m)^\s*\\`)
-	var reLatexMbox = regexp.MustCompile(`(?m)^\s*\\mbox{`)
+	var reLatexCmd = regexp.MustCompile(`(?mU)^\s*(?P<res1>\\\S*){`) // look for latex command at beginning of line
 
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
@@ -84,10 +83,16 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 			continue
 		}
 		inLine = function2Latex(inLine)
-		if reLatexCmd.MatchString(inLine) && !reLatexMbox.MatchString(inLine) {
-			texOut = texOut + inLine + "\n" // just add \n when a \command at beginning except if it is \mbox{
+		if reLatexCmd.MatchString(inLine) {
+			latexCmd = reLatexCmd.FindStringSubmatch(inLine)[1] // if latex command detected then check latex command
+			switch latexCmd {
+			case "\\mbox", "\\hilite": // if latex command is  \mbox or \hilite, then add two backslashes and \n
+				texOut = texOut + inLine + "\\\\\n"
+			default:
+				texOut = texOut + inLine + "\n" // just add \n when other latex command at beginning of line
+			}
 		} else {
-			texOut = texOut + inLine + "\\\\\n" // add two backslash here so that each line is a new paragraph when NOT a \command or \mbox{ at beginning
+			texOut = texOut + inLine + "\\\\\n" // if no latex command at beginning of line then add two backslashes and \n
 		}
 	}
 	return texOut, errorHeader

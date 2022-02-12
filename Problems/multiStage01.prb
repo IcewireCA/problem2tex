@@ -1,0 +1,92 @@
+CONFIG{defaultUnits=[[iI:A][vV:V][rR:\Omega]]}
+PARAM{V_tn = [0.25, 0.3, 0.35, 0.4]}
+PARAM{unCox = [200, 250, 300, 160]# units=\mu A/V^2, symbol=\mu_n C_{ox}}
+PARAM{lambn = [0.05, 0.025, 0.04, 0.03]#units=\mu m/V, symbol=\lambda_n'}
+PARAM{V_tp = [-0.3, -0.25, -0.35, -0.4] }
+PARAM{upCox = [60, 70, 50, 80]# units=\mu A/V^2, symbol=\mu_p C_{ox} }
+PARAM{lambp = [-0.04, -0.025, -0.04, -0.05]#units=\mu m/V, symbol=\lambda_p' }
+PARAM{I_1 = [15, 20, 25, 30, 35]#units=\mu A}
+PARAM{I_2 = [20, 25, 30, 35]#units=\mu A}
+PARAM{L = [0.18, 0.2, 0.25, 0.3]#units=\mu m}
+PARAM{WL1 = [5, 10, 20]#symbol=(W/L)_1}
+PARAM{WL2 = [5, 10, 20]#symbol=(W/L)_2}
+PARAM{WL3 = [10, 5, 20]#symbol=(W/L)_3}
+PARAM{WL4 = [20, 10, 5]#symbol=(W/L)_4}
+PARAM{WL5 = [10, 5, 20]#symbol=(W/L)_5}
+PARAM{WL6 = [20, 10, 5]#symbol=(W/L)_6}
+Consider the amplifier shown below where all transistor lengths are VAL{L}.  The bracketed numbers are each of the transistor's (W/L) value.
+
+NMOS: VAL{V_tn,=}; VAL{unCox,=}; VAL{lambn,=}
+PMOS: VAL{V_tp,=}; VAL{upCox,=}; VAL{lambp,=}
+INCLUDE{multiStage01a.asc#width=250,spaceAbove=4, textScale=1.0}
+(a) Calculate the drain currents, overdrive voltages and $r_o$ for $M_2/M_3/M_4/M_5$ transistors.
+%\begin{solution}
+RUN{I_D1=I_1#fmt=short}
+RUN{I_D2=WL2/WL1*I_D1}
+RUN{I_D6=I_2#fmt=short}
+RUN{I_D5=WL5/WL6*I_D6};
+RUN{I_D3=I_D5#fmt=short}
+RUN{I_D4=I_D2-I_D3}
+\hilite{VAL{I_D2,=}}; \hilite{VAL{I_D3,=}}; \hilite{VAL{I_D4,=}}; \hilite{VAL{I_D5,=}}
+RUN{lamdan = lambn/L#units=V^{-1},symbol=\lambda_n}
+%RUN{r_o2 = 1/(lamdan*I_D2)}
+%RUN{r_o3 = 1/(lamdan*I_D3)}
+%RUN{lamdap = lambp/L#units=V^{-1}, symbol=\lambda_p}
+%RUN{r_o4 = 1/(abs(lamdap)*I_D4)}
+%RUN{r_o5 = 1/(abs(lamdap)*I_D5)}
+%\hlite{VAL{r_o2,=}}; \hlite{VAL{r_o3,=}}; \hlite{VAL{r_o4,=}}; \hlite{VAL{r_o5,=}}
+%RUN{k_n = sqrt(2/unCox), fmt=silent} 
+% For nmos: $V_{ov} = \sqrt{(2I_D)/(\mu_nC_{ox}(W/L))} = \jl{k_n} \sqrt{I_D/(W/L)}$
+%RUN{V_ov2 = sqrt((2*I_D2)/(unCox*WL2)), fmt=silent}
+%RUN{V_ov3 = sqrt((2*I_D3)/(unCox*WL3)), fmt=silent}
+% \hlite{VAL{V_ov2}}; \hlite{VAL{V_ov3}}
+% RUN{k_p = sqrt(2/upCox), fmt=silent} 
+% For pmos: $V_{ov} = \sqrt{(2I_D)/(\mu_pC_{ox}(W/L))}= \jl{k_p} \sqrt{I_D/(W/L)}$
+%RUN{V_ov4 = sqrt((2*I_D4)/(upCox*WL4)), fmt=silent}
+% RUN{V_ov5 = sqrt((2*I_D5)/(upCox*WL5)), fmt=silent}
+% \hlite{VAL{V_ov4}}; \hlite{VAL{V_ov5}}
+%\end{solution}
+%
+%\begin{answers}
+%
+%\textbf{Answer}
+%
+%
+%
+%VAL{I_D2}; VAL{I_D3}; VAL{I_D4}; VAL{I_D5};
+%VAL{V_ov2}; VAL{V_ov3};  VAL{V_ov4}; VAL{V_ov5};
+%VAL{r_o2}; VAL{r_o3};  VAL{r_o4}; VAL{r_o5};
+%
+%\end{answers}
+%
+%
+%\part[3] Estimate the small-signal gain $v_o/v_i$
+%Hint: The impedance looking into the drain of $M_3$ is much higher than $r_{o5}$ so it can be ignored 
+%
+%\begin{blankSpace}
+%\vspace{200px}
+%\end{blankSpace}
+%
+%\begin{solutions}
+%
+%\textbf{Solution}
+%
+%RUN{{g_m4 = (2*I_D4)/V_ov4}
+%$I_{sc} = g_{m4}v_i$ and $R_{out} \approx r_{o5}$
+%$v_o = -I_{sc}R_{out} \Rightarrow$ RUN{{vovi = -g_m4*r_o5#units=V/V} symbol=v_o/v_i}}  
+%\hlite{VAL{vovi}}
+%
+%\end{solutions}
+%
+%\begin{answers}
+%
+%\textbf{Answer}
+%
+%VAL{vovi}
+%
+%\end{answers}
+%
+%\end{parts}
+
+
+
