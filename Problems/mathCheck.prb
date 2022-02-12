@@ -1,0 +1,12 @@
+CONFIG{defaultUnits=[[iI:A][vV:V][rR:\Omega]]}
+PARAM{R_1=[1]# units=k\Omega}
+PARAM{R_2=[2]# units=k\Omega}
+PARAM{R_3=[3]# units=k\Omega}
+\begin{verbatim}
+RUN{R_4 = parll(R_1,parll(R_2,R_3))}
+and here too
+also here
+\end{verbatim}
+\begin{equation}
+RUN{R_4 = parll(R_1,parll(R_2,R_3))}
+\end{equation}

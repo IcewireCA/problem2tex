@@ -25,6 +25,9 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	var texOut string
 	var reNotBlankLine = regexp.MustCompile(`(?m)\S`)
 	var reLatexCmd = regexp.MustCompile(`(?mU)^\s*(?P<res1>\\\S*){`) // look for latex command at beginning of line
+	var verbatim bool                                                // if verbatim true, then don't do anything to the line and print out as is
+	var reBeginVerb = regexp.MustCompile(`(?m)^\s*\\begin{verbatim}`)
+	var reEndVerb = regexp.MustCompile(`(?m)^\s*\\end{verbatim}`)
 
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
@@ -59,10 +62,22 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	// for key = range configParam {
 	// 	fmt.Println(configParam[key])
 	// }
-
+	verbatim = false
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
 		inLine = inLines[i]
+		if verbatim { // if verbatim mode is true, just write out current line then skip back to top
+			texOut = texOut + inLine + "\n"
+			if reEndVerb.MatchString(inLine) { // stop verbatim mode
+				verbatim = false
+			}
+			continue
+		}
+		if reBeginVerb.MatchString(inLine) { // start verbatim mode
+			verbatim = true
+			texOut = texOut + inLine + "\n"
+			continue
+		}
 		if !reNotBlankLine.MatchString(inLine) { // if inLine is a blank line then do ...
 			texOut = texOut + "\\skipLine\n"
 			//		outLines = append(outLines, "\\skipLine")
@@ -77,7 +92,7 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		}
-		inLine = fixParll(inLine)
+		//inLine = fixParll(inLine)
 		inLine = inLine + comment // add back comment that was removed above
 		if inLine == "" {         // if inLine is blank, don't add any element to outLines
 			continue
@@ -234,7 +249,14 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		logOut = "Not a valid RUN format type: " + format
 		replace = logOut
 	}
+	replace = latexifyEqn(replace)
 	return head, tail, replace, logOut
+}
+
+func latexifyEqn(inString string) string {
+	var outString string
+	outString = fixParll(inString)
+	return outString
 }
 
 func valReplace(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, string, string) {
@@ -816,8 +838,9 @@ func remove(slice []string, s int) []string {
 	return append(slice[:s], slice[s+1:]...)
 }
 
-// bracketed function used to create () part of \run() where bracketed part are
+// bracketed function used to create () part of RUN fmt=long where bracketed part are
 // all numbers for the variables
+// this function replaces all variables with their values in varAll surrounded by ()
 func bracketed(statement string, varAll map[string]varSingle, configParam map[string]string) (outString string) {
 	var backPart, sub string
 	var result []string
@@ -929,6 +952,7 @@ func removeTrailingZeros(inString string) string { // removes .00000 if at end o
 	return outString
 }
 
+// replaces all RUN variables with their latex symbol definition in varAll
 func latexStatement(statement string, varAll map[string]varSingle) string {
 	var result, result2 []string
 	var head, tail string
