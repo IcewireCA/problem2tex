@@ -92,7 +92,6 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		}
-		//inLine = fixParll(inLine)
 		inLine = inLine + comment // add back comment that was removed above
 		if inLine == "" {         // if inLine is blank, don't add any element to outLines
 			continue
@@ -1124,7 +1123,7 @@ func function2Latex(inString string) string {
 func fixParll(inString string) string {
 	var result []string
 	var outString, head, tail, inside, var1, var2 string
-	var reParll = regexp.MustCompile(`(?mU)^(?P<res1>.*)parll(?P<res2>\(.*)$`)
+	var reParll = regexp.MustCompile(`(?mU)^(?P<res1>.*)PARLL(?P<res2>\(.*)$`)
 	var reInside = regexp.MustCompile(`(?m)^(?P<res1>.*),(?P<res2>.*)$`)
 	outString = inString // default if matching below does not occur
 	for reParll.MatchString(outString) {
@@ -1173,7 +1172,7 @@ func psuedoRand(x0 int) int {
 func checkReserved(variable, logOut string) (string, string) {
 	var key string
 	switch variable {
-	case "parll": // can add more reserved variables here
+	case "PARLL": // can add more reserved variables here
 		logOut = logOut + variable + " is a reserved variable and cannot be assigned"
 		variable = variable + "IsReservedVariable"
 	default:

@@ -16,7 +16,7 @@ var func2 = map[string]struct {
 	"*":     {mult, 3},
 	"/":     {div, 3},
 	"^":     {pow, 5},
-	"parll": {parll, 5},
+	"PARLL": {parll, 5},
 }
 
 var func1 = map[string]func(float64) float64{

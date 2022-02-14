@@ -3,10 +3,16 @@ PARAM{R_1=[1]# units=k\Omega}
 PARAM{R_2=[2]# units=k\Omega}
 PARAM{R_3=[3]# units=k\Omega}
 \begin{verbatim}
-RUN{R_4 = parll(R_1,parll(R_2,R_3))}
-and here too
-also here
+R_4 = PARLL(R_1,PARLL(R_2,R_3))
 \end{verbatim}
 \begin{equation}
-RUN{R_4 = parll(R_1,parll(R_2,R_3))}
+RUN{R_4 = PARLL(R_1,PARLL(R_2,R_3))}
+\end{equation}
+\begin{verbatim}
+RUN{phaseL = -90-atand(wt/wp2)#units=^{\circ},symbol=\angle L(j\omega_t) }
+\end{verbatim}
+PARAM{wt=[1]#symbol=\omega_t}
+PARAM{wp2=[1]#symbol=\omega_{p2}}
+\begin{equation}
+RUN{phaseL = -90-atand(wt/wp2)#units=^{\circ},symbol=\angle L(j\omega_t) }
 \end{equation}
