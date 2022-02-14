@@ -3,6 +3,12 @@ PARAM{R_1=[1]# units=k\Omega}
 PARAM{R_2=[2]# units=k\Omega}
 PARAM{R_3=[3]# units=k\Omega}
 \begin{verbatim}
+R_4 = DIV(R_1,DIV(R_2,R_3))
+\end{verbatim}
+\begin{equation}
+RUN{R_4 = DIV(R_1,DIV(R_2,R_3))}
+\end{equation}
+\begin{verbatim}
 R_4 = PARLL(R_1,PARLL(R_2,R_3))
 \end{verbatim}
 \begin{equation}

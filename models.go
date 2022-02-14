@@ -7,7 +7,7 @@ type tokenAndType struct {
 	tokenType string
 }
 
-var func2 = map[string]struct {
+var func2 = map[string]struct { // functions with 2 inputs
 	name func(float64, float64) float64
 	prec int // precedence value (higher is more priority)
 }{
@@ -17,10 +17,11 @@ var func2 = map[string]struct {
 	"/":     {div, 3},
 	"^":     {pow, 5},
 	"PARLL": {parll, 5},
+	"DIV":   {div2, 3},
 }
 
-var func1 = map[string]func(float64) float64{
-	// if adding a new function... may need to change preamble.tex
+var func1 = map[string]func(float64) float64{ // functions with one input
+	// if adding a new function... may need to change preamble.tex to make it look good
 	"abs":   math.Abs,
 	"asin":  math.Asin,
 	"asind": asind, // arc sin(x) where x is in degrees

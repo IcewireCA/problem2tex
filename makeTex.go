@@ -254,7 +254,8 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 
 func latexifyEqn(inString string) string {
 	var outString string
-	outString = fixParll(inString)
+	outString, _ = fixRunCmd("PARLL", inString)
+	outString, _ = fixRunCmd("DIV", outString)
 	return outString
 }
 
@@ -1120,27 +1121,35 @@ func function2Latex(inString string) string {
 	return inString
 }
 
-func fixParll(inString string) string {
+// recursively fixes PARLL function for printing as latex
+// stuffHere**PARLL(R1,PARLL(R2,R3))**moreStuff becomes stuffHere**R1||R2||R3**moreStuff
+func fixRunCmd(runCmd, inString string) (string, string) {
 	var result []string
-	var outString, head, tail, inside, var1, var2 string
-	var reParll = regexp.MustCompile(`(?mU)^(?P<res1>.*)PARLL(?P<res2>\(.*)$`)
+	var outString, head, tail, inside, var1, var2, logOut string
+	var reRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)` + runCmd + `(?P<res2>\(.*)$`)
 	var reInside = regexp.MustCompile(`(?m)^(?P<res1>.*),(?P<res2>.*)$`)
 	outString = inString // default if matching below does not occur
-	for reParll.MatchString(outString) {
-		if reParll.MatchString(outString) {
-			result = reParll.FindStringSubmatch(outString)
+	for reRunCmd.MatchString(outString) {
+		if reRunCmd.MatchString(outString) {
+			result = reRunCmd.FindStringSubmatch(outString)
 			head = result[1]
 			inside, tail, _ = matchBrackets(result[2], "(")
-			inside = fixParll(inside)
+			inside, _ = fixRunCmd(runCmd, inside)
 			if reInside.MatchString(inside) {
 				result = reInside.FindStringSubmatch(inside)
 				var1 = result[1]
 				var2 = result[2]
-				outString = head + var1 + "||" + var2 + tail
+				switch runCmd {
+				case "PARLL":
+					outString = head + var1 + "||" + var2 + tail
+				case "DIV":
+					outString = head + `\frac{` + var1 + `}{` + var2 + `}` + tail
+				default:
+				}
 			}
 		}
 	}
-	return outString
+	return outString, logOut
 }
 
 func randInt(N, random int) int {
@@ -1172,7 +1181,7 @@ func psuedoRand(x0 int) int {
 func checkReserved(variable, logOut string) (string, string) {
 	var key string
 	switch variable {
-	case "PARLL": // can add more reserved variables here
+	case "PARLL", "DIV": // can add more reserved variables here
 		logOut = logOut + variable + " is a reserved variable and cannot be assigned"
 		variable = variable + "IsReservedVariable"
 	default:
