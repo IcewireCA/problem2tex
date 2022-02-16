@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  10 FEB 2022 15:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.22)  16 FEB 2022 10:20
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -391,19 +391,19 @@ Underfull \hbox (badness 10000) in paragraph at lines 145--149
  []
 
 [4] [5] [6] [7] [8]
-Overfull \hbox (13.27205pt too wide) in paragraph at lines 419--421
+Overfull \hbox (13.27205pt too wide) in paragraph at lines 428--430
 []\T1/cmr/m/n/10 INCLUDE{picture02.svg#width=60,spaceAbove=-5,spaceHoriz=4,spac
 eBelow=-3,svgFormat=noLatex}
  []
 
 [9]
-Overfull \hbox (23.6245pt too wide) in paragraph at lines 467--467
+Overfull \hbox (23.6245pt too wide) in paragraph at lines 476--476
 []\T1/cmtt/m/n/10 \immediate\write18{ltspice2svg -export=Problems/tmp/#1asc.svg
  -text=latex Problems/tmp/#1.asc}[] 
  []
 
 [10] [11]
-Underfull \hbox (badness 10000) in paragraph at lines 539--542
+Underfull \hbox (badness 10000) in paragraph at lines 548--551
 
  []
 
@@ -436,7 +436,7 @@ e/2021/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texlive/
 21/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb></usr/local/texlive/2021
 /texmf-dist/fonts/type1/public/cm-super/sftt1200.pfb></usr/local/texlive/2021/t
 exmf-dist/fonts/type1/public/cm-super/sftt1728.pfb>
-Output written on docProblem2tex.pdf (25 pages, 293065 bytes).
+Output written on docProblem2tex.pdf (25 pages, 293341 bytes).
 PDF statistics:
  351 PDF objects out of 1000 (max. 8388607)
  306 compressed objects within 4 object streams

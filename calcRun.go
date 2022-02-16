@@ -10,10 +10,12 @@ import (
 // runs a line of code that may have several statements in it (separated by ";")
 // returns assignVar where assignVar is the assigned variable.  it is last assigned var if multiple statements
 // also returns answer (float64) where it is the last answer calculated if there are multiple statements in one line
-func runCode(inString string, varAll map[string]varSingle, configParam map[string]string) (assignVar, outString string, answer float64, format, errCode string) {
+func runCode(inString string, varAll map[string]varSingle, configParam map[string]string) (string, string, float64, string, string) {
+	var answer float64
+	var assignVar, format, logOut string
 	var result, lineCode []string
 	var allOptions []option
-	var infixCode, rpnCode, optionStr, prefix, units string
+	var infixCode, rpnCode, optionStr, prefix, optionUnits, optionSymbol string
 	var errorInfix, errorRpn string
 	var tmp2 varSingle
 	var reAssignment = regexp.MustCompile(`(?m)^\s*(?P<res1>\w*)\s*=\s*(?P<res2>.*)$`)
@@ -22,12 +24,42 @@ func runCode(inString string, varAll map[string]varSingle, configParam map[strin
 	var reOptions = regexp.MustCompile(`(?mU)^.*#(?P<res1>.*)$`)
 
 	if reOptions.MatchString(inString) {
-		optionStr = reOptions.FindStringSubmatch(inString)[1]
+		optionStr = reOptions.FindStringSubmatch(inString)[1] // capture options after #
 	}
 	if reBeforeComment.MatchString(inString) {
-		inString = reBeforeComment.FindStringSubmatch(inString)[1] // strip off comments after #
+		inString = reBeforeComment.FindStringSubmatch(inString)[1] // capture run code before #
 	}
-	outString = inString
+	allOptions = getAllOptions(optionStr)
+	for i := 0; i < len(allOptions); i++ {
+		switch allOptions[i].name {
+		case "units":
+			prefix, optionUnits = getPrefixUnits(allOptions[i].value) // separate preUnits into prefix and units
+			if prefix != "" {                                         // there should be NO prefix in RUN commands (it would not make sense since many variables are allowed on right side)
+				logOut = "option units CAN NOT have prefix in RUN commands"
+				return "", logOut, 0, format, logOut
+			}
+		case "symbol":
+			optionSymbol = allOptions[i].value
+		case "fmt":
+			format = allOptions[i].value
+			switch format {
+			case "eqnVal", "eqnSym", "silent", "short1", "short2", "long", "":
+			default:
+				logOut = format + ": NOT a valid fmt option"
+				return "", logOut, 0, format, logOut
+			}
+		default:
+			logOut = allOptions[i].name + " is not a valid option"
+			return "", logOut, 0, format, logOut
+		}
+	} // done with options
+
+	switch format {
+	case "eqnVal", "eqnSym": // if true just return and don't run the code
+		return "", inString, 0, format, logOut
+	default:
+	}
+
 	for reGetFirst.MatchString(inString) { // break inString into lines of code between ";"
 		result = reGetFirst.FindStringSubmatch(inString)
 		lineCode = append(lineCode, result[1])
@@ -36,11 +68,10 @@ func runCode(inString string, varAll map[string]varSingle, configParam map[strin
 	lineCode = append(lineCode, inString) // anything left over is final line code
 	// run each line code
 	for i := range lineCode {
-		errCode = syntaxError(lineCode[i], "runCode")
-		if errCode != "" {
+		logOut = syntaxError(lineCode[i], "runCode")
+		if logOut != "" {
 			assignVar = "dummy"
-			outString = errCode
-			return
+			return assignVar, logOut, answer, format, logOut
 		}
 		// using switch statement so other types of code can be run
 		// first type is assignment
@@ -50,21 +81,19 @@ func runCode(inString string, varAll map[string]varSingle, configParam map[strin
 			result = reAssignment.FindStringSubmatch(lineCode[i])
 			assignVar = result[1]
 			infixCode = result[2]
-			assignVar, errCode = checkReserved(assignVar, errCode)
-			if errCode != "" {
-				outString = assignVar
-				return
+			assignVar, logOut = checkReserved(assignVar, logOut)
+			if logOut != "" {
+				return assignVar, logOut, 0, format, logOut
 			}
 			rpnCode, errorInfix = infix2rpn(infixCode)
 			if errorInfix != "" {
-				errCode = errorInfix
-				return
+				logOut = errorInfix
+				return assignVar, logOut, 0, format, logOut
 			}
 			answer, errorRpn = rpnEval(rpnCode, varAll)
 			if errorRpn != "" {
-				errCode = errorRpn
-				outString = errCode
-				return
+				logOut = errorRpn
+				return assignVar, logOut, 0, format, logOut
 			}
 			_, ok := varAll[assignVar]
 			if !ok { // assignVar is a new variable and needs to be added to varAll map
@@ -76,26 +105,12 @@ func runCode(inString string, varAll map[string]varSingle, configParam map[strin
 				tmp2 = varAll[assignVar] // use existing map location
 			}
 
-			// Now deal with options in the RUN command
-			allOptions = getAllOptions(optionStr)
-			for i := 0; i < len(allOptions); i++ {
-				switch allOptions[i].name {
-				case "units":
-					prefix, units = getPrefixUnits(allOptions[i].value) // separate preUnits into prefix and units
-					if prefix != "" {                                   // there should be NO prefix in RUN commands (it would not make sense since many variables are allowed on right side)
-						outString = "option units CAN NOT have prefix in RUN commands"
-						errCode = outString
-					}
-					tmp2.units = units
-				case "symbol":
-					tmp2.latex = allOptions[i].value
-				case "fmt":
-					format = allOptions[i].value
-				default:
-					errCode = allOptions[i].name + " is not a valid option"
-					return
-				}
-			} // done with options
+			if optionUnits != "" {
+				tmp2.units = optionUnits
+			}
+			if optionSymbol != "" {
+				tmp2.latex = optionSymbol
+			}
 
 			tmp2.value = answer
 			varAll[assignVar] = tmp2
@@ -104,18 +119,18 @@ func runCode(inString string, varAll map[string]varSingle, configParam map[strin
 			assignVar = ""
 			rpnCode, errorInfix = infix2rpn(lineCode[i])
 			if errorInfix != "" {
-				errCode = errorInfix
-				return
+				logOut = errorInfix
+				return assignVar, logOut, 0, format, logOut
 			}
 			answer, errorRpn = rpnEval(rpnCode, varAll)
 			if errorRpn != "" {
-				errCode = errorRpn
-				return
+				logOut = errorRpn
+				return assignVar, logOut, 0, format, logOut
 			}
-			return
+			return assignVar, inString, answer, format, logOut
 		}
 	}
-	return
+	return assignVar, inString, answer, format, logOut
 }
 
 // used to get next token from an infix equation

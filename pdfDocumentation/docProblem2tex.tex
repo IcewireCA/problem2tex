@@ -190,7 +190,7 @@ In the above examples, all default parameters are used but it is one line change
 
 \subsection{Syntax difference with Latex}
 
-In the above examples, there are 3 main changes from regular latex.  First, the problem2tex commands do not make use of \textbackslash but instead are determined by keywords that are capitalized.  Second, CONFIG and PARAM statements are not printed. Finally, the paragraph and line spacing is modified from regular latex (so that non-latex users could easily generate problems as well).  
+In the above examples, there are 3 main changes from regular latex.  First, the problem2tex commands do not make use of backslashes but instead are determined by keywords that are capitalized.  Second, CONFIG and PARAM statements are not printed. Finally, the paragraph and line spacing is modified from regular latex (so that non-latex users could easily generate problems as well).  
 
 Each carriage return in the .prb file results in a new paragraph. However, the spacing between paragraphs is the same as regular line spacing.  In addition, if extra blank lines are included in the .prb file, they result in  \textbackslash skipline in the final output.  The \textbackslash skipline needs to be defined in the latex document and it should generate a vertical line space. So visually, a new paragraph in the final output can be achieved using a blank line.  Note that more blank lines in a row will result in more spacing.
 
@@ -270,20 +270,20 @@ The command PARAM can be used for setting the randomly generated variables (i.e.
 Each PARAM command must be on a separate line with no other commands on the same line.
 
 \begin{itemize}
-\item PARAM\{var = [x1, x2, x3, ...]\# units=\textcolor{blue}{units}, symbol=\textcolor{blue}{varLatex} \}
+\item PARAM\{var = [x1, x2, x3, ...]\# units=\textcolor{blue}{units}, symbol=\textcolor{blue}{varSymbol} \}
 \begin{itemize}
 \item[] - var will be a random selection from the set of x1, x2, x3, ...
 \item[] - if random=false, the default value for var is the first element
 \item[] - if units=\textcolor{blue}{units} is present, then the units for that variable will be \textcolor{blue}{units}
-\item[] - if symbol=\textcolor{blue}{varLatex} is present, then when printing out, the symbol for var will be replaced with \textcolor{blue}{varLatex}
+\item[] - if symbol=\textcolor{blue}{varSymbol} is present, then when printing out, the symbol for var will be replaced with \textcolor{blue}{varSymbol}
 \end{itemize}
-\item PARAM\{var = min;max;stepsize\# units=\textcolor{blue}{units}, symbol=\textcolor{blue}{varLatex} \}
+\item PARAM\{var = min;max;stepsize\# units=\textcolor{blue}{units}, symbol=\textcolor{blue}{varSymbol} \}
 \begin{itemize}
 \item[] - The set for var will be generated from min;max;stepsize
 \item[] - The first element will be min so the default will be the min element
 \item[] - Otherwise, it is the same as the array generation above
 \end{itemize}
-\item PARAM\{var = nominal\# units=\textcolor{blue}{units}, symbol=\textcolor{blue}{varLatex} \}
+\item PARAM\{var = nominal\# units=\textcolor{blue}{units}, symbol=\textcolor{blue}{varSymbol} \}
 \begin{itemize}
 \item[] - The set for var will be generated from nominal and the KFactor configuration parameter
 \item[] - KFactor: factor:numElements... factor is a number greater than 1 and numElements is a positive integer (numElements is the number of elements in the set).
@@ -303,7 +303,7 @@ See the Expression Solver section below for more information.
 
 
 \begin{itemize}
-\item RUN\{\textcolor{blue}{var} = \textcolor{blue}{expr} \# units=\textcolor{blue}{units}, symbol=\textcolor{blue}{varLatex}, fmt=\textcolor{blue}{format} \}
+\item RUN\{\textcolor{blue}{var} = \textcolor{blue}{expr} \# units=\textcolor{blue}{units}, symbol=\textcolor{blue}{varSymbol}, fmt=\textcolor{blue}{format} \}
 \end{itemize}
 This command will evaluate \textcolor{blue}{expr}, assign the result to \textcolor{blue}{var} and the units and symbol for \textcolor{blue}{var} will be set by the options units and symbol. 
 
@@ -316,12 +316,12 @@ The fmt option determines what is printed according to the following:
 \item[] - For example, RUN\{x=y+3\} where y=2 would print: x=y+3=(2)+3=5
 \item[] - This is the default if fmt option is not in the RUN statement
 \end{itemize}
-\item fmt = short 
+\item fmt = short1 
 \begin{itemize}
 \item[] - Print out \textcolor{blue}{var} = \textcolor{blue}{expr} = \textcolor{blue}{result}
 \item[] - For example, RUN\{x=y+3\} where y=2 would print: x=y+3=5
 \end{itemize}
-\item fmt = equation
+\item fmt = short2
 \begin{itemize}
 \item[] - Print out \textcolor{blue}{var} = \textcolor{blue}{expr} 
 \item[] - For example, RUN\{x=y+3\} where y=2 would print: x=y+3
@@ -329,6 +329,15 @@ The fmt option determines what is printed according to the following:
 \item fmt = silent
 \begin{itemize}
 \item[] - Evalute the expression but do not print anything out 
+\end{itemize}
+\item fmt = eqnVal
+\begin{itemize}
+\item[] - Do not evaluate the expression but simply print it out in Latex form while replacing known variables with their values
+\item[] - for example, RUN\{y+3=x-4=z\_2\} where y=2 and x and z\_2 are undefined would print: 2+3=x-4=z\_2
+\end{itemize}
+\item fmt = eqnSym
+\begin{itemize}
+\item[] - Do not evaluate the expression but simply print it in Latex form  while replacing known variables with their symbol definitions.
 \end{itemize}
 \end{itemize}
 
@@ -350,7 +359,7 @@ Below is the VAL command for printing out variable value or an expression value.
 \item[] - D4 for decimal format with 4 significant digits
 \item[] - \$ for dollar format (always has 2 digits after decimal point)
 \item[] - U4 for SI format (including units) with 4 significant digits
-\item[] - L for only printing VAL latex symbol (not the value of VAL)
+\item[] - sym for only printing VAL latex symbol (not the value of VAL)
 \item[] - = for printing "latex symbol = value"
 \item[] - DEFAULT IS U4
 \end{itemize}

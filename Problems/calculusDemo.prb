@@ -10,37 +10,41 @@ Suppose that $Q = f(t)$ is an exponential function of $t$. If $f(VAL{t_1}) = VAL
 (b) Find the growth rate.
 (c) Evaluate $f(VAL{t_3})$.
 
-% \begin{solution}
+\begin{solution}
 (a) Let $Q = Q_0a^t$.
 Substituting $t = VAL{t_1}$, $Q = VAL{f_1}$ and $t = VAL{t_2}$, $Q = VAL{f_2}$ gives two equations for $Q_0$ and $a$:
 \begin{equation}
 VAL{f_1} = Q_0a^{VAL{t_1}} \text{ and } VAL{f_2} = Q_0a^{VAL{t_2}}
 \end{equation}  
-Dividing the two equations enables us to eliminate $Q_0$: RUNSILENT{t21 = t_2 - t_1}
+Dividing the two equations enables us to eliminate $Q_0$:
+RUN{t21 = t_2 - t_1#fmt=silent}
 \begin{equation}
-\frac{VAL{f_2}}{VAL{f_1}} = \frac{Q_0a^{VAL{t_2}}}{Q_0a^{VAL{t_1}}} = a^{VAL{t21}}
+RUN{DIV(f_2,f_1)=DIV(Q_0a^t_2,Q_0a^t_1)=a^t21#fmt=equation}
 \end{equation}
-Solving for the base, $a$, gives RUNSILENT{a = (f_2 / f_1)^(1 / t21)}
+Solving for the base, $a$, gives
+RUN{a = (f_2 / f_1)^(1 / t21)#fmt=silent}
 \begin{equation}
-a = \left( \dfrac{VAL{f_2}}{VAL{f_1}} \right)^{1/{VAL{t21}}} = VAL{a}
+a = \left( \dfrac{VAL{f_2}}{VAL{f_1}} \right)^{1/{VAL{t21}}} \hilite{= VAL{a}}
 \end{equation}  
-(b) Since $VAL{a,=}$, the growth rate is $VAL{a} - 1 = VAL{a-1} = VAL{(a-1)*100}$\%.
+(b) Since $VAL{a,=}$, the growth rate is $VAL{a} - 1 = VAL{a-1} \hilite{= VAL{(a-1)*100}\%}$
 
 (c) We want to evaluate $f(VAL{t_3}) = Q_0a^{VAL{t_3}} = Q_0(VAL{a})^{VAL{t_3}}$. First we need to find $Q_0$ from the equation
 \begin{equation}
 VAL{f_1} = Q_0(VAL{a})^{VAL{t_1}}
 \end{equation}
-Solving gives RUNSILENT{Q_0 = f_1/(a^t_1)}
+Solving gives
+RUN{Q_0 = f_1/(a^t_1)#fmt=silent}
 \begin{equation}
 Q_0 = \frac{VAL{f_1}}{(VAL{a})^{VAL{t_1}}}=VAL{Q_0}
 \end{equation}
-Thus, RUNSILENT{f_3=Q_0*a^t_3}
+Thus,
+RUN{f_3=Q_0*a^t_3#fmt=silent}
 \begin{equation}
-f(VAL{t_3})=Q_0*a^{VAL{t_3}} = VAL{f_3}
+f(VAL{t_3})=Q_0a^{VAL{t_3}} \hilite{= VAL{f_3}}
 \end{equation}
-%\end{solution}
-% \begin{answer}
+\end{solution}
+\begin{answer}
     (a) $VAL{a}$
     (b) $VAL{(a-1)*100}$\%
     (c) $VAL{f_3}$
-% \end{answer}
+\end{answer}
