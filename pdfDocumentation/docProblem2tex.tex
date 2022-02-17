@@ -25,12 +25,12 @@
 \newcommand{\units}{\,\mathrm}
 \newcommand{\skipLine}{\\[0ex]}
   
-\title{\color{blue}\texttt{problem2tex} \\ \normalsize{version = 0.9.0 (2022-02-09)}}
+\title{\color{blue}\texttt{problem2tex} \\ \normalsize{version = 0.9.0 (2022-02-17)}}
 
 \author{
 David Johns, \\ \texttt{david.johns@icewire.ca}
 }
-\date{Document Date - 2022-02-09}
+\date{Document Date - 2022-02-17}
 
 \begin{document}
 
@@ -486,7 +486,7 @@ Problem to tex makes use of a built in expression solver to solve \textcolor{blu
 Example valid  \textcolor{blue}{expr} are:
 \begin{itemize}
 \item RUN\{A = sqrt(B)*abs(-4)\}
-\item RUN\{R\_4 = parll(R\_1,parll(R\_2,R\_3))\}
+\item RUN\{R\_4 = PARLL(R\_1,PARLL(R\_2,R\_3))\}
 \end{itemize}
 
 \subsubsection{Functions}
@@ -514,14 +514,19 @@ In addition, extra functions are:
 \begin{itemize}
 \item[] returns 10*log10(x)
 \end{itemize}
-\item dbV(x)
+\item dBV(x)
 \begin{itemize}
 \item[] returns 20*log10(x)
 \end{itemize}
-\item parll(a,b)
+\item PARLL(a,b)
 \begin{itemize}
 \item[] returns the numeric parallel value (returns $(1/a + 1/b)^{-1}$)
 \item[] the latex printout of this function is $||$ to make it more readable
+\end{itemize}
+\item DIV(a,b)
+\begin{itemize}
+\item[] returns the numeric value a/b
+\item[] This method of division is included so that the result is printed as $\frac{a}{b}$ instead of $a/b$ (regular division)
 \end{itemize}
 \end{itemize}
 

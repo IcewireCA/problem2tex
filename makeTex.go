@@ -1184,13 +1184,13 @@ func psuedoRand(x0 int) int {
 
 func checkReserved(variable, logOut string) (string, string) {
 	var key string
-	switch variable {
-	case "PARLL", "DIV": // can add more reserved variables here
-		logOut = logOut + variable + " is a reserved variable and cannot be assigned"
-		variable = variable + "IsReservedVariable"
-	default:
-	}
 	for key = range func1 {
+		if variable == key {
+			logOut = logOut + key + " is a reserved variable and cannot be assigned"
+			variable = key + "-IsReservedVariable"
+		}
+	}
+	for key = range func2 {
 		if variable == key {
 			logOut = logOut + key + " is a reserved variable and cannot be assigned"
 			variable = key + "-IsReservedVariable"
