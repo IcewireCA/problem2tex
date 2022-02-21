@@ -28,6 +28,7 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	var verbatim bool                                                // if verbatim true, then don't do anything to the line and print out as is
 	var reBeginVerb = regexp.MustCompile(`(?m)^\s*\\begin{verbatim}`)
 	var reEndVerb = regexp.MustCompile(`(?m)^\s*\\end{verbatim}`)
+	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
 
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
@@ -65,7 +66,7 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	verbatim = false
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
-		inLine = inLines[i]
+		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
 		if verbatim { // if verbatim mode is true, just write out current line then skip back to top
 			texOut = texOut + inLine + "\n"
 			if reEndVerb.MatchString(inLine) { // stop verbatim mode

@@ -1,0 +1,10 @@
+CONFIG{fmtVal=D3, fmtRun()=D3, fmtRunEQ=D3, verbose}
+PARAM{t_1 = [20,19,18,17]}
+PARAM{f_1 = 88.2;90;0.1}
+PARAM{t_2 = [23,24,22,21]}
+PARAM{f_2 = 91.4;99.9;0.1}
+PARAM{t_3 = 25}
+\begin{equation}
+RUN{t21 = t_2 - t_1#fmt=silent}
+RUN{DIV(f_2,f_1)=DIV(Q_0a^t_2,Q_0a^t_1)=a^t21#fmt=eqnVal}
+\end{equation}
