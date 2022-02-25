@@ -1,4 +1,5 @@
 CONFIG{nomVar=1.5:3} % 3 different random values... nom/1.5, nom, nom*1.5
+CONFIG{random=true}
 CONFIG{verbose=true}
 PARAM{x = 2;5;1} % x = 2, 3, 4, or 5 (default 2)
 PARAM{y = [6,9,3,7]} % y = 6, 9, 3, or 7 (default 6)
