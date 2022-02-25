@@ -213,7 +213,7 @@ Configuration settings can be changed at any time and then they are used going f
 changed again.  Configuration settings can be changed using the CONFIG command.
 Each CONFIG command should be on a separate line with no other commands on the same line.
 
-Example: CONFIG\{random = min, fmtVal=E3, KFactor=2:6, verbose\}
+Example: CONFIG\{random = min, fmtVal=E3, nomVar=2:6, verbose\}
 
 \begin{itemize}
 \item random - choice of false, true, min, max, minMax and positive integer
@@ -245,11 +245,11 @@ Example: CONFIG\{random = min, fmtVal=E3, KFactor=2:6, verbose\}
 \item[] - Same as format above
 \item[] - DEFAULT IS E4 
 \end{itemize}
-\item KFactor - Used for default set generation if PARAM sets variable to a nominal number.
+\item nomVar - Used for default set generation if PARAM sets variable to a nominal number.
 \begin{itemize}
-\item[] - Set KFactor example: CONFIG\{KFactor = 1.5:5\} where 1.5 is the factor and 5 is the number of elements in the set.  
-\item[] - Factor must be a number greater than 1.
-\item[] - The range of the elements are from nominal/factor to nominal*factor and are geometrically spaced.
+\item[] - Set nomVar example: CONFIG\{nomVar = 1.5:5\} where 1.5 is the variation and 5 is the number of elements in the set.  
+\item[] - Variation must be a number greater than 1.
+\item[] - The range of the elements are from nominal/variation to nominal*variation and are geometrically spaced.
 \end{itemize}
 \item defaultUnits - used to set the default units depending on the first letter of a variable
 \begin{itemize}
@@ -261,7 +261,8 @@ Example: CONFIG\{random = min, fmtVal=E3, KFactor=2:6, verbose\}
 \end{itemize}
 \item verbose - choice of true or false (default false)
 \begin{itemize}
-\item[] - prints out the elements sets in commented out lines in the .tex file (useful for debugging)\item[] - Also prints out the configuration settings
+\item[] - prints out the elements sets in commented out lines in the .tex file (useful for debugging)
+\item[] - Also prints out the configuration settings
 \end{itemize}
 \end{itemize}
 
@@ -285,10 +286,10 @@ Each PARAM command must be on a separate line with no other commands on the same
 \end{itemize}
 \item PARAM\{var = nominal\# units=\textcolor{blue}{units}, symbol=\textcolor{blue}{varSymbol} \}
 \begin{itemize}
-\item[] - The set for var will be generated from nominal and the KFactor configuration parameter
-\item[] - KFactor: factor:numElements... factor is a number greater than 1 and numElements is a positive integer (numElements is the number of elements in the set).
-\item[] - Elements range from nominal/factor to nominal*factor and are geometrically spaced
-\item[] - Example: if nominal is 10 and factor is 1.5, then the range is from 6.667 to 15
+\item[] - The set for var will be generated from nominal and the nomVar configuration parameter
+\item[] - nomVar: variation:numElements... variation is a number greater than 1 and numElements is a positive integer (numElements is the number of elements in the set).
+\item[] - Elements range from nominal/variation to nominal*variation and are geometrically spaced
+\item[] - Example: if nominal is 10 and variation is 1.5, then the range is from 6.667 to 15
 \item[] - The default is nominal which would be 10 in the above example
 \item[] - Otherwise, it is the same as the array generation above
 \end{itemize}

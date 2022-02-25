@@ -1,10 +1,15 @@
-CONFIG{fmtVal=D3, fmtRun()=D3, fmtRunEQ=D3, verbose}
-PARAM{t_1 = [20,19,18,17]}
-PARAM{f_1 = 88.2;90;0.1}
-PARAM{t_2 = [23,24,22,21]}
-PARAM{f_2 = 91.4;99.9;0.1}
-PARAM{t_3 = 25}
-\begin{equation}
-RUN{t21 = t_2 - t_1#fmt=silent}
-RUN{DIV(f_2,f_1)=DIV(Q_0a^t_2,Q_0a^t_1)=a^t21#fmt=eqnVal}
-\end{equation}
+CONFIG{nomVar=1.5:3} % 3 different random values... nom/1.5, nom, nom*1.5
+CONFIG{verbose=true}
+PARAM{x = 2;5;1} % x = 2, 3, 4, or 5 (default 2)
+PARAM{y = [6,9,3,7]} % y = 6, 9, 3, or 7 (default 6)
+PARAM{k = 10} % k = 10/1.5, 10, or 10*1.5 (default 10)
+Given VAL{x,=}, VAL{y,=}, and VAL{k,=} find $z = x^2+y-k$
+
+\begin{solution}
+RUN{z=x^2+y-k}
+VAL{z,=}
+\end{solution}
+
+\begin{answer}
+VAL{z,=}
+\end{answer}

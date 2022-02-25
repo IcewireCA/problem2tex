@@ -40,7 +40,7 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	// fmtRunEQ: when RUN= is used
 	var configParam = map[string]string{ // defaults shown below
 		"random":       randomStr, // can be false, true, any positive integer, min, max, minMax
-		"KFactor":      "1.3:5",   // variation from x/k to kx : number of choices
+		"nomVar":       "1.3:5",   // variation from x/k to kx : number of choices
 		"fmtVal":       "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
 		"fmtRun()":     "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
 		"fmtRunEQ":     "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
@@ -550,8 +550,8 @@ func runConfigFunc(optionStr string, configParam map[string]string) (string, str
 		switch allOptions[i].name { // Below is a check to ensure the input is in the correct format
 		case "random":
 			_, logOut = checkRandom(allOptions[i].value)
-		case "kFactor":
-			_, _, logOut = convertKFactor(allOptions[i].value)
+		case "nomVar":
+			_, _, logOut = convertNomVar(allOptions[i].value)
 		case "fmtVal", "fmtRun()", "fmtRunEQ":
 			formatType, _, logOut = parseFormat(allOptions[i].value)
 			switch formatType {
@@ -585,7 +585,7 @@ func runConfigFunc(optionStr string, configParam map[string]string) (string, str
 				logOut = "defaultUnits syntax is incorrect" + logOut
 			}
 		default:
-			logOut = allOptions[i].name + " is not a valid option"
+			logOut = allOptions[i].name + " is not a valid CONFIG option"
 			return "", logOut
 		}
 		if logOut != "" {
@@ -661,14 +661,14 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			for x := min; x <= max; x = x + stepSize {
 				values = append(values, x)
 			}
-		case reKFactor.MatchString(rightSide): // it is a kFactor statement
+		case reKFactor.MatchString(rightSide): // it is a nomVar statement
 			result = reKFactor.FindStringSubmatch(rightSide)
 			nominal, logOut = str2Float64(result[1])
 			if logOut != "" {
 				return "", logOut
 			}
 			values = append(values, nominal) // the nominal value is value[0] so it is default
-			factor, num, logOut = convertKFactor(configParam["KFactor"])
+			factor, num, logOut = convertNomVar(configParam["nomVar"])
 			if logOut != "" {
 				return "", logOut
 			}
@@ -758,7 +758,7 @@ func getAfter(inString, charac string) string { // used to find rest of string a
 	return outString
 }
 
-func convertKFactor(inString string) (float64, int, string) {
+func convertNomVar(inString string) (float64, int, string) {
 	var factor float64
 	var num int
 	var logOut string
@@ -772,16 +772,16 @@ func convertKFactor(inString string) (float64, int, string) {
 			return factor, num, logOut
 		}
 		if factor <= 1 {
-			logOut = "kFactor must be greater than 1"
+			logOut = "variation must be greater than 1"
 			return factor, num, logOut
 		}
 		num, err = strconv.Atoi(result[2])
 		if err != nil {
-			logOut = "incorrect syntax for \\runKFactor: should be kFactor:number"
+			logOut = "incorrect syntax for nomVar: should be variation:number"
 			return factor, num, logOut
 		}
 		if num < 1 {
-			logOut = "kFactor:number ... number should be > 0"
+			logOut = "variation:number ... number should be > 0"
 			return factor, num, logOut
 		}
 		if num%2 == 0 { // if num is even make it odd by adding one so that values are equally
@@ -789,7 +789,7 @@ func convertKFactor(inString string) (float64, int, string) {
 			num = num + 1
 		}
 	} else {
-		logOut = "incorrect syntax for \\runKFactor: should be kFactor:number"
+		logOut = "incorrect syntax for nomVar: should be variation:number"
 	}
 	return factor, num, logOut
 }
