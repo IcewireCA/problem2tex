@@ -1160,6 +1160,7 @@ func fixRunCmd(runCmd, inString string) (string, string) {
 func randInt(N, random int) int {
 	// based on random (a random number), choose an
 	// int from 0 to N-1
+	// This has a slight bias it to it but if random is much bigger than N, the bias is quite small
 	var choice = random % N
 	return choice
 }
@@ -1174,9 +1175,9 @@ func psuedoRand(x0 int) int {
 	}
 	a = 707106 // 1e6/sqrt(2) and truncated
 	c = 1
-	m = 999999
+	m = 999983 // largest prime number less than 1e6
 	x1 = 0
-	for x1 < 100000 {
+	for x1 < 100000 { // loop until find a new random number larger than 100000
 		x1 = (a*x0 + c) % m
 		x0 = x1
 	}

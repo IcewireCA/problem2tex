@@ -1,16 +1,3 @@
-CONFIG{nomVar=1.5:3} % 3 different random values... nom/1.5, nom, nom*1.5
-CONFIG{random=true}
-CONFIG{verbose=true}
-PARAM{x = 2;5;1} % x = 2, 3, 4, or 5 (default 2)
-PARAM{y = [6,9,3,7]} % y = 6, 9, 3, or 7 (default 6)
-PARAM{k = 10} % k = 10/1.5, 10, or 10*1.5 (default 10)
-Given VAL{x,=}, VAL{y,=}, and VAL{k,=} find $z = x^2+y-k$
-
-\begin{solution}
-RUN{z=x^2+y-k}
-VAL{z,=}
-\end{solution}
-
-\begin{answer}
-VAL{z,=}
-\end{answer}
+CONFIG{nomVar=1.5:3} 
+PARAM{k = 10} 
+Given  VAL{k,=} 
