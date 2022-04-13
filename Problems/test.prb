@@ -1,3 +1,22 @@
-CONFIG{nomVar=1.5:3} 
-PARAM{k = 10} 
-Given  VAL{k,=} 
+CONFIG{verbose=true}
+PARAM{x=12}
+PARAM{L=65}
+\begin{verbatim}
+here is a test $ and {
+v_3
+\end{verbatim}
+here 
+and here
+
+
+
+okay here
+
+hand here too
+
+
+
+
+
+
+also here

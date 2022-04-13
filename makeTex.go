@@ -21,6 +21,7 @@ type option struct {
 func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
 	var inLines []string
 	var inLine, latexCmd string
+	var numBlankLines int
 	var logOut, comment, errorHeader string
 	var texOut string
 	var reNotBlankLine = regexp.MustCompile(`(?m)\S`)
@@ -63,26 +64,32 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	// for key = range configParam {
 	// 	fmt.Println(configParam[key])
 	// }
+	numBlankLines = 0
 	verbatim = false
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
 		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
+		// deal with blank lines first.  Want \vspace{kex} to be put out where k equals number of blank lines
+		if !reNotBlankLine.MatchString(inLine) { // if a blank line the do ...
+			numBlankLines = numBlankLines + 1
+			continue // skip to end of for loop
+		}
+		if numBlankLines > 0 {
+			texOut = texOut + "\\\\[" + strconv.Itoa(numBlankLines) + "ex]\n"
+			numBlankLines = 0
+		}
+		// done with blank line stuff.
 		if verbatim { // if verbatim mode is true, just write out current line then skip back to top
 			texOut = texOut + inLine + "\n"
 			if reEndVerb.MatchString(inLine) { // stop verbatim mode
 				verbatim = false
 			}
-			continue
+			continue // skip to end of for loop
 		}
 		if reBeginVerb.MatchString(inLine) { // start verbatim mode
 			verbatim = true
 			texOut = texOut + inLine + "\n"
-			continue
-		}
-		if !reNotBlankLine.MatchString(inLine) { // if inLine is a blank line then do ...
-			texOut = texOut + "\\skipLine\n"
-			//		outLines = append(outLines, "\\skipLine")
-			continue // skip to end of for loop and don't add another element to outLines
+			continue // skip to end of for loop
 		}
 		inLine, comment = deCommentLatex(inLine)
 		logOut = syntaxWarning(inLine)
@@ -101,13 +108,13 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 		if reLatexCmd.MatchString(inLine) {
 			latexCmd = reLatexCmd.FindStringSubmatch(inLine)[1] // if latex command detected then check latex command
 			switch latexCmd {
-			case "\\mbox", "\\hilite": // if latex command is  \mbox or \hilite, then add two backslashes and \n
+			case "\\mbox", "\\hilite": // if latex command is  \mbox or \hilite, then add \\ and \n
 				texOut = texOut + inLine + "\\\\\n"
 			default:
 				texOut = texOut + inLine + "\n" // just add \n when other latex command at beginning of line
 			}
 		} else {
-			texOut = texOut + inLine + "\\\\\n" // if no latex command at beginning of line then add two backslashes and \n
+			texOut = texOut + inLine + "\\\\\n" // if no latex command at beginning of line then add \\ and \n
 		}
 	}
 	return texOut, errorHeader
@@ -567,13 +574,14 @@ func runConfigFunc(optionStr string, configParam map[string]string) (string, str
 			switch allOptions[i].value {
 			case "true", "":
 				configParam["verbose"] = "true"
-				outString = "% Configuration Settings"
+				outString = "\\begin{verbatim}\n\nConfiguration Settings\n"
 				for key = range configParam {
 					if len(key) > 1 { // only print out config settings when key string length is greater than 1
-						outString = outString + "\n% " + key + " : " + configParam[key]
+						outString = outString + key + " : " + configParam[key] + "\n"
 						// this is done so defaultUnits map values are not each printed
 					}
 				}
+				outString = outString + "\\end{verbatim}"
 			case "false":
 			default:
 				logOut = "verbose can be either true or false"
@@ -706,14 +714,14 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			}
 		}
 		if configParam["verbose"] == "true" {
-			outVerbose = "% " + assignVar + " = ["
+			outVerbose = "\\begin{verbatim}" + assignVar + " = ["
 			for i := range values {
-				outVerbose = outVerbose + fmt.Sprintf("%g", values[i])
+				outVerbose = outVerbose + fmt.Sprintf("%.3g", values[i])
 				if i < len(values)-1 {
 					outVerbose = outVerbose + ","
 				}
 			}
-			outVerbose = outVerbose + "] units=" + prefix + units + "   symbol=" + tmp2.latex
+			outVerbose = outVerbose + "] units=" + prefix + units + "   symbol=" + tmp2.latex + "\\end{verbatim}"
 		}
 		random, logOut = checkRandom(configParam["random"])
 		switch random {
