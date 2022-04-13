@@ -93,8 +93,8 @@ func checkRandom(randomStr string) (int, string) {
 func parseFormat(formatStr string) (string, string, string) {
 	var formatType, sigDigits, logOut string
 	var result []string
-	if formatStr == "$" { // note that $ should NOT have any digits after it
-		formatType = "$"
+	if formatStr == "DL" { // note that DL should NOT have any digits after it
+		formatType = "DL"
 		return formatType, "", ""
 	}
 	var re0 = regexp.MustCompile(`(?m)^(?P<res1>\w)(?P<res2>\d)$`)

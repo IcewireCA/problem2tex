@@ -7,36 +7,36 @@ default: VAL{x}
 E6: VAL{x,E6} 
 S3: VAL{x,S3}
 D4: VAL{x,D4} 
-\$: VAL{x,$}
+\$: VAL{x,DL}
 
 y = 20.0
 default: VAL{y} 
 E6: VAL{y,E6} 
 S3: VAL{y,S3}
 D4: VAL{y,D4} 
-\$: VAL{y,$}
+\$: VAL{y,DL}
 
 z=20.3e9
 default: VAL{z} 
 E6: VAL{z,E6} 
 S3: VAL{z,S3}
 D4: VAL{z,D4} 
-\$: VAL{z,$}
+\$: VAL{z,DL}
 
 PARAM{R_1 = 3333.3333333333 #units=k\Omega}
 VAL{R_1}
 equal: VAL{R_1,=}
 units: VAL{R_1,U6}
 unitsDefault: VAL{R_1,U}
-symbol: VAL{R_1,L}
+symbol: VAL{R_1,sym}
 
-RUNSILENT{tmp=100000/3}
+RUN{tmp=100000/3#fmt=silent}
 default: VAL{tmp} 
 E6: VAL{tmp,E6} 
 S6: VAL{tmp,S6}
 D6: VAL{tmp,D6} 
-\$: VAL{tmp,$}
+\$: VAL{tmp,DL}
 
-RUNSILENT{tmp=1/3}
+RUN{tmp=1/3#fmt=silent}
 default: VAL{tmp} E6: VAL{tmp,E6} S6: VAL{tmp,S6}\\
-D6: VAL{tmp,D6} \$: VAL{tmp,$}\\
+D6: VAL{tmp,D6} \$: VAL{tmp,DL}\\

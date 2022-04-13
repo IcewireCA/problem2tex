@@ -34,22 +34,22 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	// as looking at value for each key
 	// these are configuration parameters
 	// for format, the number represents the number of significant digits
-	// in the case of $, digits is forced to 2 after the decimal sign.
+	// in the case of DL, digits is forced to 2 after the decimal sign.
 	// fmtVal: when \val is used
 	// fmtRun(): the values inside brackets when RUN() is used
 	// fmtRunEQ: when RUN= is used
 	var configParam = map[string]string{ // defaults shown below
 		"random":       randomStr, // can be false, true, any positive integer, min, max, minMax
 		"nomVar":       "1.3:5",   // variation from x/k to kx : number of choices
-		"fmtVal":       "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
-		"fmtRun()":     "E4",      // can be E, S, D, $ (engineering, sci, decimal, dollar)
-		"fmtRunEQ":     "U4",      // can be E, S, D, $, or U (engineering, sci, decimal, dollar or SI Units)
+		"fmtVal":       "U4",      // can be E, S, D, DL, or U (engineering, sci, decimal, dollar or SI Units)
+		"fmtRun()":     "E4",      // can be E, S, D, DL (engineering, sci, decimal, dollar)
+		"fmtRunEQ":     "U4",      // can be E, S, D, DL, or U (engineering, sci, decimal, dollar or SI Units)
 		"verbose":      "false",   // can be true or false
 		"defaultUnits": "",        // place defaultUnits here [[iI:A][vV:V][rR:\Omega]]  etc
 		// if first letter of a variable is i or I then default units is A
 	}
-	// when dollar is used, the symbol "$" is NOT automatically added and can be added by user.
-	// dollar results in number being nnn.nn (two digits after decimal point)
+	// when DL (dollar) is used, the symbol "$" is NOT automatically added and can be added by user.
+	// DL (dollar) results in number being nnn.nn (two digits after decimal point)
 
 	varAll := make(map[string]varSingle) // IMPORTANT to use this type of map assignment - tried another and it worked for a while
 	// til hash table memory changed and then memory errors on run that could not be traced by debugger
@@ -304,7 +304,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 	if ok {
 		// exp is a variable in varAll map
 		switch formatType {
-		case "E", "S", "D", "$", "U":
+		case "E", "S", "D", "DL", "U":
 			replace = value2Str(varAll[exp].value, varAll[exp].units, formatStr)
 		case "=":
 			replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, varAll[exp].units, configParam["fmtVal"]) + "$}"
@@ -327,7 +327,7 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 }
 
 func syntaxWarning(statement string) (logOut string) { // check that syntax seems okay and give warning if not okay
-	var reDollar = regexp.MustCompile(`(?m)\$`)
+	var reDollar = regexp.MustCompile(`(?m)[^\\]\$|^\$`) // match $ at beginning of line or any $ except for \$ (since \$ is latex for $)
 	logOut = bracketCheck(statement, "{")
 	logOut = logOut + bracketCheck(statement, "(")
 	logOut = logOut + bracketCheck(statement, "[")
@@ -555,13 +555,13 @@ func runConfigFunc(optionStr string, configParam map[string]string) (string, str
 		case "fmtVal", "fmtRun()", "fmtRunEQ":
 			formatType, _, logOut = parseFormat(allOptions[i].value)
 			switch formatType {
-			case "E", "S", "D", "$":
+			case "E", "S", "D", "DL":
 			case "U":
 				if allOptions[i].name == "fmtRun()" { // U is not allowed in fmtRun()
-					logOut = "ERROR: " + allOptions[i].name + " = " + allOptions[i].value + " -> config setting can be either E, S, D, or $ followed by number"
+					logOut = "ERROR: " + allOptions[i].name + " = " + allOptions[i].value + " -> config setting can be either E, S, D, or DL followed by number"
 				}
 			default:
-				logOut = "ERROR: " + allOptions[i].name + " = " + allOptions[i].value + " -> config setting can be either E, S, D, $ or U followed by number"
+				logOut = "ERROR: " + allOptions[i].name + " = " + allOptions[i].value + " -> config setting can be either E, S, D, DL or U followed by number"
 			}
 		case "verbose":
 			switch allOptions[i].value {
@@ -897,7 +897,7 @@ func value2Str(x float64, units, formatStr string) (outString string) {
 		outString = fmt.Sprintf("%."+strIncrement(sigDigits, -1)+"e", x)
 	case "D": // decimal notation
 		outString = removeTrailingZeros(fmt.Sprintf("%."+strIncrement(sigDigits, 0)+"f", x))
-	case "$": // dollar notation (2 decimal places and rounded off)
+	case "DL": // dollar notation (2 decimal places and rounded off)
 		outString = fmt.Sprintf("%.2f", math.Round(x*100)/100)
 	case "U": // SI notation and includes units if available
 		significand, exponent, prefix := float2Parts(x, strIncrement(sigDigits, -1))
@@ -956,32 +956,6 @@ func removeTrailingZeros(inString string) string { // removes .00000 if at end o
 	outString = reZeros.ReplaceAllString(inString, "")
 	return outString
 }
-
-// replaces all RUN variables with their latex symbol definition in varAll
-// func latexStatement(statement string, varAll map[string]varSingle) string {
-// 	var result, result2 []string
-// 	var head, tail string
-// 	var reWord = regexp.MustCompile(`(?m)[a-zA-Z][a-zA-Z_0-9]*`) // used to find all words in statement
-// 	var re1 = regexp.MustCompile(`(?m)`)                         // just a way to declare re1 (it changes below)
-// 	statement = statement + " "                                  // need extra space at end so search below works correctly if word is at end of statement
-// 	result = reWord.FindAllString(statement, -1)
-// 	for i := range result {
-// 		_, ok := varAll[result[i]]
-// 		if ok {
-// 			re1 = regexp.MustCompile(`(?m)(?P<res1>.*\W|^)` + result[i] + `(?P<res2>\W.*)$`)
-// 			tail = statement
-// 			statement = ""
-// 			for re1.MatchString(tail) {
-// 				result2 = re1.FindStringSubmatch(tail)
-// 				head = result2[1]
-// 				tail = result2[2]
-// 				statement = statement + head + varAll[result[i]].latex
-// 			}
-// 			statement = statement + tail
-// 		}
-// 	}
-// 	return statement
-// }
 
 func prefix2float(prefix string) (x float64) {
 	switch prefix {
