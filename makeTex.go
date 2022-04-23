@@ -18,18 +18,20 @@ type option struct {
 	value string
 }
 
-func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
+func makeTex(problemInput, randomStr string, inFile, outFile fileInfo, svgWrite bool) (string, string) {
 	var inLines []string
 	var inLine, latexCmd string
 	var numBlankLines int
 	var logOut, comment, errorHeader string
-	var texOut string
+	var texOut, fileRunInkscape string
 	var reNotBlankLine = regexp.MustCompile(`(?m)\S`)
 	var reLatexCmd = regexp.MustCompile(`(?mU)^\s*(?P<res1>\\\S*){`) // look for latex command at beginning of line
 	var verbatim bool                                                // if verbatim true, then don't do anything to the line and print out as is
 	var reBeginVerb = regexp.MustCompile(`(?m)^\s*\\begin{verbatim}`)
 	var reEndVerb = regexp.MustCompile(`(?m)^\s*\\end{verbatim}`)
 	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
+	var svgList []string                                  // list of all svg files that need inkscape to make pdf and pdf_tex files
+	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
 
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
@@ -96,7 +98,7 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "WARNING")
 		}
-		inLine, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false)
+		inLine, svgList, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false, svgWrite, svgList)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		}
@@ -115,6 +117,25 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 			}
 		} else {
 			texOut = texOut + inLine + "\\\\\n" // if no latex command at beginning of line then add \\ and \n
+		}
+	}
+	// Now we need to create pdf and pdf_tex files for svg files if svgWrite is true
+	if svgWrite {
+		fileRunInkscape = `#!/bin/bash
+echo "export-latex; export-area-drawing;`
+		for i := range svgList {
+			fileRunInkscape = fileRunInkscape + svgList[i]
+		}
+		fileRunInkscape = fileRunInkscape + `" | inkscape --shell
+`
+		fileWriteString(fileRunInkscape, "runInkscape.sh")
+		logOut = runCommand("chmod", "+x", "runInkscape.sh")
+		if logOut != "" {
+			errorHeader = errorHeader + logOut
+		}
+		logOut = runCommand("./runInkscape.sh")
+		if logOut != "" {
+			errorHeader = errorHeader + logOut
 		}
 	}
 	return texOut, errorHeader
@@ -137,41 +158,39 @@ func logOutError(logOut string, lineNum int, typeErr string) string {
 }
 
 // commandReplace looks for VAL and RUN  commands, executes those commands and replaces each with appropriate output
-func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, graphic bool) (string, string) {
+func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, graphic, svgWrite bool, svgList []string) (string, []string, string) {
 	// graphic is a bool that if true implies we are replacing things in a graphic file (instead of a .prb file)
 	// in this case, only VAL commands are done (no RUN commands)
 	var head, tail, replace, logOut, newLog, leftMost, tmpCmd string
 	var reFirstValMatch = regexp.MustCompile(`(?mU)VAL{`)
 	var reFirstRunMatch = regexp.MustCompile(`(?mU)RUN{`)
-	// var reConfigCmd = regexp.MustCompile(`(?mU)^.*CONFIG(?P<res1>{.*)$`)
-	// var reParamCmd = regexp.MustCompile(`(?mU)^.*PARAM(?P<res1>{.*)$`)
-	// var reIncludeCmd = regexp.MustCompile(`(?mU)^.*INCLUDE(?P<res1>{.*)$`)
 	if !graphic {
 		tmpCmd, newLog = getInsideStuff(inString, "CONFIG") // get the string INSIDE of { }
 		if newLog != "" {
 			logOut = logOut + " " + newLog
 		}
-		if tmpCmd != "" {
+		if tmpCmd != "" { // found a CONFIG command
 			replace, logOut = runConfigFunc(tmpCmd, configParam)
-			return replace, logOut
+			return replace, svgList, logOut
 		}
 		tmpCmd, newLog = getInsideStuff(inString, "PARAM")
 		if newLog != "" {
 			logOut = logOut + " " + newLog
 		}
-		if tmpCmd != "" {
+		if tmpCmd != "" { // found a PARAM command
 			replace, logOut = runParamFunc(tmpCmd, varAll, configParam)
-			return replace, logOut
+			return replace, svgList, logOut
 		}
 		tmpCmd, newLog = getInsideStuff(inString, "INCLUDE")
 		if newLog != "" {
 			logOut = logOut + " " + newLog
 		}
-		if tmpCmd != "" {
-			replace, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam) //need inFile/outFile to know where to get/put files
-			return replace, logOut
+		if tmpCmd != "" { // found an INCLUDE command
+			replace, svgList, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam, svgWrite, svgList) //need inFile/outFile to know where to get/put files
+			return replace, svgList, logOut
 		}
 	}
+	// If here, then no CONFIG, PARAM, or INCLUDE command found so perhaps VAL or RUN command
 	for reFirstValMatch.MatchString(inString) || reFirstRunMatch.MatchString(inString) { // chec for VAL or RUN command
 		// keep doing this loop until all VAL, RUN commands are done
 		if reFirstValMatch.MatchString(inString) && reFirstRunMatch.MatchString(inString) {
@@ -210,7 +229,7 @@ func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string
 		leftMost = ""
 		inString = head + replace + tail
 	}
-	return inString, logOut
+	return inString, svgList, logOut
 }
 
 func getInsideStuff(inString, command string) (string, string) { // get the stuff between brackets ...  command{inside stuff}
@@ -382,7 +401,7 @@ func bracketCheck(inString string, leftBrac string) (logOut string) {
 // used to update the VAL{} commands in .svg or .asc files and write updated file in outFile location with fileNameAdd appended to name
 func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) string {
 	var fileOrig, fileUpdate, logOut string
-	var inLines []string
+	var inLines, dummy []string // dummy not used but needed to make commandReplace work as it sometimes is svgList
 	switch fileExt {
 	case "svg", "asc", "tex":
 		fileOrig, logOut = fileReadString(filepath.Join(inFile.path, fileName+"."+fileExt))
@@ -394,7 +413,7 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 		}
 		inLines = strings.Split(fileOrig, "\n")
 		for i := range inLines {
-			inLines[i], logOut = commandReplace(inLines[i], inFile, outFile, varAll, configParam, true)
+			inLines[i], _, logOut = commandReplace(inLines[i], inFile, outFile, varAll, configParam, true, false, dummy)
 			if logOut != "" {
 				logOut = logOut + " - error in " + fileName + "." + fileExt
 				return logOut
@@ -411,7 +430,7 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 	return logOut
 }
 
-func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) (string, string) {
+func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgWrite bool, svgList []string) (string, []string, string) {
 	var options = map[string]string{ // defaults shown below
 		"textScale":  "1.0",   // Scale size of text (in case where latex is creating text for say svg file)
 		"spaceHoriz": "0",     //  Positive value moves figure to right while negative value moves to left (in ex)
@@ -422,13 +441,13 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 	}
 	var allOptions []option
 	var replace, optionStr, logOut string
-	var fileNameAdd, fullFileName, latexCmd string
+	var fileNameAdd, fullFileName, latexCmd, tmpStr string
 	var result []string
-	var fileName, fileExt string
+	var fileName, fileExt, fullPathFileName string
 	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
 	if !reNameInfo.MatchString(inCmd) {
 		logOut = "INCLUDE command does not have filename in correct format\n Should look like filename.ext"
-		return "", logOut
+		return "", svgList, logOut
 	}
 	fileNameAdd = "NEW"
 	result = reNameInfo.FindStringSubmatch(inCmd)
@@ -436,39 +455,39 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 	fileExt = result[2]
 	optionStr = getAfter(inCmd, "#") // get options after "#" character
 	allOptions = getAllOptions(optionStr)
-	for i := 0; i < len(allOptions); i++ {
+	for i := 0; i < len(allOptions); i++ { // First check if any option errors depending on file type
 		switch fileExt {
 		case "png", "jpg", "jpeg", "pdf":
 			if allOptions[i].name == "textScale" {
 				logOut = "textScale is NOT an option for a " + fileExt + " file in an INCLUDE command"
-				return "", logOut
+				return "", svgList, logOut
 			}
 			if allOptions[i].name == "svgFormat" {
 				logOut = "svgFormat is NOT an option for a " + fileExt + " file in an INCLUDE command"
-				return "", logOut
+				return "", svgList, logOut
 			}
 		case "svg": // do nothing
 		case "asc": // do nothing
 		case "tex": // there should be no options for a tex file
 			logOut = "No options are allowed for a .tex file in an INCLUDE command"
-			return "", logOut
+			return "", svgList, logOut
 		default:
 			logOut = "File extension not recognized: " + fileExt + " for this INCLUDE command"
-			return "", logOut
+			return "", svgList, logOut
 		}
 		switch allOptions[i].name {
 		case "textScale", "spaceHoriz", "spaceBelow", "width":
 			_, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
 			if err != nil {
 				logOut = allOptions[i].value + " is not a valid decimal number"
-				return "", logOut
+				return "", svgList, logOut
 			}
 			options[allOptions[i].name] = allOptions[i].value
 		case "spaceAbove":
 			float1, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
 			if err != nil {
 				logOut = allOptions[i].value + " is not a valid decimal number"
-				return "", logOut
+				return "", svgList, logOut
 			}
 			float1 = -1 * float1 // invert the sign of this value since negative move figure up and positive should move figure down
 			// but we are using a trim here so inversion is necessary
@@ -477,7 +496,7 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 			options[allOptions[i].name] = allOptions[i].value
 		default:
 			logOut = allOptions[i].name + " is not a valid option"
-			return "", logOut
+			return "", svgList, logOut
 		}
 	}
 	switch fileExt {
@@ -496,11 +515,11 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
 				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
 				options["spaceBelow"] + `}{` + options["textScale"] + `}`
-		case "noLatexSlow":
-			latexCmd = `\incSvgNoLatexSlow`
-			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
-				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-				options["spaceBelow"] + `}`
+			if svgWrite {
+				fullPathFileName = filepath.Join(outFile.path, fileName+fileNameAdd)
+				tmpStr = "file-open:" + fullPathFileName + ".svg; export-filename:" + fullPathFileName + ".pdf; export-do; "
+				svgList = append(svgList, tmpStr)
+			}
 		case "noLatex":
 			latexCmd = `\incSvgNoLatex`
 			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
@@ -508,25 +527,44 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 				options["spaceBelow"] + `}`
 		default:
 			logOut = "ERROR: svgFormat: " + options["svgFormat"] + " is not a valid option"
-			return "", logOut
+			return "", svgList, logOut
 		}
 	case "asc":
-		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
-		latexCmd = `\incAsc`
-		fullFileName = fileName + fileNameAdd
-		replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
-			options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-			options["spaceBelow"] + `}{` + options["textScale"] + `}`
+		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam) // creates a new asc file
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		switch svgWrite {
+		case false:
+			latexCmd = `\incAsc`
+			fullFileName = fileName + fileNameAdd
+			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+				options["spaceBelow"] + `}{` + options["textScale"] + `}`
+		case true:
+			latexCmd = `\incSvg`
+			fullFileName = fileName + fileNameAdd + "asc"
+			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+				options["spaceBelow"] + `}{` + options["textScale"] + `}`
+			fullPathFileName = filepath.Join(outFile.path, fileName+fileNameAdd) // full path filename for new asc file
+			logOut = runCommand("ltspice2svg", "-export="+fullPathFileName+"asc.svg", "-text=latex", fullPathFileName+".asc")
+			if logOut != "" {
+				return replace, svgList, logOut
+			}
+			tmpStr = "file-open:" + fullPathFileName + "asc.svg; export-filename:" + fullPathFileName + "asc.pdf; export-do; "
+			svgList = append(svgList, tmpStr)
+		}
 	case "tex":
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
 		latexCmd = `\incTex`
 		fullFileName = fileName + fileNameAdd + `.tex`
 		replace = `\incTex{` + fullFileName + `}`
-		return replace, logOut
+		return replace, svgList, logOut
 	default:
 		logOut = "File extension not recognized: " + fileExt
 	}
-	return replace, logOut
+	return replace, svgList, logOut
 }
 
 // to run a command line instruction

@@ -195,7 +195,7 @@
 <text x="20" y="448" style="white-space:pre;text-anchor:end;font-size:20px;"><tspan dy="0.25em">VB1</tspan></text>
 <use xlink:href="#svg_port" x="32" y="352" transform = "rotate(0 32 352)" />
 <text x="20" y="352" style="white-space:pre;text-anchor:end;font-size:20px;"><tspan dy="0.25em">VB2</tspan></text>
-<text x="160" y="216" style="white-space:pre;text-anchor:start;font-size:20px;"><tspan dy="0.25em">VAL</tspan></text>
+<text x="160" y="216" style="white-space:pre;text-anchor:start;font-size:20px;"><tspan dy="0.25em">VAL{I_D,=}</tspan></text>
 <polyline points="112 272 112 192" style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:0;stroke-dasharray:6 6;stroke-dashoffset:0;stroke-opacity:1" />
 </g>
 </svg>

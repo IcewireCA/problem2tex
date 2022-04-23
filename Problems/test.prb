@@ -1,22 +1,8 @@
-CONFIG{verbose=true}
-PARAM{x=12}
-PARAM{L=65}
-\begin{verbatim}
-here is a test $ and {
-v_3
-\end{verbatim}
-here 
-and here
+PARAM{I_D=3#units=A}
+INCLUDE{currMirror01a.asc# width=50}
 
-
-
-okay here
-
-hand here too
+INCLUDE{currMirror01b.svg# width=50}
 
 
 
 
-
-
-also here
