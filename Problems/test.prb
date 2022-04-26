@@ -1,7 +1,7 @@
 PARAM{I_D=3#units=A}
-INCLUDE{currMirror01a.asc# width=50}
+INCLUDE{currMirror01a.asc# width=50, svgFormat=latexNoBatch}
 
-INCLUDE{currMirror01b.svg# width=50}
+INCLUDE{currMirror01b.svg# width=50, svgFormat=latexNoBatch}
 
 
 

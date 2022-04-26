@@ -18,14 +18,13 @@ func main() {
 	var randomStr, errorHeader, errorHeader2 string
 	var inFile, outFile fileInfo
 	var version string
-	var svgWrite bool
 
 	rand.Seed(time.Now().UnixNano()) // needed so a new seed occurs every time the program is run
 	//currentTime := time.Now()
 	//	todayDate = currentTime.Format("2006-01-02")
 	version = "0.9.11" + " (" + "2022-04-21" + ")"
 
-	inFile, outFile, svgWrite, randomStr, logOut = commandFlags(version) // outFile depends on inFile file extension
+	inFile, outFile, randomStr, logOut = commandFlags(version) // outFile depends on inFile file extension
 	fileWriteString("", outFile.full)
 	if logOut != "" {
 		errorHeader = logOutError(logOut, -1, "ERROR") // first time assigning errorHeader so no need to concatenate
@@ -39,7 +38,7 @@ func main() {
 	if logOut != "" {
 		errorHeader = errorHeader + logOutError(logOut, -1, "ERROR")
 	}
-	outStr, errorHeader2 = makeTex(inFileStr, randomStr, inFile, outFile, svgWrite)
+	outStr, errorHeader2 = makeTex(inFileStr, randomStr, inFile, outFile)
 	outStr = errorHeader + errorHeader2 + outStr
 	fileAppendString(outStr, outFile.full)
 

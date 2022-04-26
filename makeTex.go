@@ -18,7 +18,7 @@ type option struct {
 	value string
 }
 
-func makeTex(problemInput, randomStr string, inFile, outFile fileInfo, svgWrite bool) (string, string) {
+func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
 	var inLines []string
 	var inLine, latexCmd string
 	var numBlankLines int
@@ -98,7 +98,7 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo, svgWrite 
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "WARNING")
 		}
-		inLine, svgList, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false, svgWrite, svgList)
+		inLine, svgList, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false, svgList)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		}
@@ -119,8 +119,8 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo, svgWrite 
 			texOut = texOut + inLine + "\\\\\n" // if no latex command at beginning of line then add \\ and \n
 		}
 	}
-	// Now we need to create pdf and pdf_tex files for svg files if svgWrite is true
-	if svgWrite {
+	// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
+	if len(svgList) > 0 {
 		fileRunInkscape = `#!/bin/bash
 echo "export-latex; export-area-drawing;`
 		for i := range svgList {
@@ -158,7 +158,7 @@ func logOutError(logOut string, lineNum int, typeErr string) string {
 }
 
 // commandReplace looks for VAL and RUN  commands, executes those commands and replaces each with appropriate output
-func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, graphic, svgWrite bool, svgList []string) (string, []string, string) {
+func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, graphic bool, svgList []string) (string, []string, string) {
 	// graphic is a bool that if true implies we are replacing things in a graphic file (instead of a .prb file)
 	// in this case, only VAL commands are done (no RUN commands)
 	var head, tail, replace, logOut, newLog, leftMost, tmpCmd string
@@ -186,7 +186,7 @@ func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string
 			logOut = logOut + " " + newLog
 		}
 		if tmpCmd != "" { // found an INCLUDE command
-			replace, svgList, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam, svgWrite, svgList) //need inFile/outFile to know where to get/put files
+			replace, svgList, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam, svgList) //need inFile/outFile to know where to get/put files
 			return replace, svgList, logOut
 		}
 	}
@@ -413,7 +413,7 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 		}
 		inLines = strings.Split(fileOrig, "\n")
 		for i := range inLines {
-			inLines[i], _, logOut = commandReplace(inLines[i], inFile, outFile, varAll, configParam, true, false, dummy)
+			inLines[i], _, logOut = commandReplace(inLines[i], inFile, outFile, varAll, configParam, true, dummy)
 			if logOut != "" {
 				logOut = logOut + " - error in " + fileName + "." + fileExt
 				return logOut
@@ -430,14 +430,14 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 	return logOut
 }
 
-func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgWrite bool, svgList []string) (string, []string, string) {
+func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
 	var options = map[string]string{ // defaults shown below
 		"textScale":  "1.0",   // Scale size of text (in case where latex is creating text for say svg file)
 		"spaceHoriz": "0",     //  Positive value moves figure to right while negative value moves to left (in ex)
 		"spaceAbove": "0",     //  negative value will trim above figure and positive value gives space above (in ex)
 		"spaceBelow": "0",     // negative value will trim below figure and positive value gives space below (in ex)
 		"width":      "100",   //  Determines size of figure (in mm).
-		"svgFormat":  "latex", // svgFormat is either latex, noLatex or noLatexSlow
+		"svgFormat":  "latex", // svgFormat is either latex, noLatex, latexNoBatch
 	}
 	var allOptions []option
 	var replace, optionStr, logOut string
@@ -449,7 +449,6 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 		logOut = "INCLUDE command does not have filename in correct format\n Should look like filename.ext"
 		return "", svgList, logOut
 	}
-	fileNameAdd = "NEW"
 	result = reNameInfo.FindStringSubmatch(inCmd)
 	fileName = result[1]
 	fileExt = result[2]
@@ -499,61 +498,76 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 			return "", svgList, logOut
 		}
 	}
+	fileNameAdd = "NEW"
 	switch fileExt {
 	case "png", "jpg", "jpeg", "pdf":
-		fullFileName = fileName + `.` + fileExt
+		fullFileName = fileName + `.` + fileExt // need .extension here as final includegraphics command needs that info
 		latexCmd = `\incPic`
 		replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
 			options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
 			options["spaceBelow"] + `}`
 	case "svg":
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
-		fullFileName = fileName + fileNameAdd // don't want the file extension here as latex needs just the filename
-		switch options["svgFormat"] {
-		case "latex":
-			latexCmd = `\incSvg`
-			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
-				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-				options["spaceBelow"] + `}{` + options["textScale"] + `}`
-			if svgWrite {
-				fullPathFileName = filepath.Join(outFile.path, fileName+fileNameAdd)
-				tmpStr = "file-open:" + fullPathFileName + ".svg; export-filename:" + fullPathFileName + ".pdf; export-do; "
-				svgList = append(svgList, tmpStr)
-			}
-		case "noLatex":
-			latexCmd = `\incSvgNoLatex`
-			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
-				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-				options["spaceBelow"] + `}`
-		default:
-			logOut = "ERROR: svgFormat: " + options["svgFormat"] + " is not a valid option"
-			return "", svgList, logOut
-		}
-	case "asc":
-		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam) // creates a new asc file
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
-		switch svgWrite {
-		case false:
-			latexCmd = `\incAsc`
-			fullFileName = fileName + fileNameAdd
-			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+		fullFileName = fileName + fileNameAdd
+		switch options["svgFormat"] {
+		case "latex":
+			fullPathFileName = filepath.Join(outFile.path, fullFileName)
+			replace = `\incSvg{` + fullFileName + `}{` + options["width"] + `}{` +
 				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
 				options["spaceBelow"] + `}{` + options["textScale"] + `}`
-		case true:
-			latexCmd = `\incSvg`
-			fullFileName = fileName + fileNameAdd + "asc"
-			replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+			tmpStr = "file-open:" + fullPathFileName + ".svg; export-filename:" + fullPathFileName + ".pdf; export-do; "
+			svgList = append(svgList, tmpStr)
+		case "noLatex":
+			replace = `\incSvgNoLatex{` + fullFileName + `}{` + options["width"] + `}{` +
+				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+				options["spaceBelow"] + `}`
+		case "latexNoBatch":
+			replace = `\incSvgNoBatch{` + fullFileName + `}{` + options["width"] + `}{` +
 				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
 				options["spaceBelow"] + `}{` + options["textScale"] + `}`
-			fullPathFileName = filepath.Join(outFile.path, fileName+fileNameAdd) // full path filename for new asc file
+		default:
+			logOut = "ERROR: svgFormat: " + options["svgFormat"] + " is not a valid option for ." + fileExt + " file"
+			replace = logOut
+			return replace, svgList, logOut
+		}
+	case "asc":
+		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		fullFileName = fileName + fileNameAdd
+		switch options["svgFormat"] {
+		case "latex":
+			fullPathFileName = filepath.Join(outFile.path, fullFileName)
 			logOut = runCommand("ltspice2svg", "-export="+fullPathFileName+"asc.svg", "-text=latex", fullPathFileName+".asc")
 			if logOut != "" {
 				return replace, svgList, logOut
 			}
+			replace = `\incSvg{` + fullFileName + `asc}{` + options["width"] + `}{` +
+				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+				options["spaceBelow"] + `}{` + options["textScale"] + `}`
 			tmpStr = "file-open:" + fullPathFileName + "asc.svg; export-filename:" + fullPathFileName + "asc.pdf; export-do; "
 			svgList = append(svgList, tmpStr)
+		case "latexNoBatch":
+			replace = `\incAscNoBatch{` + fullFileName + `}{` + options["width"] + `}{` +
+				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+				options["spaceBelow"] + `}{` + options["textScale"] + `}`
+		case "noLatex":
+			fullPathFileName = filepath.Join(outFile.path, fullFileName)
+			logOut = runCommand("ltspice2svg", "-export="+fullPathFileName+"asc.svg", fullPathFileName+".asc")
+			if logOut != "" {
+				return replace, svgList, logOut
+			}
+			replace = `\incSvgNoLatex{` + fullFileName + `asc}{` + options["width"] + `}{` +
+				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
+				options["spaceBelow"] + `}{` + options["textScale"] + `}`
+		default:
+			logOut = "ERROR: svgFormat: " + options["svgFormat"] + " is not a valid option for ." + fileExt + " file"
+			replace = logOut
+			return replace, svgList, logOut
 		}
 	case "tex":
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)

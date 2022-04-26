@@ -16,13 +16,12 @@ import (
 // get flag info and argument
 // NOTE: arg MUST occur AFTER flags when calling program
 // problem2tex -export=tmp/outfilename.tex -sigDigits=4 infilename.prb
-func commandFlags(version string) (inFile fileInfo, outFile fileInfo, svgWrite bool, randomStr, logOut string) {
+func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr, logOut string) {
 	var inFileStr string
 
 	outFilePtr := flag.String("export", "", "outFile - REQUIRED FLAG\nFile extension should be .tex")
 	randomPtr := flag.String("random", "false", "Choices are false, true, min, max, minMax, or positive integer")
 	// determines whether parameters are default or random chosen from a set
-	svgWritePtr := flag.Bool("svgWrite", false, "If true, svg files created using inkscape for Latex inclusion")
 	versionPtr := flag.Bool("version", false, "Print out version")
 	sigDigitsPtr := flag.String("sigDigits", "4", "this flag is not used anymore and left here so webserver does not need to be updated\n")
 	_ = *sigDigitsPtr
@@ -49,7 +48,6 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, svgWrite b
 	inFile = getFileInfo(inFileStr)
 	outFile = getFileInfo(*outFilePtr)
 	randomStr = *randomPtr
-	svgWrite = *svgWritePtr
 	_, logOut = checkRandom(randomStr)
 	if logOut != "" {
 		return
