@@ -200,10 +200,10 @@ func getNextToken(inString, lastTokenType string, infix bool) (token, tokenType,
 		remainder = reRemoveFirstChar.FindStringSubmatch(inString)[1]
 		tokenType = "rightBrac"
 		return
-	case ",": // used for function arguments
-		token = ""
+	case ",": // used for function arguments... need to clear stack
+		token = firstChar
 		remainder = reRemoveFirstChar.FindStringSubmatch(inString)[1]
-		tokenType = ""
+		tokenType = "comma"
 		return
 	default:
 		switch {
@@ -368,6 +368,18 @@ func infix2rpn(inString string) (rpn, errorInfix string) {
 				stack = stack[:len(stack)-1] // pop top off stack
 				rpnSlice = append(rpnSlice, opTop.token)
 			}
+		case "comma": // if comma, then function so should clear stack to previous left (
+			for len(stack) > 0 {
+				if stack[len(stack)-1].token == "(" {
+					break // found a left ( so stop clearing stack
+				}
+				rpnSlice = append(rpnSlice, stack[len(stack)-1].token)
+				stack = stack[:len(stack)-1]
+			}
+		default: // if here, tokenType is not recognized so error (should not be possible to get here)
+			errorInfix = tokenType + " ** not a recognized equation element"
+			rpn = ""
+			return
 		}
 	}
 	// tokens all read so pop any remaining operators on the stack

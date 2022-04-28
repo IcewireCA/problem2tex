@@ -1,8 +1,9 @@
-PARAM{I_D=3#units=A}
-INCLUDE{currMirror01a.asc# width=50, svgFormat=latexNoBatch}
-
-INCLUDE{currMirror01b.svg# width=50, svgFormat=latexNoBatch}
-
+CONFIG{defaultUnits = [[iI:A][vV:V][rR:\Omega]]}
+PARAM{g_m=1.33}
+PARAM{V_1=24}
+PARAM{R_1=3}
+PARAM{R_2=6}
+RUN{R_out2=DIV(R_1+R_2,1-g_m*R_1)}
 
 
 
