@@ -20,15 +20,9 @@ type option struct {
 
 func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
 	var inLines []string
-	var inLine, latexCmd string
-	var numBlankLines int
+	var inLine string
 	var logOut, comment, errorHeader string
 	var texOut, fileRunInkscape string
-	var reNotBlankLine = regexp.MustCompile(`(?m)\S`)
-	var reLatexCmd = regexp.MustCompile(`(?mU)^\s*(?P<res1>\\\S*){`) // look for latex command at beginning of line
-	var verbatim bool                                                // if verbatim true, then don't do anything to the line and print out as is
-	var reBeginVerb = regexp.MustCompile(`(?m)^\s*\\begin{verbatim}`)
-	var reEndVerb = regexp.MustCompile(`(?m)^\s*\\end{verbatim}`)
 	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
 	var svgList []string                                  // list of all svg files that need inkscape to make pdf and pdf_tex files
 	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
@@ -66,32 +60,12 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	// for key = range configParam {
 	// 	fmt.Println(configParam[key])
 	// }
-	numBlankLines = 0
-	verbatim = false
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
 		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
-		// deal with blank lines first.  Want \vspace{kex} to be put out where k equals number of blank lines
-		if !reNotBlankLine.MatchString(inLine) { // if a blank line the do ...
-			numBlankLines = numBlankLines + 1
-			continue // skip to end of for loop
-		}
-		if numBlankLines > 0 {
-			texOut = texOut + "\\\\[" + strconv.Itoa(numBlankLines) + "ex]\n"
-			numBlankLines = 0
-		}
-		// done with blank line stuff.
-		if verbatim { // if verbatim mode is true, just write out current line then skip back to top
-			texOut = texOut + inLine + "\n"
-			if reEndVerb.MatchString(inLine) { // stop verbatim mode
-				verbatim = false
-			}
-			continue // skip to end of for loop
-		}
-		if reBeginVerb.MatchString(inLine) { // start verbatim mode
-			verbatim = true
-			texOut = texOut + inLine + "\n"
-			continue // skip to end of for loop
+		if inLine == "" { // just a blank line so add \n and skip rest
+			texOut = texOut + "\n"
+			continue
 		}
 		inLine, comment = deCommentLatex(inLine)
 		logOut = syntaxWarning(inLine)
@@ -103,21 +77,11 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
 		}
 		inLine = inLine + comment // add back comment that was removed above
-		if inLine == "" {         // if inLine is blank, don't add any element to outLines
-			continue
+		if inLine != "" {
+			texOut = texOut + inLine + "\n"
 		}
-		inLine = function2Latex(inLine)
-		if reLatexCmd.MatchString(inLine) {
-			latexCmd = reLatexCmd.FindStringSubmatch(inLine)[1] // if latex command detected then check latex command
-			switch latexCmd {
-			case "\\mbox", "\\hilite": // if latex command is  \mbox or \hilite, then add \\ and \n
-				texOut = texOut + inLine + "\\\\\n"
-			default:
-				texOut = texOut + inLine + "\n" // just add \n when other latex command at beginning of line
-			}
-		} else {
-			texOut = texOut + inLine + "\\\\\n" // if no latex command at beginning of line then add \\ and \n
-		}
+		//		inLine = function2Latex(inLine)
+
 	}
 	// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
 	if len(svgList) > 0 {
@@ -265,16 +229,16 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 		if assignVar == "" {
 			replace = value2Str(answer, "", configParam["fmtVal"]) // not an assignment statment so just return  answer
 		} else {
-			replace = "\\mbox{$" + valSymReplace(runCmd, "symbol", varAll, configParam) + "$}"
+			replace = valSymReplace(runCmd, "symbol", varAll, configParam)
 		}
 	case "short1": // run statement and print out statement = result (with units) (ex: v_2 = 3*V_t = 75mV)
 		if assignVar == "" {
 			replace = "error: not an assignment statement"
 		} else {
-			replace = "\\mbox{$" + valSymReplace(runCmd, "symbol", varAll, configParam) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
+			replace = valSymReplace(runCmd, "symbol", varAll, configParam) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"])
 		}
 	case "long", "": // same as () but include result (ex: v_2 = 3*V_t = 3*(25e-3)=75mV) // THIS IS THE DEFAULT
-		replace = "\\mbox{$" + valSymReplace(runCmd, "symbol", varAll, configParam) + " = " + valSymReplace(rightSide(runCmd), "()val", varAll, configParam) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"]) + "$}"
+		replace = valSymReplace(runCmd, "symbol", varAll, configParam) + " = " + valSymReplace(rightSide(runCmd), "()val", varAll, configParam) + " = " + value2Str(varAll[assignVar].value, varAll[assignVar].units, configParam["fmtRunEQ"])
 	default:
 		logOut = "Not a valid RUN format type: " + format
 		replace = logOut
@@ -333,9 +297,9 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 		case "E", "S", "D", "DL", "U":
 			replace = value2Str(varAll[exp].value, varAll[exp].units, formatStr)
 		case "=":
-			replace = "\\mbox{$" + varAll[exp].latex + "=" + value2Str(varAll[exp].value, varAll[exp].units, configParam["fmtVal"]) + "$}"
+			replace = varAll[exp].latex + "=" + value2Str(varAll[exp].value, varAll[exp].units, configParam["fmtVal"])
 		case "sym": // if sym then print out symbol instead of value
-			replace = "\\mbox{$" + varAll[exp].latex + "$}"
+			replace = varAll[exp].latex
 		default:
 			logOut = "format: " + formatType + " *** NOT A VALID FORMAT"
 			return head, tail, "", logOut
@@ -968,7 +932,7 @@ func value2Str(x float64, units, formatStr string) (outString string) {
 				outString = significand + "e" + exponent
 			}
 		} else {
-			outString = "\\mbox{$" + significand + " \\units{" + prefix + " " + units + "}$}"
+			outString = significand + " \\units{" + prefix + " " + units + "}"
 		}
 	default:
 		outString = "format not recognized: " + formatType
