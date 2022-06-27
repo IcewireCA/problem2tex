@@ -14,7 +14,7 @@ import (
 // also software version is output at beginning of output file
 
 func main() {
-	var inFileStr, logOut, header, outStr string
+	var inFileStr, logOut, outStr string
 	var randomStr, errorHeader, errorHeader2 string
 	var inFile, outFile fileInfo
 	var version string
@@ -27,16 +27,15 @@ func main() {
 	inFile, outFile, randomStr, logOut = commandFlags(version) // outFile depends on inFile file extension
 	fileWriteString("", outFile.full)
 	if logOut != "" {
-		errorHeader = logOutError(logOut, -1, "ERROR") // first time assigning errorHeader so no need to concatenate
+		errorHeader = logOutError(logOut, -1) // first time assigning errorHeader so no need to concatenate
 		fileAppendString(errorHeader, outFile.full)
 		os.Exit(1)
 	}
-	header = "Created with problem2tex: version = " + version
-
-	errorHeader = logOutError(header, -1, "") // first time assigning errorHeader so no need to concatenate
+	errorHeader = `#+INCLUDE: "preamble.org"` + "\n" // used for adding preamble options for org mode.
+	errorHeader = errorHeader + "# Created with problem2tex: version = " + version + "\n\n"
 	inFileStr, logOut = fileReadString(inFile.full)
 	if logOut != "" {
-		errorHeader = errorHeader + logOutError(logOut, -1, "ERROR")
+		errorHeader = errorHeader + logOutError(logOut, -1)
 	}
 	outStr, errorHeader2 = makeTex(inFileStr, randomStr, inFile, outFile)
 	outStr = errorHeader + errorHeader2 + outStr

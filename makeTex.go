@@ -21,10 +21,11 @@ type option struct {
 func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
 	var inLines []string
 	var inLine string
-	var logOut, comment, errorHeader string
+	var logOut, errorHeader string
 	var texOut, fileRunInkscape string
 	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
-	var svgList []string                                  // list of all svg files that need inkscape to make pdf and pdf_tex files
+	var reOrgComment = regexp.MustCompile(`(?m)^\s*#\s+`)
+	var svgList []string // list of all svg files that need inkscape to make pdf and pdf_tex files
 	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
 
 	// using map here as I want to be able to iterate over key names as well
@@ -63,25 +64,17 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
 		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
-		if inLine == "" { // just a blank line so add \n and skip rest
-			texOut = texOut + "\n"
+		if reOrgComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
+			texOut = texOut + inLine + "\n"
 			continue
-		}
-		inLine, comment = deCommentLatex(inLine)
-		logOut = syntaxWarning(inLine)
-		if logOut != "" {
-			errorHeader = errorHeader + logOutError(logOut, i, "WARNING")
 		}
 		inLine, svgList, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false, svgList)
 		if logOut != "" {
-			errorHeader = errorHeader + logOutError(logOut, i, "ERROR")
+			errorHeader = errorHeader + logOutError(logOut, i)
 		}
-		inLine = inLine + comment // add back comment that was removed above
 		if inLine != "" {
 			texOut = texOut + inLine + "\n"
 		}
-		//		inLine = function2Latex(inLine)
-
 	}
 	// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
 	if len(svgList) > 0 {
@@ -105,18 +98,14 @@ echo "export-latex; export-area-drawing;`
 	return texOut, errorHeader
 }
 
-// add comment notation and line number to logOut info and add carriage return
-// Also print out the logOut
-func logOutError(logOut string, lineNum int, typeErr string) string {
+// Print out the logOut
+// Function used to write and error line
+func logOutError(logOut string, lineNum int) string {
 	var outString string
 	if lineNum != -1 { // dont include line number if lineNum = -1
 		logOut = logOut + " - Line number: " + strconv.Itoa(lineNum+1)
 	}
-	if typeErr == "" {
-		outString = "% " + logOut + "\n" // use tex comment notation and add CR
-	} else {
-		outString = "% " + typeErr + ": " + logOut + "\n" // use tex comment notation and add CR
-	}
+	outString = "ERROR" + ": " + logOut + "\n\n"
 	fmt.Print(outString)
 	return outString
 }
@@ -316,18 +305,18 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 	return head, tail, replace, logOut
 }
 
-func syntaxWarning(statement string) (logOut string) { // check that syntax seems okay and give warning if not okay
-	var reDollar = regexp.MustCompile(`(?m)[^\\]\$|^\$`) // match $ at beginning of line or any $ except for \$ (since \$ is latex for $)
-	logOut = bracketCheck(statement, "{")
-	logOut = logOut + bracketCheck(statement, "(")
-	logOut = logOut + bracketCheck(statement, "[")
-	matches := reDollar.FindAllStringIndex(statement, -1)
-	// need to count $ and see that they are even (backetCheck will not work here)
-	if len(matches)%2 != 0 {
-		logOut = logOut + "-- Uneven number of $ so likely unmatched --"
-	}
-	return
-}
+// func syntaxWarning(statement string) (logOut string) { // check that syntax seems okay and give warning if not okay
+// 	var reDollar = regexp.MustCompile(`(?m)[^\\]\$|^\$`) // match $ at beginning of line or any $ except for \$ (since \$ is latex for $)
+// 	logOut = bracketCheck(statement, "{")
+// 	logOut = logOut + bracketCheck(statement, "(")
+// 	logOut = logOut + bracketCheck(statement, "[")
+// 	matches := reDollar.FindAllStringIndex(statement, -1)
+// 	// need to count $ and see that they are even (backetCheck will not work here)
+// 	if len(matches)%2 != 0 {
+// 		logOut = logOut + "-- Uneven number of $ so likely unmatched --"
+// 	}
+// 	return
+// }
 
 func bracketCheck(inString string, leftBrac string) (logOut string) {
 	var rightBrac string
