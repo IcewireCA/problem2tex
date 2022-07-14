@@ -14,31 +14,34 @@ import (
 // also software version is output at beginning of output file
 
 func main() {
-	var inFileStr, logOut, outStr string
-	var randomStr, errorHeader, errorHeader2 string
+	var inFileStr, logOut, outStr, outFlag string
+	var randomStr, header, errorHeader2, orgHeader string
 	var inFile, outFile fileInfo
 	var version string
 
 	rand.Seed(time.Now().UnixNano()) // needed so a new seed occurs every time the program is run
 	//currentTime := time.Now()
 	//	todayDate = currentTime.Format("2006-01-02")
-	version = "0.9.11" + " (" + "2022-04-21" + ")"
+	version = "0.9.12" + " (" + "2022-07-07" + ")"
 
-	inFile, outFile, randomStr, logOut = commandFlags(version) // outFile depends on inFile file extension
+	inFile, outFile, randomStr, outFlag, logOut = commandFlags(version) // outFile depends on inFile file extension
 	fileWriteString("", outFile.full)
 	if logOut != "" {
-		errorHeader = logOutError(logOut, -1) // first time assigning errorHeader so no need to concatenate
-		fileAppendString(errorHeader, outFile.full)
+		header = logOutError(logOut, -1) // first time assigning errorHeader so no need to concatenate
+		fileAppendString(header, outFile.full)
 		os.Exit(1)
 	}
-	errorHeader = `#+INCLUDE: "preamble.org"` + "\n" // used for adding preamble options for org mode.
-	errorHeader = errorHeader + "# Created with problem2tex: version = " + version + "\n\n"
 	inFileStr, logOut = fileReadString(inFile.full)
 	if logOut != "" {
-		errorHeader = errorHeader + logOutError(logOut, -1)
+		header = header + logOutError(logOut, -1)
 	}
-	outStr, errorHeader2 = makeTex(inFileStr, randomStr, inFile, outFile)
-	outStr = errorHeader + errorHeader2 + outStr
+	orgHeader = `#+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
+#+OPTIONS: html-postamble:nil num:nil
+#+HTML_MATHJAX: path: https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_SVG
+#+HTML_HEAD: <script type="text/javascript" src="fix_svg_mathjax.js"></script>
+`
+	outStr, errorHeader2 = makeTex(inFileStr, randomStr, outFlag, version, inFile, outFile)
+	outStr = header + errorHeader2 + orgHeader + outStr
 	fileAppendString(outStr, outFile.full)
 
 }

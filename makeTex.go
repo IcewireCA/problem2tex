@@ -18,13 +18,14 @@ type option struct {
 	value string
 }
 
-func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, string) {
+func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile fileInfo) (string, string) {
 	var inLines []string
 	var inLine string
 	var logOut, errorHeader string
 	var texOut, fileRunInkscape string
 	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
 	var reOrgComment = regexp.MustCompile(`(?m)^\s*#\s+`)
+	var reLatexComment = regexp.MustCompile(`(?m)^\s*%`)
 	var svgList []string // list of all svg files that need inkscape to make pdf and pdf_tex files
 	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
 
@@ -61,12 +62,22 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 	// for key = range configParam {
 	// 	fmt.Println(configParam[key])
 	// }
+	errorHeader = "# Created with problem2tex: version = " + version + "\n\n"
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
 		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
-		if reOrgComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
-			texOut = texOut + inLine + "\n"
-			continue
+		switch outFile.ext {
+		case ".org":
+			if reOrgComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
+				texOut = texOut + inLine + "\n"
+				continue
+			}
+		case ".tex":
+			if reLatexComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
+				texOut = texOut + inLine + "\n"
+				continue
+			}
+		default: // should never be here as option can only be orgMode or latex
 		}
 		inLine, svgList, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false, svgList)
 		if logOut != "" {
@@ -76,24 +87,59 @@ func makeTex(problemInput, randomStr string, inFile, outFile fileInfo) (string, 
 			texOut = texOut + inLine + "\n"
 		}
 	}
-	// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
-	if len(svgList) > 0 {
-		fileRunInkscape = `#!/bin/bash
+	switch outFlag {
+	case "flagQuestion": // get rid of solution and answer
+		var reSol = regexp.MustCompile(`(?msU)^\s*BEGIN{SOLUTION}.*^\s*END{SOLUTION}\s*\n`)
+		var reAns = regexp.MustCompile(`(?msU)^\s*BEGIN{ANSWER}.*^\s*END{ANSWER}\s*\n`)
+		texOut = reSol.ReplaceAllString(texOut, "")
+		texOut = reAns.ReplaceAllString(texOut, "")
+	case "flagSolAns": // get rid of locators for solution and answer
+		var reBegSol = regexp.MustCompile(`(?mU)^\s*BEGIN{SOLUTION}`)
+		var reBegAns = regexp.MustCompile(`(?mU)^\s*BEGIN{ANSWER}`)
+		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
+		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
+		texOut = reBegSol.ReplaceAllString(texOut, "")
+		texOut = reBegAns.ReplaceAllString(texOut, "")
+		texOut = reEndSol.ReplaceAllString(texOut, "")
+		texOut = reEndAns.ReplaceAllString(texOut, "")
+	case "flagAnswer": // get rid of soluton
+		var reSol = regexp.MustCompile(`(?msU)^\s*BEGIN{SOLUTION}.*^\s*END{SOLUTION}\s*\n`)
+		texOut = reSol.ReplaceAllString(texOut, "")
+	case "flagSolution": // get rid of answer
+		var reAns = regexp.MustCompile(`(?msU)^\s*BEGIN{ANSWER}.*^\s*END{ANSWER}\s*\n`)
+		texOut = reAns.ReplaceAllString(texOut, "")
+	default:
+		errorHeader = errorHeader + "ERROR: " + outFlag + " is not a valid outFlag parameter\n"
+	}
+	switch outFile.ext {
+	case ".org":
+	case ".tex":
+		// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
+		if len(svgList) > 0 {
+			fileRunInkscape = `#!/bin/bash
 echo "export-latex; export-area-drawing;`
-		for i := range svgList {
-			fileRunInkscape = fileRunInkscape + svgList[i]
-		}
-		fileRunInkscape = fileRunInkscape + `" | inkscape --shell
+			for i := range svgList {
+				fileRunInkscape = fileRunInkscape + svgList[i]
+			}
+			fileRunInkscape = fileRunInkscape + `" | inkscape --shell
 `
-		fileWriteString(fileRunInkscape, "runInkscape.sh")
-		logOut = runCommand("chmod", "+x", "runInkscape.sh")
-		if logOut != "" {
-			errorHeader = errorHeader + logOut
+			fileWriteString(fileRunInkscape, "runInkscape.sh")
+			logOut = runCommand("chmod", "+x", "runInkscape.sh")
+			if logOut != "" {
+				errorHeader = errorHeader + logOut
+			}
+			logOut = runCommand("./runInkscape.sh")
+			if logOut != "" {
+				errorHeader = errorHeader + logOut
+			}
 		}
-		logOut = runCommand("./runInkscape.sh")
-		if logOut != "" {
-			errorHeader = errorHeader + logOut
-		}
+		// for simpler syntax, replace "$$stuff_here$$" with \begin{equation}stuff_here\end{equation}"
+		var reReplaceDoubleDollar = regexp.MustCompile(`(?m)\$\$(?P<res1>.*)\$\$`)
+		texOut = reReplaceDoubleDollar.ReplaceAllString(texOut, "\\begin{equation}$res1\\end{equation}")
+		// now need to make inserted comments latex proper...so change "# " to "% "
+		var reFindOrgComments = regexp.MustCompile(`(?m)^# `)
+		errorHeader = reFindOrgComments.ReplaceAllString(errorHeader, "% ")
+	default: // should never be here
 	}
 	return texOut, errorHeader
 }
@@ -139,7 +185,13 @@ func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string
 			logOut = logOut + " " + newLog
 		}
 		if tmpCmd != "" { // found an INCLUDE command
-			replace, svgList, logOut = runIncludeFunc(tmpCmd, inFile, outFile, varAll, configParam, svgList) //need inFile/outFile to know where to get/put files
+			switch outFile.ext {
+			case ".org":
+				replace, svgList, logOut = runIncludeOrg(tmpCmd, inFile, outFile, varAll, configParam, svgList) //need inFile/outFile to know where to get/put files
+			case ".tex":
+				replace, svgList, logOut = runIncludeLatex(tmpCmd, inFile, outFile, varAll, configParam, svgList) //need inFile/outFile to know where to get/put files
+			default: // should never be here
+			}
 			return replace, svgList, logOut
 		}
 	}
@@ -383,7 +435,7 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 	return logOut
 }
 
-func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
+func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
 	var options = map[string]string{ // defaults shown below
 		"textScale":  "1.0",   // Scale size of text (in case where latex is creating text for say svg file)
 		"spaceHoriz": "0",     //  Positive value moves figure to right while negative value moves to left (in ex)
@@ -534,6 +586,75 @@ func runIncludeFunc(inCmd string, inFile, outFile fileInfo, varAll map[string]va
 	return replace, svgList, logOut
 }
 
+func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
+	var options = map[string]string{ // defaults shown below
+		//	"textScale":  "1.0",   // Not currently being used
+		//	"spaceHoriz": "0",     //  not currently being used
+		//	"spaceAbove": "0",     //  not currently being used
+		//	"spaceBelow": "0",     // not currently being used
+		"width": "100", //  Determines size of figure (in px) Only currently works for png, jpg.
+		//	"svgFormat":  "latex", // not currently being used
+	}
+	var allOptions []option
+	var replace, optionStr, logOut string
+	var fileNameAdd, inFileName, outFileName string
+	var result []string
+	var fileName, fileExt string
+	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
+	if !reNameInfo.MatchString(inCmd) {
+		logOut = "INCLUDE command does not have filename in correct format\n Should look like filename.ext"
+		return "", svgList, logOut
+	}
+	result = reNameInfo.FindStringSubmatch(inCmd)
+	fileName = result[1]
+	fileExt = result[2]
+	optionStr = getAfter(inCmd, "#") // get options after "#" character
+	allOptions = getAllOptions(optionStr)
+	for i := 0; i < len(allOptions); i++ { // First check if any option errors depending on file type
+		switch fileExt {
+		case "png", "jpg", "svg", "asc": // just checking fileExt is valid
+		default:
+			logOut = "File extension not recognized for INCLUDE command: ." + fileExt
+			return "", svgList, logOut
+		}
+		switch allOptions[i].name {
+		case "width":
+			_, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
+			if err != nil {
+				logOut = allOptions[i].value + " is not a valid decimal number"
+				return "", svgList, logOut
+			}
+			options[allOptions[i].name] = allOptions[i].value
+		default:
+			logOut = allOptions[i].name + " is not a valid option"
+			return "", svgList, logOut
+		}
+	}
+	fileNameAdd = "NEW"
+	switch fileExt {
+	case "png", "jpg":
+		inFileName = filepath.Join(inFile.path, fileName+"."+fileExt)
+		outFileName = filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt)
+		logOut = runCommand("cp", inFileName, outFileName)
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		replace = "#+attr_html: :width " + options["width"] + "px\n"
+		replace = replace + "[[./" + fileName + fileNameAdd + "." + fileExt + "]]"
+	case "svg":
+		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		replace = `#+INCLUDE: "./` + fileName + fileNameAdd + `.svg" export html`
+	case "asc":
+
+	default:
+		logOut = "File extension not recognized: " + fileExt
+	}
+	return replace, svgList, logOut
+}
+
 // to run a command line instruction
 func runCommand(program string, args ...string) string {
 	var out bytes.Buffer    // used for cmd.run for better output errors
@@ -596,6 +717,12 @@ func runConfigFunc(optionStr string, configParam map[string]string) (string, str
 			logOut = defaultUnitsFunc(allOptions[i].value, configParam) // THIS FUNCTION MODIFIES configParam MAP!!!
 			if logOut != "" {
 				logOut = "defaultUnits syntax is incorrect" + logOut
+			}
+		case "syntax":
+			switch allOptions[i].value {
+			case "orgMode", "latex":
+			default:
+				logOut = allOptions[i].value + " not a valid syntax option -- syntax option can only be orgMode or latex"
 			}
 		default:
 			logOut = allOptions[i].name + " is not a valid CONFIG option"
@@ -921,7 +1048,7 @@ func value2Str(x float64, units, formatStr string) (outString string) {
 				outString = significand + "e" + exponent
 			}
 		} else {
-			outString = significand + " \\units{" + prefix + " " + units + "}"
+			outString = significand + " \\mathrm{" + prefix + " " + units + "}"
 		}
 	default:
 		outString = "format not recognized: " + formatType
