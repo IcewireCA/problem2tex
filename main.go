@@ -36,13 +36,13 @@ func main() {
 		header = header + logOutError(logOut, -1)
 	}
 	switch outFile.ext {
-	case "org":
+	case ".org":
 		orgHeader = `#+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
 #+OPTIONS: html-postamble:nil num:nil
 #+HTML_MATHJAX: path: https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_SVG
 #+HTML_HEAD: <script type="text/javascript" src="fix_svg_mathjax.js"></script>
 `
-	case "tex":
+	case ".tex":
 		orgHeader = ""
 	default: // should never be here
 	}

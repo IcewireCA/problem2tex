@@ -1511,10 +1511,14 @@ func getAllOptions(inString string) []option {
 
 func fixDollarDelimiters(inString string) (outString string) {
 	var reBackslashDollar = regexp.MustCompile(`(?mU)\\\$`)
-	outString = reBackslashDollar.ReplaceAllString(inString, "\\\\MODIFY\\\\") // change all \$ to \\MODIFY\\
+	outString = reBackslashDollar.ReplaceAllString(inString, "\\\\MODIFY1\\\\") // change all \$ to \\MODIFY1\\
+	var re2Dollar = regexp.MustCompile(`(?mU)\$\$`)
+	outString = re2Dollar.ReplaceAllString(inString, "\\\\MODIFY2\\\\") // change all $$ to \\MODIFY2\\
 	var reDollarDelim = regexp.MustCompile(`(?mU)\$(?P<res1>.*)\$`)
 	outString = reDollarDelim.ReplaceAllString(outString, "\\($res1\\)") // fix all $ stuff $ to \( stuff \)
-	var reModify = regexp.MustCompile(`(?mU)\\\\MODIFY\\\\`)
-	outString = reModify.ReplaceAllString(outString, "$") // put \\MODIFY\\ back to $
+	var reModify1 = regexp.MustCompile(`(?mU)\\\\MODIFY1\\\\`)
+	outString = reModify1.ReplaceAllString(outString, "$") // put \\MODIFY1\\ back to $
+	var reModify2 = regexp.MustCompile(`(?mU)\\\\MODIFY2\\\\`)
+	outString = reModify2.ReplaceAllString(outString, "$$$") // put \\MODIFY1\\ back to $
 	return
 }
