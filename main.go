@@ -22,7 +22,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano()) // needed so a new seed occurs every time the program is run
 	//currentTime := time.Now()
 	//	todayDate = currentTime.Format("2006-01-02")
-	version = "0.9.12" + " (" + "2022-07-07" + ")"
+	version = "0.9.13" + " (" + "2022-07-23" + ")"
 
 	inFile, outFile, randomStr, outFlag, logOut = commandFlags(version) // outFile depends on inFile file extension
 	fileWriteString("", outFile.full)
@@ -35,11 +35,17 @@ func main() {
 	if logOut != "" {
 		header = header + logOutError(logOut, -1)
 	}
-	orgHeader = `#+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
+	switch outFile.ext {
+	case "org":
+		orgHeader = `#+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
 #+OPTIONS: html-postamble:nil num:nil
 #+HTML_MATHJAX: path: https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_SVG
 #+HTML_HEAD: <script type="text/javascript" src="fix_svg_mathjax.js"></script>
 `
+	case "tex":
+		orgHeader = ""
+	default: // should never be here
+	}
 	outStr, errorHeader2 = makeTex(inFileStr, randomStr, outFlag, version, inFile, outFile)
 	outStr = header + errorHeader2 + orgHeader + outStr
 	fileAppendString(outStr, outFile.full)

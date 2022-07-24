@@ -78,6 +78,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 				continue
 			}
 		default: // should never be here as option can only be orgMode or latex
+			fmt.Println("should not be here 11")
 		}
 		inLine, svgList, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false, svgList)
 		if logOut != "" {
@@ -113,6 +114,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	}
 	switch outFile.ext {
 	case ".org":
+		texOut = fixDollarDelimiters(texOut)
 	case ".tex":
 		// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
 		if len(svgList) > 0 {
@@ -157,6 +159,8 @@ func logOutError(logOut string, lineNum int) string {
 }
 
 // commandReplace looks for VAL and RUN  commands, executes those commands and replaces each with appropriate output
+// it is a bit complicated as it needs to do VAL and RUN commands in order in case they are all on same line
+// Example RUN{x=1} VAL{x} RUN{x=2} VAL{x} should give 1 for first VAL and 2 for second VAL
 func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, graphic bool, svgList []string) (string, []string, string) {
 	// graphic is a bool that if true implies we are replacing things in a graphic file (instead of a .prb file)
 	// in this case, only VAL commands are done (no RUN commands)
@@ -222,7 +226,7 @@ func commandReplace(inString string, inFile, outFile fileInfo, varAll map[string
 				logOut = logOut + " " + newLog
 			}
 		case "RUN":
-			if !graphic { // also run these commands below if ltSpice is false
+			if !graphic { // also run these commands below if graphic is false
 				head, tail, replace, newLog = runReplace(inString, varAll, configParam)
 				if newLog != "" {
 					logOut = logOut + " " + newLog
@@ -435,13 +439,30 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 	return logOut
 }
 
+// used to update the VAL{} commands in .svg or .asc files and write updated file in outFile location with fileNameAdd appended to name
+func valUpdate(inString string, varAll map[string]varSingle, configParam map[string]string) (outString, logOut string) {
+	var inLines, dummy []string            // dummy not used but needed to make commandReplace work as it sometimes is svgList
+	var inFileDummy, outFileDummy fileInfo // also not needed but required in commandReplace
+	inLines = strings.Split(inString, "\n")
+	for i := range inLines {
+		inLines[i], _, logOut = commandReplace(inLines[i], inFileDummy, outFileDummy, varAll, configParam, true, dummy)
+		if logOut != "" {
+			logOut = logOut + " - error in external file: "
+			return
+		}
+	}
+	outString = strings.Join(inLines, "\n")
+	return
+}
+
 func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
 	var options = map[string]string{ // defaults shown below
-		"textScale":  "1.0",   // Scale size of text (in case where latex is creating text for say svg file)
-		"spaceHoriz": "0",     //  Positive value moves figure to right while negative value moves to left (in ex)
-		"spaceAbove": "0",     //  negative value will trim above figure and positive value gives space above (in ex)
-		"spaceBelow": "0",     // negative value will trim below figure and positive value gives space below (in ex)
-		"width":      "100",   //  Determines size of figure (in mm).
+		"textScale":  "1.0",   // Scale size of text (in case of svg)
+		"trimTop":    "0",     //  trim top of svg image
+		"trimBottom": "0",     //  trim bottom of svg image
+		"trimLeft":   "0",     // trim left of svg image
+		"trimRight":  "0",     // trim right of svg image
+		"scale":      "1.0",   //  scale image size
 		"svgFormat":  "latex", // svgFormat is either latex, noLatex, latexNoBatch
 	}
 	var allOptions []option
@@ -588,16 +609,16 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 
 func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
 	var options = map[string]string{ // defaults shown below
-		//	"textScale":  "1.0",   // Not currently being used
-		//	"spaceHoriz": "0",     //  not currently being used
-		//	"spaceAbove": "0",     //  not currently being used
-		//	"spaceBelow": "0",     // not currently being used
-		"width": "100", //  Determines size of figure (in px) Only currently works for png, jpg.
-		//	"svgFormat":  "latex", // not currently being used
+		"trimTop":    "0",   // trim top of svg
+		"trimBottom": "0",   //  trim bottom of svg
+		"trimLeft":   "0",   // trim left of svg
+		"trimRight":  "0",   // trim right of svg
+		"scale":      "1.0", //  Determines size of figure (in px) Only currently works for png, jpg.
 	}
 	var allOptions []option
 	var replace, optionStr, logOut string
-	var fileNameAdd, inFileName, outFileName string
+	var fileNameAdd, inFileName, outFileName, svgIn, svgOut, ascIn string
+	var svgFileName string
 	var result []string
 	var fileName, fileExt string
 	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
@@ -612,16 +633,19 @@ func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]var
 	allOptions = getAllOptions(optionStr)
 	for i := 0; i < len(allOptions); i++ { // First check if any option errors depending on file type
 		switch fileExt {
-		case "png", "jpg", "svg", "asc": // just checking fileExt is valid
+		case "png", "jpg": // just checking fileExt is valid
+			logOut = "No options are allowed for a .png or .jpg file in an INCLUDE command"
+			return "", svgList, logOut
+		case "svg", "asc":
 		default:
 			logOut = "File extension not recognized for INCLUDE command: ." + fileExt
 			return "", svgList, logOut
 		}
 		switch allOptions[i].name {
-		case "width":
+		case "scale", "trimTop", "trimBottom", "trimLeft", "trimRight":
 			_, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
 			if err != nil {
-				logOut = allOptions[i].value + " is not a valid decimal number"
+				logOut = allOptions[i].value + " is not a valid decimal number for " + allOptions[i].name
 				return "", svgList, logOut
 			}
 			options[allOptions[i].name] = allOptions[i].value
@@ -641,14 +665,46 @@ func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]var
 		}
 		replace = "#+attr_html: :width " + options["width"] + "px\n"
 		replace = replace + "[[./" + fileName + fileNameAdd + "." + fileExt + "]]"
-	case "svg":
-		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
+		// original filename.svg becomes filenameNEW.svg in tmp directory
+		// original filename.asc becomes filenameNEW.asc in tmp then filenameNEWasc.svg in tmp
+	case "asc":
+		ascIn, logOut = fileReadString(filepath.Join(inFile.path, fileName+".asc"))
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
+		ascIn, logOut = valUpdate(ascIn, varAll, configParam)
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		fileWriteString(ascIn, filepath.Join(outFile.path, fileName+fileNameAdd+".asc"))
+		svgFileName = fileName + fileNameAdd + "asc.svg"
+		logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(outFile.path, fileName+fileNameAdd+".asc"))
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		svgIn, logOut = fileReadString(filepath.Join(outFile.path, svgFileName))
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		// resize and trim svg
+		svgOut = svgResize(svgIn, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
+		svgOut = fixDollarDelimiters(svgOut)
+		fileWriteString(svgOut, filepath.Join(outFile.path, svgFileName))
+		replace = `#+INCLUDE: "./` + svgFileName + `" export html`
+	case "svg":
+		svgIn, logOut = fileReadString(filepath.Join(inFile.path, fileName+".svg"))
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		svgIn, logOut = valUpdate(svgIn, varAll, configParam) // update VAL{} elements to values
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		// resize and trim svg
+		svgOut = svgResize(svgIn, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
+		svgOut = fixDollarDelimiters(svgOut)
+		fileWriteString(svgOut, filepath.Join(outFile.path, fileName+fileNameAdd+".svg"))
 		replace = `#+INCLUDE: "./` + fileName + fileNameAdd + `.svg" export html`
-	case "asc":
-
 	default:
 		logOut = "File extension not recognized: " + fileExt
 	}
@@ -1451,4 +1507,14 @@ func getAllOptions(inString string) []option {
 		inString = tail
 	}
 	return allOptions
+}
+
+func fixDollarDelimiters(inString string) (outString string) {
+	var reBackslashDollar = regexp.MustCompile(`(?mU)\\\$`)
+	outString = reBackslashDollar.ReplaceAllString(inString, "\\\\MODIFY\\\\") // change all \$ to \\MODIFY\\
+	var reDollarDelim = regexp.MustCompile(`(?mU)\$(?P<res1>.*)\$`)
+	outString = reDollarDelim.ReplaceAllString(outString, "\\($res1\\)") // fix all $ stuff $ to \( stuff \)
+	var reModify = regexp.MustCompile(`(?mU)\\\\MODIFY\\\\`)
+	outString = reModify.ReplaceAllString(outString, "$") // put \\MODIFY\\ back to $
+	return
 }
