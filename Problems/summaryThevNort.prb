@@ -63,7 +63,7 @@ So the equivalent circuits are ...
 # INCLUDE{ex01b.asc#spaceAbove=2,width=200,textScale=1.25}
 \section*{Example 2}
 Find the Thevenin and Norton Equivalent circuits for the circuit below
-# INCLUDE{ex02.asc#spaceAbove=0,width=150,textScale=1.0}
+INCLUDE{ex02.asc#spaceAbove=0,width=150,textScale=1.0}
 To find $R_o$, we set $V_1=0$ and have the following circuit
 # INCLUDE{ex02a.asc#spaceAbove=0,width=150,textScale=1.0}
 We have $V_y=-V_x$ which leads to 

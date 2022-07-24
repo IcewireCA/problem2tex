@@ -21,7 +21,7 @@ type option struct {
 func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile fileInfo) (string, string) {
 	var inLines []string
 	var inLine string
-	var logOut, errorHeader string
+	var logOut, errorHeader, commentSymbol string
 	var texOut, fileRunInkscape string
 	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
 	var reOrgComment = regexp.MustCompile(`(?m)^\s*#\s+`)
@@ -62,7 +62,14 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	// for key = range configParam {
 	// 	fmt.Println(configParam[key])
 	// }
-	errorHeader = "# Created with problem2tex: version = " + version + "\n\n"
+	switch outFile.ext {
+	case ".org":
+		commentSymbol = "# "
+	case ".tex":
+		commentSymbol = "% "
+	default: // should never be here
+	}
+	errorHeader = commentSymbol + "Created with problem2tex: version = " + version + "\n\n"
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
 		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
@@ -135,15 +142,28 @@ echo "export-latex; export-area-drawing;`
 				errorHeader = errorHeader + logOut
 			}
 		}
-		// for simpler syntax, replace "$$stuff_here$$" with \begin{equation}stuff_here\end{equation}"
-		var reReplaceDoubleDollar = regexp.MustCompile(`(?m)\$\$(?P<res1>.*)\$\$`)
-		texOut = reReplaceDoubleDollar.ReplaceAllString(texOut, "\\begin{equation}$res1\\end{equation}")
-		// now need to make inserted comments latex proper...so change "# " to "% "
-		var reFindOrgComments = regexp.MustCompile(`(?m)^# `)
-		errorHeader = reFindOrgComments.ReplaceAllString(errorHeader, "% ")
+		texOut = org2texFix(texOut)
 	default: // should never be here
 	}
 	return texOut, errorHeader
+}
+
+func org2texFix(inString string) (outString string) {
+	// for simpler syntax, replace "$$stuff_here$$" with \begin{equation}stuff_here\end{equation}"
+	var reReplaceDoubleDollar = regexp.MustCompile(`(?m)\$\$(?P<res1>.*)\$\$`)
+	outString = reReplaceDoubleDollar.ReplaceAllString(inString, "\\begin{equation}$res1\\end{equation}")
+	// now need to make inserted comments latex proper...so change "# " to "% "
+	var reFindOrgComments = regexp.MustCompile(`(?m)^# `)
+	outString = reFindOrgComments.ReplaceAllString(outString, "% ")
+	var reFindSectionHead = regexp.MustCompile(`(?m)^\* (?P<res1>.*)`)
+	outString = reFindSectionHead.ReplaceAllString(outString, "\\section*{$res1}")
+	var reFindSubSectionHead = regexp.MustCompile(`(?m)^\*\* (?P<res1>.*)`)
+	outString = reFindSubSectionHead.ReplaceAllString(outString, "\\subsection*{$res1}")
+	var reFindSubSubSectionHead = regexp.MustCompile(`(?m)^\*\*\* (?P<res1>.*)`)
+	outString = reFindSubSubSectionHead.ReplaceAllString(outString, "\\subsubsection*{$res1}")
+	var reHorizLine = regexp.MustCompile(`(?m)^-----.*`)
+	outString = reHorizLine.ReplaceAllString(outString, "\\noindent\\rule{\\textwidth}{1pt}")
+	return
 }
 
 // Print out the logOut
@@ -457,17 +477,17 @@ func valUpdate(inString string, varAll map[string]varSingle, configParam map[str
 
 func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
 	var options = map[string]string{ // defaults shown below
-		"textScale":  "1.0",   // Scale size of text (in case of svg)
-		"trimTop":    "0",     //  trim top of svg image
-		"trimBottom": "0",     //  trim bottom of svg image
-		"trimLeft":   "0",     // trim left of svg image
-		"trimRight":  "0",     // trim right of svg image
-		"scale":      "1.0",   //  scale image size
-		"svgFormat":  "latex", // svgFormat is either latex, noLatex, latexNoBatch
+		"textScale":  "1.0", // Scale size of text (in case of svg)
+		"trimTop":    "0",   //  trim top of svg image
+		"trimBottom": "0",   //  trim bottom of svg image
+		"trimLeft":   "0",   // trim left of svg image
+		"trimRight":  "0",   // trim right of svg image
+		"scale":      "1.0", //  scale image size
 	}
 	var allOptions []option
 	var replace, optionStr, logOut string
-	var fileNameAdd, fullFileName, latexCmd, tmpStr string
+	var fileNameAdd, fullFileName, latexCmd, tmpStr, width string
+	var widthDefault float64
 	var result []string
 	var fileName, fileExt, fullPathFileName string
 	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
@@ -487,10 +507,6 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 				logOut = "textScale is NOT an option for a " + fileExt + " file in an INCLUDE command"
 				return "", svgList, logOut
 			}
-			if allOptions[i].name == "svgFormat" {
-				logOut = "svgFormat is NOT an option for a " + fileExt + " file in an INCLUDE command"
-				return "", svgList, logOut
-			}
 		case "svg": // do nothing
 		case "asc": // do nothing
 		case "tex": // there should be no options for a tex file
@@ -501,23 +517,12 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 			return "", svgList, logOut
 		}
 		switch allOptions[i].name {
-		case "textScale", "spaceHoriz", "spaceBelow", "width":
+		case "textScale", "trimTop", "trimBottom", "trimLeft", "trimRight", "scale":
 			_, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
 			if err != nil {
 				logOut = allOptions[i].value + " is not a valid decimal number"
 				return "", svgList, logOut
 			}
-			options[allOptions[i].name] = allOptions[i].value
-		case "spaceAbove":
-			float1, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
-			if err != nil {
-				logOut = allOptions[i].value + " is not a valid decimal number"
-				return "", svgList, logOut
-			}
-			float1 = -1 * float1 // invert the sign of this value since negative move figure up and positive should move figure down
-			// but we are using a trim here so inversion is necessary
-			options[allOptions[i].name] = fmt.Sprintf("%.3f", float1)
-		case "svgFormat":
 			options[allOptions[i].name] = allOptions[i].value
 		default:
 			logOut = allOptions[i].name + " is not a valid option"
@@ -526,10 +531,10 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 	}
 	fileNameAdd = "NEW"
 	switch fileExt {
-	case "png", "jpg", "jpeg", "pdf":
+	case "png", "jpg", "jpeg", "pdf": // need to fix this
 		fullFileName = fileName + `.` + fileExt // need .extension here as final includegraphics command needs that info
 		latexCmd = `\incPic`
-		replace = latexCmd + `{` + fullFileName + `}{` + options["width"] + `}{` +
+		replace = latexCmd + `{` + fullFileName + `}{` + width + `}{` +
 			options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
 			options["spaceBelow"] + `}`
 	case "svg":
@@ -538,63 +543,32 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 			return replace, svgList, logOut
 		}
 		fullFileName = fileName + fileNameAdd
-		switch options["svgFormat"] {
-		case "latex":
-			fullPathFileName = filepath.Join(outFile.path, fullFileName)
-			replace = `\incSvg{` + fullFileName + `}{` + options["width"] + `}{` +
-				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-				options["spaceBelow"] + `}{` + options["textScale"] + `}`
-			tmpStr = "file-open:" + fullPathFileName + ".svg; export-filename:" + fullPathFileName + ".pdf; export-do; "
-			svgList = append(svgList, tmpStr)
-		case "noLatex":
-			replace = `\incSvgNoLatex{` + fullFileName + `}{` + options["width"] + `}{` +
-				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-				options["spaceBelow"] + `}`
-		case "latexNoBatch":
-			replace = `\incSvgNoBatch{` + fullFileName + `}{` + options["width"] + `}{` +
-				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-				options["spaceBelow"] + `}{` + options["textScale"] + `}`
-		default:
-			logOut = "ERROR: svgFormat: " + options["svgFormat"] + " is not a valid option for ." + fileExt + " file"
-			replace = logOut
-			return replace, svgList, logOut
-		}
+		fullPathFileName = filepath.Join(outFile.path, fullFileName)
+		widthDefault = 100
+		width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
+		replace = `\incSvg{` + fullFileName + `}{` + options["width"] + `}{` +
+			options["trimLeft"] + `}{` + options["trimBottom"] + `}{` +
+			options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
+		tmpStr = "file-open:" + fullPathFileName + ".svg; export-filename:" + fullPathFileName + ".pdf; export-do; "
+		svgList = append(svgList, tmpStr)
 	case "asc":
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
 		fullFileName = fileName + fileNameAdd
-		switch options["svgFormat"] {
-		case "latex":
-			fullPathFileName = filepath.Join(outFile.path, fullFileName)
-			logOut = runCommand("ltspice2svg", "-export="+fullPathFileName+"asc.svg", "-text=latex", fullPathFileName+".asc")
-			if logOut != "" {
-				return replace, svgList, logOut
-			}
-			replace = `\incSvg{` + fullFileName + `asc}{` + options["width"] + `}{` +
-				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-				options["spaceBelow"] + `}{` + options["textScale"] + `}`
-			tmpStr = "file-open:" + fullPathFileName + "asc.svg; export-filename:" + fullPathFileName + "asc.pdf; export-do; "
-			svgList = append(svgList, tmpStr)
-		case "latexNoBatch":
-			replace = `\incAscNoBatch{` + fullFileName + `}{` + options["width"] + `}{` +
-				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-				options["spaceBelow"] + `}{` + options["textScale"] + `}`
-		case "noLatex":
-			fullPathFileName = filepath.Join(outFile.path, fullFileName)
-			logOut = runCommand("ltspice2svg", "-export="+fullPathFileName+"asc.svg", fullPathFileName+".asc")
-			if logOut != "" {
-				return replace, svgList, logOut
-			}
-			replace = `\incSvgNoLatex{` + fullFileName + `asc}{` + options["width"] + `}{` +
-				options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-				options["spaceBelow"] + `}{` + options["textScale"] + `}`
-		default:
-			logOut = "ERROR: svgFormat: " + options["svgFormat"] + " is not a valid option for ." + fileExt + " file"
-			replace = logOut
+		fullPathFileName = filepath.Join(outFile.path, fullFileName)
+		logOut = runCommand("ltspice2svg", "-export="+fullPathFileName+"asc.svg", "-text=latex", fullPathFileName+".asc")
+		if logOut != "" {
 			return replace, svgList, logOut
 		}
+		widthDefault = 100
+		width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
+		replace = `\incSvg{` + fullFileName + `asc}{` + width + `}{` +
+			options["trimLeft"] + `}{` + options["trimBottom"] + `}{` +
+			options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
+		tmpStr = "file-open:" + fullPathFileName + "asc.svg; export-filename:" + fullPathFileName + "asc.pdf; export-do; "
+		svgList = append(svgList, tmpStr)
 	case "tex":
 		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
 		latexCmd = `\incTex`
@@ -1519,6 +1493,6 @@ func fixDollarDelimiters(inString string) (outString string) {
 	var reModify1 = regexp.MustCompile(`(?mU)\\\\MODIFY1\\\\`)
 	outString = reModify1.ReplaceAllString(outString, "$") // put \\MODIFY1\\ back to $
 	var reModify2 = regexp.MustCompile(`(?mU)\\\\MODIFY2\\\\`)
-	outString = reModify2.ReplaceAllString(outString, "$$$") // put \\MODIFY1\\ back to $
+	outString = reModify2.ReplaceAllString(outString, "$$$") // put \\MODIFY1\\ back to $$
 	return
 }
