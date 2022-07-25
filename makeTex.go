@@ -583,6 +583,7 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 
 func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
 	var options = map[string]string{ // defaults shown below
+		"textScale":  "1.0", // Scale size of text (in case of svg)
 		"trimTop":    "0",   // trim top of svg
 		"trimBottom": "0",   //  trim bottom of svg
 		"trimLeft":   "0",   // trim left of svg
@@ -616,7 +617,7 @@ func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]var
 			return "", svgList, logOut
 		}
 		switch allOptions[i].name {
-		case "scale", "trimTop", "trimBottom", "trimLeft", "trimRight":
+		case "scale", "trimTop", "trimBottom", "trimLeft", "trimRight", "textScale":
 			_, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
 			if err != nil {
 				logOut = allOptions[i].value + " is not a valid decimal number for " + allOptions[i].name
