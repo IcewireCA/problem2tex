@@ -18,13 +18,18 @@ type option struct {
 	value string
 }
 
+type strEqn struct {
+	partial string
+	eqn     int
+}
+
 func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile fileInfo) (string, string) {
 	var inLines []string
 	var inLine string
 	var logOut, errorHeader, commentSymbol string
 	var texOut, fileRunInkscape string
 	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
-	var reOrgComment = regexp.MustCompile(`(?m)^\s*#\s+`)
+	var reOrgComment = regexp.MustCompile(`(?m)^# `)
 	var reLatexComment = regexp.MustCompile(`(?m)^\s*%`)
 	var svgList []string // list of all svg files that need inkscape to make pdf and pdf_tex files
 	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
@@ -91,6 +96,10 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i)
 		}
+		inLine, logOut = fixHilite(inLine, outFile.ext)
+		if logOut != "" {
+			errorHeader = errorHeader + logOutError(logOut, i)
+		}
 		if inLine != "" {
 			texOut = texOut + inLine + "\n"
 		}
@@ -121,7 +130,6 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	}
 	switch outFile.ext {
 	case ".org":
-		texOut = fixDollarDelimiters(texOut)
 	case ".tex":
 		// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
 		if len(svgList) > 0 {
@@ -146,6 +154,133 @@ echo "export-latex; export-area-drawing;`
 	default: // should never be here
 	}
 	return texOut, errorHeader
+}
+
+func fixHilite(inString, fileExt string) (outString, logOut string) {
+	var inStrSlice []strEqn
+	var reTex = regexp.MustCompile(`(?m)HILITE{`)
+	var reMark = regexp.MustCompile(`(?mU)HILITE{(?P<res1>.*)}`)
+	outString = ""
+	inStrSlice, logOut = findEqn(inString)
+	switch fileExt {
+	case ".tex":
+		for i := range inStrSlice {
+			switch inStrSlice[i].eqn {
+			case 1, 2: // an equation phrase
+				inStrSlice[i].partial = reTex.ReplaceAllString(inStrSlice[i].partial, "\\hiliteEQN{")
+			default:
+				inStrSlice[i].partial = reTex.ReplaceAllString(inStrSlice[i].partial, "\\hilite{")
+			}
+		}
+	case ".org":
+		for i := range inStrSlice {
+			switch inStrSlice[i].eqn {
+			case 1, 2: // an equation phrase
+				inStrSlice[i].partial = reTex.ReplaceAllString(inStrSlice[i].partial, "\\bbox[yellow]{")
+			default:
+				inStrSlice[i].partial = reMark.ReplaceAllString(inStrSlice[i].partial, "@@html:<mark>@@$res1@@html:</mark>@@")
+			}
+		}
+	default: // should never be here
+	}
+	for i := range inStrSlice {
+		outString = outString + inStrSlice[i].partial
+	}
+	return
+}
+
+func changeDollarDelimiters(inString string) (outString string) {
+	var inStrSlice []strEqn
+	var reInline = regexp.MustCompile(`(?m)^\$(?P<res1>.*)\$$`)
+	var reEqn = regexp.MustCompile(`(?m)^\$\$(?P<res1>.*)\$\$$`)
+	outString = ""
+	inStrSlice, _ = findEqn(inString)
+	for i := range inStrSlice {
+		switch inStrSlice[i].eqn {
+		case 1: // an inline equation
+			inStrSlice[i].partial = reInline.ReplaceAllString(inStrSlice[i].partial, "\\($res1\\)")
+		case 2:
+			inStrSlice[i].partial = reEqn.ReplaceAllString(inStrSlice[i].partial, "\\[$res1\\]")
+		default:
+		}
+	}
+	for i := range inStrSlice {
+		outString = outString + inStrSlice[i].partial
+	}
+	return
+}
+
+// recall... with string="1234" has len(string)=4
+// first char is string[0:1] while first 3 char are string[0:3]
+// breaks string into normal strings and equation strings and indicates with strEqn.eqn
+// inStrSlice.eqn = 0, 1, or 2.  0 no eqn: 1 is inline eqn: 2 is non-inline eqn
+func findEqn(inString string) (inStrSlice []strEqn, logOut string) {
+	var temp strEqn
+	var phraseEnd int // phrase end position index (either non-eqn or eqn phrase)
+	var eqnNum int    // 0 means normal, 1 means inline eqn, 2 means non-inline eqn
+	var tmpStr string
+	inString = "X" + inString + "X" // add first and last char so that \$ might be at start of string
+	// and can check for $$ at end of string
+	// now must start i at 1 so it skips first string char and end at len(string)-1
+	eqnNum = 0
+	phraseEnd = 0
+	for i := 1; i < len(inString)-1; i++ {
+		tmpStr = inString[i-1 : i+2]
+		switch {
+		case tmpStr[0:1] != "\\" && tmpStr[1:2] == "$" && tmpStr[2:3] != "$":
+			eqnNum = 1
+			if i > phraseEnd+1 { // found a non-equation string so write it to inStrSlice
+				temp.partial = inString[phraseEnd+1 : i]
+				temp.eqn = 0
+				inStrSlice = append(inStrSlice, temp)
+			}
+			// now look for end of equation
+			for j := i + 1; j < len(inString); j++ {
+				tmpStr = inString[j-1 : j+1]
+				if tmpStr[0:1] != "\\" && tmpStr[1:2] == "$" { // found end of equation
+					eqnNum = 0
+					temp.partial = inString[i : j+1]
+					temp.eqn = 1
+					inStrSlice = append(inStrSlice, temp)
+					phraseEnd = j
+					i = phraseEnd
+					break
+				}
+			}
+		case tmpStr[0:1] != "\\" && tmpStr[1:2] == "$" && tmpStr[2:3] == "$":
+			eqnNum = 2
+			if i > phraseEnd+1 { // found a non-equation string so write it to inStrSlice
+				temp.partial = inString[phraseEnd+1 : i]
+				temp.eqn = 0
+				inStrSlice = append(inStrSlice, temp)
+			}
+			i++
+			// now look for end of equation
+			for j := i + 1; j < len(inString); j++ {
+				tmpStr = inString[j-1 : j+2]
+				if tmpStr[0:1] != "\\" && tmpStr[1:2] == "$" && tmpStr[2:3] == "$" { // found end of equation
+					eqnNum = 0
+					temp.partial = inString[i-1 : j+2]
+					temp.eqn = 2
+					inStrSlice = append(inStrSlice, temp)
+					phraseEnd = j + 1
+					i = phraseEnd
+					break
+				}
+			}
+		default:
+		}
+
+	}
+	if phraseEnd+1 < len(inString)-1 {
+		temp.partial = inString[phraseEnd+1 : len(inString)-1]
+		temp.eqn = 0
+		inStrSlice = append(inStrSlice, temp)
+	}
+	if eqnNum != 0 { // if 1 or 2, then unbalanced equation delimiters
+		logOut = "Unbalanced equation delimiters"
+	}
+	return
 }
 
 func org2texFix(inString string) (outString string) {
@@ -460,7 +595,8 @@ func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileIn
 }
 
 // used to update the VAL{} commands in .svg or .asc files and write updated file in outFile location with fileNameAdd appended to name
-func valUpdate(inString string, varAll map[string]varSingle, configParam map[string]string) (outString, logOut string) {
+// also changes dollar delimiters in case of .org output
+func valUpdate(inString, fileExt string, varAll map[string]varSingle, configParam map[string]string) (outString, logOut string) {
 	var inLines, dummy []string            // dummy not used but needed to make commandReplace work as it sometimes is svgList
 	var inFileDummy, outFileDummy fileInfo // also not needed but required in commandReplace
 	inLines = strings.Split(inString, "\n")
@@ -469,6 +605,9 @@ func valUpdate(inString string, varAll map[string]varSingle, configParam map[str
 		if logOut != "" {
 			logOut = logOut + " - error in external file: "
 			return
+		}
+		if fileExt == ".org" {
+			inLines[i] = changeDollarDelimiters(inLines[i])
 		}
 	}
 	outString = strings.Join(inLines, "\n")
@@ -592,7 +731,7 @@ func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]var
 	}
 	var allOptions []option
 	var replace, optionStr, logOut string
-	var fileNameAdd, inFileName, outFileName, svgIn, svgOut, ascIn string
+	var fileNameAdd, inFileName, outFileName, svgIn, svgOut string
 	var svgFileName string
 	var result []string
 	var fileName, fileExt string
@@ -643,17 +782,17 @@ func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]var
 		// original filename.svg becomes filenameNEW.svg in tmp directory
 		// original filename.asc becomes filenameNEW.asc in tmp then filenameNEWasc.svg in tmp
 	case "asc":
-		ascIn, logOut = fileReadString(filepath.Join(inFile.path, fileName+".asc"))
-		if logOut != "" {
-			return replace, svgList, logOut
-		}
-		ascIn, logOut = valUpdate(ascIn, varAll, configParam)
-		if logOut != "" {
-			return replace, svgList, logOut
-		}
-		fileWriteString(ascIn, filepath.Join(outFile.path, fileName+fileNameAdd+".asc"))
+		// ascIn, logOut = fileReadString(filepath.Join(inFile.path, fileName+".asc"))
+		// if logOut != "" {
+		// 	return replace, svgList, logOut
+		// }
+		// ascIn, logOut = valUpdate(ascIn, outFile.ext, varAll, configParam)
+		// if logOut != "" {
+		// 	return replace, svgList, logOut
+		// }
+		// fileWriteString(ascIn, filepath.Join(outFile.path, fileName+fileNameAdd+".asc"))
 		svgFileName = fileName + fileNameAdd + "asc.svg"
-		logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(outFile.path, fileName+fileNameAdd+".asc"))
+		logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
@@ -661,9 +800,12 @@ func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]var
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
+		svgIn, logOut = valUpdate(svgIn, outFile.ext, varAll, configParam) // update VAL{} elements to values
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
 		// resize and trim svg
 		svgOut = svgResize(svgIn, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
-		svgOut = fixDollarDelimiters(svgOut)
 		fileWriteString(svgOut, filepath.Join(outFile.path, svgFileName))
 		replace = `#+INCLUDE: "./` + svgFileName + `" export html`
 	case "svg":
@@ -671,13 +813,12 @@ func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]var
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
-		svgIn, logOut = valUpdate(svgIn, varAll, configParam) // update VAL{} elements to values
+		svgIn, logOut = valUpdate(svgIn, outFile.ext, varAll, configParam) // update VAL{} elements to values
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
 		// resize and trim svg
 		svgOut = svgResize(svgIn, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
-		svgOut = fixDollarDelimiters(svgOut)
 		fileWriteString(svgOut, filepath.Join(outFile.path, fileName+fileNameAdd+".svg"))
 		replace = `#+INCLUDE: "./` + fileName + fileNameAdd + `.svg" export html`
 	default:
@@ -1202,6 +1343,7 @@ func matchBrackets(inString, leftBrac string) (string, string, string) {
 	// also return logOut - third return
 	// eg: inString = "{here 1{a}}{here 2}" results in... inside = "here 1{a}" and tail="{here 2}"
 	var inside, rightBrac, tail, logOut string
+	var openBr int
 	switch leftBrac {
 	case "{":
 		rightBrac = "}"
@@ -1213,7 +1355,7 @@ func matchBrackets(inString, leftBrac string) (string, string, string) {
 		rightBrac = ">"
 	default:
 	}
-	openBr := 0
+	openBr = 0
 	for i := 0; i < len(inString); i++ {
 		if string(inString[i]) == leftBrac {
 			openBr++
@@ -1482,18 +1624,4 @@ func getAllOptions(inString string) []option {
 		inString = tail
 	}
 	return allOptions
-}
-
-func fixDollarDelimiters(inString string) (outString string) {
-	var reBackslashDollar = regexp.MustCompile(`(?mU)\\\$`)
-	outString = reBackslashDollar.ReplaceAllString(inString, "\\\\MODIFY1\\\\") // change all \$ to \\MODIFY1\\
-	var re2Dollar = regexp.MustCompile(`(?mU)\$\$`)
-	outString = re2Dollar.ReplaceAllString(inString, "\\\\MODIFY2\\\\") // change all $$ to \\MODIFY2\\
-	var reDollarDelim = regexp.MustCompile(`(?mU)\$(?P<res1>.*)\$`)
-	outString = reDollarDelim.ReplaceAllString(outString, "\\($res1\\)") // fix all $ stuff $ to \( stuff \)
-	var reModify1 = regexp.MustCompile(`(?mU)\\\\MODIFY1\\\\`)
-	outString = reModify1.ReplaceAllString(outString, "$") // put \\MODIFY1\\ back to $
-	var reModify2 = regexp.MustCompile(`(?mU)\\\\MODIFY2\\\\`)
-	outString = reModify2.ReplaceAllString(outString, "$$$") // put \\MODIFY1\\ back to $$
-	return
 }

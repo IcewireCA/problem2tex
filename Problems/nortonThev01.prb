@@ -1,0 +1,55 @@
+CONFIG{defaultUnits = [[iI:A][vV:V][rR:\Omega]]}
+PARAM{I_1=2}
+PARAM{V_1=2}
+PARAM{R_1=3}
+PARAM{R_2=6}
+PARAM{R_3=6}
+Consider the circuit shown below where it is desired to find the Norton and Thevenin equivalent circuits between nodes A/B. Use $i_{sc}$ for the short circuit output current and $v_{oc}$ for the open circuit output voltage and $R_{out}$ for the output resistance.
+
+Solve by using Thevenin/Norton source transformations.
+
+INCLUDE{nortonThev01.asc#scale=1.0,textScale=1.0}
+BEGIN{SOLUTION}
+-----
+* Solution
+We replace $I_1$ and $R_1$ with the thevenin equivalent such that 
+$$RUN{V_2=-I_1*R_1}$$
+and $R_1$ is moved in series with $V_2$.
+
+INCLUDE{nortonThev01_soln01.asc#scale=1.0,textScale=1.0}
+
+Combine resistors $R_1$ and $R_2$ as well as voltages $V_2$ and $V_1$ resulting in the following equivalent circuit
+$$RUN{R_4=R_1+R_2}$$
+$$RUN{V_4=V_2-V_1}$$
+INCLUDE{nortonThev01_soln02.asc#scale=1.0,textScale=1.0}
+Replace $V_4$ and $R_4$ with their Norton equivalent circuit
+$$RUN{I_4=V_4/R_4}$$
+INCLUDE{nortonThev01_soln03.asc#scale=1.0,textScale=1.0}
+Combine $R_4$ and $R_3$ into one resistor which is $R_{out}$
+$$HILITE{RUN{R_out=PARLL(R_4,R_3)}}$$
+and the short circuit current is then
+$$HILITE{RUN{i_sc=I_4}}$$
+
+INCLUDE{nortonThev01_soln04.asc#scale=1.0,textScale=1.0}
+
+Now, we find the output open circuit voltage, $v_{oc}$
+$$HILITE{RUN{v_oc=i_sc*R_out}}$$
+
+So the 2 equivalent circuits are ...
+
+INCLUDE{nortonThev01_soln05.asc#scale=1.0,textScale=1.0}
+
+Note that the output resistance, $R_{out}$ could have also been found directly from the first circuit by zeroing the 2 independent sources.  In this case, we would have
+
+$$RUN{R_out=PARLL(R_3,(R_1+R_2))}$$
+-----
+END{SOLUTION}
+BEGIN{ANSWER}
+-----
+* Answer
+$VAL{R_out,=}$\\
+$VAL{v_oc,=}$\\
+$VAL{i_sc,=}$\\
+
+-----
+END{ANSWER}
