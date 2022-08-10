@@ -516,19 +516,6 @@ func valReplace(inString string, varAll map[string]varSingle, configParam map[st
 	return head, tail, replace, logOut
 }
 
-// func syntaxWarning(statement string) (logOut string) { // check that syntax seems okay and give warning if not okay
-// 	var reDollar = regexp.MustCompile(`(?m)[^\\]\$|^\$`) // match $ at beginning of line or any $ except for \$ (since \$ is latex for $)
-// 	logOut = bracketCheck(statement, "{")
-// 	logOut = logOut + bracketCheck(statement, "(")
-// 	logOut = logOut + bracketCheck(statement, "[")
-// 	matches := reDollar.FindAllStringIndex(statement, -1)
-// 	// need to count $ and see that they are even (backetCheck will not work here)
-// 	if len(matches)%2 != 0 {
-// 		logOut = logOut + "-- Uneven number of $ so likely unmatched --"
-// 	}
-// 	return
-// }
-
 func bracketCheck(inString string, leftBrac string) (logOut string) {
 	var rightBrac string
 	var count int
@@ -563,38 +550,38 @@ func bracketCheck(inString string, leftBrac string) (logOut string) {
 }
 
 // used to update the VAL{} commands in .svg or .asc files and write updated file in outFile location with fileNameAdd appended to name
-func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) string {
-	var fileOrig, fileUpdate, logOut string
-	var inLines, dummy []string // dummy not used but needed to make commandReplace work as it sometimes is svgList
-	switch fileExt {
-	case "svg", "asc", "tex":
-		fileOrig, logOut = fileReadString(filepath.Join(inFile.path, fileName+"."+fileExt))
-		if logOut != "" {
-			return logOut
-		}
-		if fileExt == "asc" { // if asc file, need to convert to regular UTF8 format if in UTF16 format
-			fileOrig, _ = convertIfUtf16(fileOrig)
-		}
-		inLines = strings.Split(fileOrig, "\n")
-		for i := range inLines {
-			inLines[i], _, logOut = commandReplace(inLines[i], inFile, outFile, varAll, configParam, true, dummy)
-			if logOut != "" {
-				logOut = logOut + " - error in " + fileName + "." + fileExt
-				return logOut
-			}
-		}
-		fileUpdate = strings.Join(inLines, "\n")
-		fileWriteString(fileUpdate, filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt))
-		return logOut
-	case "png", "jpg", "jpeg", "pdf": // no update made to these types of file
-	default:
-		logOut = "File extension not recognized: " + fileExt
+// func valUpdateFile(fileName, fileExt, fileNameAdd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string) string {
+// 	var fileOrig, fileUpdate, logOut string
+// 	var inLines, dummy []string // dummy not used but needed to make commandReplace work as it sometimes is svgList
+// 	switch fileExt {
+// 	case "svg", "asc", "tex":
+// 		fileOrig, logOut = fileReadString(filepath.Join(inFile.path, fileName+"."+fileExt))
+// 		if logOut != "" {
+// 			return logOut
+// 		}
+// 		if fileExt == "asc" { // if asc file, need to convert to regular UTF8 format if in UTF16 format
+// 			fileOrig, _ = convertIfUtf16(fileOrig)
+// 		}
+// 		inLines = strings.Split(fileOrig, "\n")
+// 		for i := range inLines {
+// 			inLines[i], _, logOut = commandReplace(inLines[i], inFile, outFile, varAll, configParam, true, dummy)
+// 			if logOut != "" {
+// 				logOut = logOut + " - error in " + fileName + "." + fileExt
+// 				return logOut
+// 			}
+// 		}
+// 		fileUpdate = strings.Join(inLines, "\n")
+// 		fileWriteString(fileUpdate, filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt))
+// 		return logOut
+// 	case "png", "jpg", "jpeg", "pdf": // no update made to these types of file
+// 	default:
+// 		logOut = "File extension not recognized: " + fileExt
 
-	}
-	return logOut
-}
+// 	}
+// 	return logOut
+// }
 
-// used to update the VAL{} commands in .svg or .asc files and write updated file in outFile location with fileNameAdd appended to name
+// used to update the VAL{} commands in inString
 // also changes dollar delimiters in case of .org output
 func valUpdate(inString, fileExt string, varAll map[string]varSingle, configParam map[string]string) (outString, logOut string) {
 	var inLines, dummy []string            // dummy not used but needed to make commandReplace work as it sometimes is svgList
@@ -625,7 +612,8 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 	}
 	var allOptions []option
 	var replace, optionStr, logOut string
-	var fileNameAdd, fullFileName, latexCmd, tmpStr, width string
+	var fileNameAdd, fullFileName, tmpStr, width string
+	var inFileStr, svgFileName string
 	var widthDefault float64
 	var result []string
 	var fileName, fileExt, fullPathFileName string
@@ -672,35 +660,50 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 	switch fileExt {
 	case "png", "jpg", "jpeg", "pdf": // need to fix this
 		fullFileName = fileName + `.` + fileExt // need .extension here as final includegraphics command needs that info
-		latexCmd = `\incPic`
-		replace = latexCmd + `{` + fullFileName + `}{` + width + `}{` +
+		replace = `\incPic{` + fullFileName + `}{` + width + `}{` +
 			options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
 			options["spaceBelow"] + `}`
-	case "svg":
-		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
+	case "svg", "tex":
+		inFileStr, logOut = fileReadString(filepath.Join(inFile.path, fileName+"."+fileExt))
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
-		fullFileName = fileName + fileNameAdd
-		fullPathFileName = filepath.Join(outFile.path, fullFileName)
-		widthDefault = 100
-		width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
-		replace = `\incSvg{` + fullFileName + `}{` + options["width"] + `}{` +
-			options["trimLeft"] + `}{` + options["trimBottom"] + `}{` +
-			options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
-		tmpStr = "file-open:" + fullPathFileName + ".svg; export-filename:" + fullPathFileName + ".pdf; export-do; "
-		svgList = append(svgList, tmpStr)
+		inFileStr, logOut = valUpdate(inFileStr, outFile.ext, varAll, configParam) // update VAL{} elements to values
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		fileWriteString(inFileStr, filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt))
+		switch fileExt {
+		case "svg":
+			fullFileName = fileName + fileNameAdd
+			fullPathFileName = filepath.Join(outFile.path, fullFileName)
+			widthDefault = 100
+			width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
+			replace = `\incSvg{` + fullFileName + `}{` + options["width"] + `}{` +
+				options["trimLeft"] + `}{` + options["trimBottom"] + `}{` +
+				options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
+			tmpStr = "file-open:" + fullPathFileName + ".svg; export-filename:" + fullPathFileName + ".pdf; export-do; "
+			svgList = append(svgList, tmpStr)
+		case "tex":
+			fullFileName = fileName + fileNameAdd + `.tex`
+			replace = `\incTex{` + fullFileName + `}`
+		default: // should never be here
+		}
 	case "asc":
-		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
+		svgFileName = fileName + fileNameAdd + "asc.svg"
+		logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
-		fullFileName = fileName + fileNameAdd
-		fullPathFileName = filepath.Join(outFile.path, fullFileName)
-		logOut = runCommand("ltspice2svg", "-export="+fullPathFileName+"asc.svg", "-text=latex", fullPathFileName+".asc")
+		inFileStr, logOut = fileReadString(filepath.Join(outFile.path, svgFileName))
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
+		inFileStr, logOut = valUpdate(inFileStr, outFile.ext, varAll, configParam) // update VAL{} elements to values
+		if logOut != "" {
+			return replace, svgList, logOut
+		}
+		fileWriteString(inFileStr, filepath.Join(outFile.path, svgFileName))
 		widthDefault = 100
 		width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
 		replace = `\incSvg{` + fullFileName + `asc}{` + width + `}{` +
@@ -708,12 +711,6 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 			options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
 		tmpStr = "file-open:" + fullPathFileName + "asc.svg; export-filename:" + fullPathFileName + "asc.pdf; export-do; "
 		svgList = append(svgList, tmpStr)
-	case "tex":
-		logOut = valUpdateFile(fileName, fileExt, fileNameAdd, inFile, outFile, varAll, configParam)
-		latexCmd = `\incTex`
-		fullFileName = fileName + fileNameAdd + `.tex`
-		replace = `\incTex{` + fullFileName + `}`
-		return replace, svgList, logOut
 	default:
 		logOut = "File extension not recognized: " + fileExt
 	}
@@ -731,7 +728,7 @@ func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]var
 	}
 	var allOptions []option
 	var replace, optionStr, logOut string
-	var fileNameAdd, inFileName, outFileName, svgIn, svgOut string
+	var fileNameAdd, inFileName, outFileName, inFileStr string
 	var svgFileName string
 	var result []string
 	var fileName, fileExt string
@@ -782,44 +779,35 @@ func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]var
 		// original filename.svg becomes filenameNEW.svg in tmp directory
 		// original filename.asc becomes filenameNEW.asc in tmp then filenameNEWasc.svg in tmp
 	case "asc":
-		// ascIn, logOut = fileReadString(filepath.Join(inFile.path, fileName+".asc"))
-		// if logOut != "" {
-		// 	return replace, svgList, logOut
-		// }
-		// ascIn, logOut = valUpdate(ascIn, outFile.ext, varAll, configParam)
-		// if logOut != "" {
-		// 	return replace, svgList, logOut
-		// }
-		// fileWriteString(ascIn, filepath.Join(outFile.path, fileName+fileNameAdd+".asc"))
 		svgFileName = fileName + fileNameAdd + "asc.svg"
 		logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
-		svgIn, logOut = fileReadString(filepath.Join(outFile.path, svgFileName))
+		inFileStr, logOut = fileReadString(filepath.Join(outFile.path, svgFileName))
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
-		svgIn, logOut = valUpdate(svgIn, outFile.ext, varAll, configParam) // update VAL{} elements to values
+		inFileStr, logOut = valUpdate(inFileStr, outFile.ext, varAll, configParam) // update VAL{} elements to values
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
 		// resize and trim svg
-		svgOut = svgResize(svgIn, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
-		fileWriteString(svgOut, filepath.Join(outFile.path, svgFileName))
+		inFileStr = svgResize(inFileStr, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
+		fileWriteString(inFileStr, filepath.Join(outFile.path, svgFileName))
 		replace = `#+INCLUDE: "./` + svgFileName + `" export html`
 	case "svg":
-		svgIn, logOut = fileReadString(filepath.Join(inFile.path, fileName+".svg"))
+		inFileStr, logOut = fileReadString(filepath.Join(inFile.path, fileName+".svg"))
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
-		svgIn, logOut = valUpdate(svgIn, outFile.ext, varAll, configParam) // update VAL{} elements to values
+		inFileStr, logOut = valUpdate(inFileStr, outFile.ext, varAll, configParam) // update VAL{} elements to values
 		if logOut != "" {
 			return replace, svgList, logOut
 		}
 		// resize and trim svg
-		svgOut = svgResize(svgIn, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
-		fileWriteString(svgOut, filepath.Join(outFile.path, fileName+fileNameAdd+".svg"))
+		inFileStr = svgResize(inFileStr, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
+		fileWriteString(inFileStr, filepath.Join(outFile.path, fileName+fileNameAdd+".svg"))
 		replace = `#+INCLUDE: "./` + fileName + fileNameAdd + `.svg" export html`
 	default:
 		logOut = "File extension not recognized: " + fileExt

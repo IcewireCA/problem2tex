@@ -1,0 +1,40 @@
+CONFIG{defaultUnits = [[iI:A][vV:V][rR:\Omega]]}
+PARAM{upCox=400#units=\muA/V^2,symbol=\mu_pC_{ox}}
+PARAM{V_tp=-0.3}
+PARAM{WL=12.5#symbol=W/L}
+PARAM{V_SG=0.55}
+Consider the following PMOS transistor with $\lambda = 0$
+
+INCLUDE{pmos01a.asc#scale=1.0, trimTop=-3, trimBottom=0, textScale=1.0}
+Assuming $VAL{V_SG,=}$, answer the following questions.
+
+(a) As $V_{SD}$ is increased, at what value of $V_{SD}$ does the transistor enter the saturation region?
+
+(b) What is the value of $I_D$ in saturation
+
+BEGIN{SOLUTION}
+-----
+* Solution
+
+For a PMOS transistor, the overdrive voltage is
+$$  RUN{V_OV=V_SG-abs(V_tp)}$$
+When $V_{SD} < V_{OV}$, the transistor is in the triode region.  The transistor enters the saturation region when
+
+$$HILITE{V_{SD}= RUN{V_SDSAT=V_OV#symbol=V_{SDsat}}}$$
+Once in saturation, the drain current is given by
+$$HILITE{ RUN{I_D=0.5*upCox*WL*V_OV^2}}$$
+
+-----
+END{SOLUTION}
+
+
+BEGIN{ANSWER}
+-----
+* Answer
+
+$V_{SD}=VAL{V_SDSAT}$ \\
+$VAL{I_D,=}$
+
+-----
+END{ANSWER}
+
