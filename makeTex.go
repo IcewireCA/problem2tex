@@ -449,8 +449,9 @@ func runReplace(inString string, varAll map[string]varSingle, configParam map[st
 
 func latexifyEqn(inString string) string {
 	var outString string
-	outString, _ = fixRunCmd("PARLL", inString)
-	outString, _ = fixRunCmd("DIV", outString)
+	outString, _ = fixRunCmd2("PARLL", inString)
+	outString, _ = fixRunCmd2("DIV", outString)
+	outString, _ = fixRunCmd1("abs", outString)
 	return outString
 }
 
@@ -613,10 +614,10 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 	var allOptions []option
 	var replace, optionStr, logOut string
 	var fileNameAdd, fullFileName, tmpStr, width string
-	var inFileStr, svgFileName string
+	var inFileStr, svgFileName, svgFileNameNoExt, fullPathFileNameNoExt string
 	var widthDefault float64
 	var result []string
-	var fileName, fileExt, fullPathFileName string
+	var fileName, fileExt string
 	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
 	if !reNameInfo.MatchString(inCmd) {
 		logOut = "INCLUDE command does not have filename in correct format\n Should look like filename.ext"
@@ -675,14 +676,14 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 		fileWriteString(inFileStr, filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt))
 		switch fileExt {
 		case "svg":
-			fullFileName = fileName + fileNameAdd
-			fullPathFileName = filepath.Join(outFile.path, fullFileName)
+			svgFileNameNoExt = fileName + fileNameAdd
+			fullPathFileNameNoExt = filepath.Join(outFile.path, svgFileNameNoExt)
 			widthDefault = 100
 			width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
-			replace = `\incSvg{` + fullFileName + `}{` + options["width"] + `}{` +
+			replace = `\incSvg{` + svgFileNameNoExt + `}{` + options["width"] + `}{` +
 				options["trimLeft"] + `}{` + options["trimBottom"] + `}{` +
 				options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
-			tmpStr = "file-open:" + fullPathFileName + ".svg; export-filename:" + fullPathFileName + ".pdf; export-do; "
+			tmpStr = "file-open:" + fullPathFileNameNoExt + ".svg; export-filename:" + fullPathFileNameNoExt + ".pdf; export-do; "
 			svgList = append(svgList, tmpStr)
 		case "tex":
 			fullFileName = fileName + fileNameAdd + `.tex`
@@ -690,7 +691,9 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 		default: // should never be here
 		}
 	case "asc":
-		svgFileName = fileName + fileNameAdd + "asc.svg"
+		svgFileNameNoExt = fileName + fileNameAdd + "asc"
+		svgFileName = svgFileNameNoExt + ".svg"
+		fullPathFileNameNoExt = filepath.Join(outFile.path, svgFileNameNoExt)
 		logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
 		if logOut != "" {
 			return replace, svgList, logOut
@@ -706,10 +709,10 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 		fileWriteString(inFileStr, filepath.Join(outFile.path, svgFileName))
 		widthDefault = 100
 		width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
-		replace = `\incSvg{` + fullFileName + `asc}{` + width + `}{` +
+		replace = `\incSvg{` + svgFileNameNoExt + `}{` + width + `}{` +
 			options["trimLeft"] + `}{` + options["trimBottom"] + `}{` +
 			options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
-		tmpStr = "file-open:" + fullPathFileName + "asc.svg; export-filename:" + fullPathFileName + "asc.pdf; export-do; "
+		tmpStr = "file-open:" + fullPathFileNameNoExt + ".svg; export-filename:" + fullPathFileNameNoExt + ".pdf; export-do; "
 		svgList = append(svgList, tmpStr)
 	default:
 		logOut = "File extension not recognized: " + fileExt
@@ -1403,7 +1406,7 @@ func function2Latex(inString string) string {
 
 // recursively fixes PARLL and DIV functions for printing as latex
 // stuffHere**PARLL(R1,PARLL(R2,R3))**moreStuff becomes stuffHere**R1||R2||R3**moreStuff
-func fixRunCmd(runCmd, inString string) (string, string) {
+func fixRunCmd2(runCmd, inString string) (string, string) {
 	var result []string
 	var outString, head, tail, inside, var1, var2, logOut string
 	var reRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)` + runCmd + `(?P<res2>\(.*)$`)
@@ -1414,7 +1417,7 @@ func fixRunCmd(runCmd, inString string) (string, string) {
 			result = reRunCmd.FindStringSubmatch(outString)
 			head = result[1]
 			inside, tail, _ = matchBrackets(result[2], "(")
-			inside, _ = fixRunCmd(runCmd, inside)
+			inside, _ = fixRunCmd2(runCmd, inside)
 			if reInside.MatchString(inside) {
 				result = reInside.FindStringSubmatch(inside)
 				var1 = result[1]
@@ -1424,6 +1427,34 @@ func fixRunCmd(runCmd, inString string) (string, string) {
 					outString = head + var1 + "||" + var2 + tail
 				case "DIV":
 					outString = head + `\frac{` + var1 + `}{` + var2 + `}` + tail
+				default:
+				}
+			}
+		}
+	}
+	return outString, logOut
+}
+
+// recursively fixes abs functions for printing as latex
+// stuffHere**abs(R1+abs(R2))**moreStuff becomes stuffHere**|R1+|R2||**moreStuff
+func fixRunCmd1(runCmd, inString string) (string, string) {
+	var result []string
+	var outString, head, tail, inside, var1, logOut string
+	var reRunCmd = regexp.MustCompile(`(?mU)^(?P<res1>.*)` + runCmd + `(?P<res2>\(.*)$`)
+	var reInside = regexp.MustCompile(`(?m)^(?P<res1>.*)$`)
+	outString = inString // default if matching below does not occur
+	for reRunCmd.MatchString(outString) {
+		if reRunCmd.MatchString(outString) {
+			result = reRunCmd.FindStringSubmatch(outString)
+			head = result[1]
+			inside, tail, _ = matchBrackets(result[2], "(")
+			inside, _ = fixRunCmd1(runCmd, inside)
+			if reInside.MatchString(inside) {
+				result = reInside.FindStringSubmatch(inside)
+				var1 = result[1]
+				switch runCmd {
+				case "abs":
+					outString = head + "|" + var1 + "|" + tail
 				default:
 				}
 			}
