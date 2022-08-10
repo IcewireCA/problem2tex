@@ -119,7 +119,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		texOut = reBegAns.ReplaceAllString(texOut, "")
 		texOut = reEndSol.ReplaceAllString(texOut, "")
 		texOut = reEndAns.ReplaceAllString(texOut, "")
-	case "flagAnswer": // get rid of soluton
+	case "flagAnswer": // get rid of solution
 		var reSol = regexp.MustCompile(`(?msU)^\s*BEGIN{SOLUTION}.*^\s*END{SOLUTION}\s*\n`)
 		texOut = reSol.ReplaceAllString(texOut, "")
 	case "flagSolution": // get rid of answer

@@ -1,0 +1,6 @@
+BEGIN{ANSWER}
+-----
+* Answer
+
+-----
+END{ANSWER}
