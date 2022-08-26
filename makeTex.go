@@ -680,7 +680,7 @@ func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]v
 			fullPathFileNameNoExt = filepath.Join(outFile.path, svgFileNameNoExt)
 			widthDefault = 100
 			width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
-			replace = `\incSvg{` + svgFileNameNoExt + `}{` + options["width"] + `}{` +
+			replace = `\incSvg{` + svgFileNameNoExt + `}{` + width + `}{` +
 				options["trimLeft"] + `}{` + options["trimBottom"] + `}{` +
 				options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
 			tmpStr = "file-open:" + fullPathFileNameNoExt + ".svg; export-filename:" + fullPathFileNameNoExt + ".pdf; export-do; "
