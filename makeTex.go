@@ -212,6 +212,7 @@ func changeDollarDelimiters(inString string) (outString string) {
 
 // recall... with string="1234" has len(string)=4
 // first char is string[0:1] while first 3 char are string[0:3]
+
 // breaks string into normal strings and equation strings and indicates with strEqn.eqn
 // inStrSlice.eqn = 0, 1, or 2.  0 no eqn: 1 is inline eqn: 2 is non-inline eqn
 func findEqn(inString string) (inStrSlice []strEqn, logOut string) {
@@ -228,15 +229,23 @@ func findEqn(inString string) (inStrSlice []strEqn, logOut string) {
 		tmpStr = inString[i-1 : i+2]
 		switch {
 		case tmpStr[0:1] != "\\" && tmpStr[1:2] == "$" && tmpStr[2:3] != "$":
-			eqnNum = 1
+			eqnNum = 1           // found start of an inline equation
 			if i > phraseEnd+1 { // found a non-equation string so write it to inStrSlice
 				temp.partial = inString[phraseEnd+1 : i]
 				temp.eqn = 0
 				inStrSlice = append(inStrSlice, temp)
 			}
-			// now look for end of equation
+			// now look for end of inline equation
 			for j := i + 1; j < len(inString); j++ {
 				tmpStr = inString[j-1 : j+1]
+				if j == len(inString)-1 { // got to end of line without finding end of equation
+					temp.partial = inString[i : j+1]
+					temp.eqn = 1
+					inStrSlice = append(inStrSlice, temp)
+					phraseEnd = j
+					i = phraseEnd
+					break
+				}
 				if tmpStr[0:1] != "\\" && tmpStr[1:2] == "$" { // found end of equation
 					eqnNum = 0
 					temp.partial = inString[i : j+1]
@@ -248,16 +257,24 @@ func findEqn(inString string) (inStrSlice []strEqn, logOut string) {
 				}
 			}
 		case tmpStr[0:1] != "\\" && tmpStr[1:2] == "$" && tmpStr[2:3] == "$":
-			eqnNum = 2
+			eqnNum = 2           // found start of a non-inline equation
 			if i > phraseEnd+1 { // found a non-equation string so write it to inStrSlice
 				temp.partial = inString[phraseEnd+1 : i]
 				temp.eqn = 0
 				inStrSlice = append(inStrSlice, temp)
 			}
 			i++
-			// now look for end of equation
-			for j := i + 1; j < len(inString); j++ {
+			// now look for end of non-inline equation
+			for j := i + 1; j < len(inString)-1; j++ {
 				tmpStr = inString[j-1 : j+2]
+				if j == len(inString)-2 { // got to end of line without finding end of equation
+					temp.partial = inString[i-1 : j+2]
+					temp.eqn = 2
+					inStrSlice = append(inStrSlice, temp)
+					phraseEnd = j + 1
+					i = phraseEnd
+					break
+				}
 				if tmpStr[0:1] != "\\" && tmpStr[1:2] == "$" && tmpStr[2:3] == "$" { // found end of equation
 					eqnNum = 0
 					temp.partial = inString[i-1 : j+2]
