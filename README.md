@@ -12,8 +12,6 @@ Why should I use this app?
 Versions
 --------
 - Available for MacOS, Linux and Windows
-- Binaries located at [https://www.icewire.ca/downloads.html](https://www.icewire.ca/downloads.html)
-- A docker container with icemaker, inkscape and latex is at [https://hub.docker.com/r/icewire314/latexinkice](https://hub.docker.com/r/icewire314/latexinkice)
 
 Quick Setup
 -----------
@@ -32,12 +30,6 @@ chmod 755 problem2tex
 - Windows
 
 Similar to MacOS/Linux above but with Windows commands
-
-Website/Documentation
--------------
-- [https://www.icewire.ca](https://www.icewire.ca)
-- [https://www.icewire.ca/icemaker.pdf](https://www.icewire.ca/icemaker.pdf)
-- [https://github.com/icewire314/latexinkice-docker](https://github.com/icewire314/latexinkice-docker) A docker container with icemaker, Inkscape and Latex
 
 License
 -------
