@@ -1,8 +1,0 @@
-CONFIG{verbose=true}
-PARAM{V_1 = [2, 3, 4, 5]# UNITS{V}}
-PARAM{R_1 = [6, 7, 8, 9]# UNITS{k \Omega}}
-Given VAL{V_1,=} and VAL{R_1,=}, find the current  $I_R = V_1/R_1$
-
-Solution:
-RUN(){I_R=V_1/R_1#UNITS{A}}
-VAL{I_R,=}

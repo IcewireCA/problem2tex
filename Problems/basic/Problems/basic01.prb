@@ -1,8 +1,0 @@
-PARAM{x = [2, 3, 4, 5]}
-PARAM{y = [6, 7, 8, 9] }
-PARAM{k = [8]}
-Given VAL{x,=}, VAL{y,=}, and VAL{k,=} find $z = x^2+y-k$
-
-Solution:
-RUN(){z=x^2+y-k}
-VAL{z,=}

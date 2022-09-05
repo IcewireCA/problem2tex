@@ -1,9 +1,0 @@
-PARAM{I_D=[3.4e-6]#units=A}
-
-
-An equation is $E=MC^2$
-
-SVG figure is svg figure
-INCLUDE{currMirror01a.svg#scale=0.5}
-
-
