@@ -1,0 +1,47 @@
+# Created with problem2tex: version = 0.9.13 (2022-08-17)
+
+#+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
+#+OPTIONS: html-postamble:nil num:nil
+#+HTML_MATHJAX: path: https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_SVG
+#+HTML_HEAD: <script type="text/javascript" src="fix_svg_mathjax.js"></script>
+An NMOS transistor is operated with a small $v_{DS}$ voltage in the triode region and the drain source resistance is measured to be $r_{DS}$. What will be the new $r'_{DS}$ under each of the following situations? (give $r'_{DS}$ relationship to $r_{DS}$).
+
+Assume the only change is the one(s) discussed in each situation.
+
+(a) The overdrive voltage is increased by a factor of $1.5$.
+
+(b) The transistor width is increased by a factor of $1.8$.
+
+(c) The transistor width and length are both increased by a factor of $3$.
+
+(d) The transistor gate oxide thickness is reduced by a factor of $2$.
+
+-----
+* Solution
+
+For a small $v_{DS}$ voltage, the transistor is in triode and the drain-to-source resistance, $r_{DS}$, can be approximated by
+$$r_{ds}=\frac{1}{\mu_nC_{ox}(W/L)V_{OV}}$$
+(a) If $V'_{OV}=1.5V_{OV}$, then $\bbox[yellow]{r'_{DS}=r_{DS}/1.5}$
+
+(b) If $W'=1.8W$, then $\bbox[yellow]{r'_{DS}=r_{DS}/1.8}$
+
+(c) If $W'=3W$ and $L'=3L$, then $\bbox[yellow]{r'_{DS}=r_{DS}}$
+
+(d) If the oxide thickness $t`_{ox}=t_{ox}/2$, then $C_{ox}=\epsilon_{ox}/t_{ox}$ is multiplied by $2$ resulting in $\bbox[yellow]{r'_{DS}=r_{DS}/2}$
+
+-----
+
+
+-----
+* Answer
+
+(a) $r'_{DS}=r_{DS}/1.5$ \\
+(b) $r'_{DS}=r_{DS}/1.8$ \\
+(c) $r'_{DS}=r_{DS}$ \\
+(d) $r'_{DS}=r_{DS}/2$
+
+-----
+
+
+
+
