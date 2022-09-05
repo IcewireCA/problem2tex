@@ -1,0 +1,47 @@
+CONFIG{defaultUnits = [[iI:A][vV:V][rR:\Omega]]}
+PARAM{k_ov=1.5}
+PARAM{k_w = 1.8}
+PARAM{k_wl=3}
+PARAM{k_ox=2}
+An NMOS transistor is operated with a small $v_{DS}$ voltage in the triode region and the drain source resistance is measured to be $r_{DS}$. What will be the new $r'_{DS}$ under each of the following situations? (give $r'_{DS}$ relationship to $r_{DS}$).  
+
+Assume the only change is the one(s) discussed in each situation.
+
+(a) The overdrive voltage is increased by a factor of $VAL{k_ov}$.
+
+(b) The transistor width is increased by a factor of $VAL{k_w}$.
+
+(c) The transistor width and length are both increased by a factor of $VAL{k_wl}$.
+
+(d) The transistor gate oxide thickness is reduced by a factor of $VAL{k_ox}$.
+
+BEGIN{SOLUTION}
+-----
+* Solution
+
+For a small $v_{DS}$ voltage, the transistor is in triode and the drain-to-source resistance, $r_{DS}$, can be approximated by
+$$r_{ds}=\frac{1}{\mu_nC_{ox}(W/L)V_{OV}}$$
+(a) If $V'_{OV}=VAL{k_ov}V_{OV}$, then $HILITE{r'_{DS}=r_{DS}/VAL{k_ov}}$
+
+(b) If $W'=VAL{k_w}W$, then $HILITE{r'_{DS}=r_{DS}/VAL{k_w}}$
+
+(c) If $W'=VAL{k_wl}W$ and $L'=VAL{k_wl}L$, then $HILITE{r'_{DS}=r_{DS}}$
+
+(d) If the oxide thickness $t`_{ox}=t_{ox}/VAL{k_ox}$, then $C_{ox}=\epsilon_{ox}/t_{ox}$ is multiplied by $VAL{k_ox}$ resulting in $HILITE{r'_{DS}=r_{DS}/VAL{k_ox}}$
+
+-----
+END{SOLUTION}
+
+
+BEGIN{ANSWER}
+-----
+* Answer
+
+(a) $r'_{DS}=r_{DS}/VAL{k_ov}$ \\
+(b) $r'_{DS}=r_{DS}/VAL{k_w}$ \\
+(c) $r'_{DS}=r_{DS}$ \\
+(d) $r'_{DS}=r_{DS}/VAL{k_ox}$
+
+-----
+END{ANSWER}
+

@@ -1,0 +1,306 @@
+CONFIG{defaultUnits = [[iI:A][vV:V][rR:\Omega]]}
+* Mosfet Transistors
+* Large Signal Modeling and DC Analysis
+** David Johns
+-------
+When studying transistors, there are 2 main analysis
+methods used: 
+
+(1) Large signal analysis\\
+(2) Small signal analysis
+
+Large signal analysis is used when the voltage/current values
+changes are large such that the non-linear behavior of the transistor
+must be accounted for. Large signal analysis is mainly used for finding
+the bias conditions of a circuit.  The bias condition of a circuit is 
+the set of voltage/current values that occur in a circuit when all input
+signals are set to a fixed dc value.  For example, if the circuit is a microphone amplifier, then the dc bias conditions for that amplifier is 
+the set of voltage/current values for that amplifier when there is no
+audio signal on the microphone. 
+
+Small signal analysis is used when one wants to ignore the non-linear
+behaviour of the transistor and instead 
+look at variations in 
+the voltage/current values from their bias conditions. As an example, this is useful when looking at how a microphone amplifier responds to a small audio signal.
+
+This summary will go over the large signal models that 
+are used for large signal analysis for Mosfet transistors
+as well as dc bias analysis.
+
+* NMOS and PMOS Mosfet transistors
+Mosfet transistor are 4 terminal devices.  Their terminals are
+
+- Drain (D)\\
+- Gate (G)\\
+- Source (S)\\
+- Bulk (B)
+
+The bulk terminal is also referred to as the substrate terminal.
+
+While Mosfet transistors have 4 terminals, in this summary, we will
+assume the bulk and source terminals are connected together so that we
+can treat the transistor as a 3 terminal device: Drain, Gate and Source.
+
+There are 2 main types of Mosfet transistors - NMOS and PMOS.
+
+For both NMOS and PMOS transistors, the drain/source terminals are built 
+the same way and which terminal is the source is determined by the voltage
+potential.  For NMOS transistors, the source is the drain/source terminal with the lower voltage.  For PMOS transistors, the source is the drain/source terminal with the higher voltage.
+
+NMOS transistors turn on when the gate-source voltage is higher than the
+NMOS positive threshold voltage.  
+
+On the other hand, PMOS transistors turn on when the gate-source voltage is more negative than the PMOS negative threshold voltage.
+
+Below is the symbols for NMOS and PMOS transistors (recall the bulk is connected to the source so the bulk terminal is not shown)
+
+INCLUDE{summLarge_transistors.asc}
+
+Note that we have shown the NMOS source terminal to be at the bottom (since it is the lower voltage of the drain/source terminals) while the PMOS source terminal is shown at the top (since it is the higher voltage of the drain/source terminals).  In this way, the drain current, $I_D$, is positive and the drain current flows into the drain for an NMOS transistor while the drain current flows out of the drain for a PMOS transistor.
+
+For the NMOS transistor, $V_{GS}$ is generally positive while $V_{DS}$ is always positive (since we have defined the source to be the drain/source terminal with the lower voltage).
+
+For the PMOS transistor, $V_{SG}$ is used and it is usually positive while $V_{SD}$ is always positive (since we have defined the source to be the drain/source terminal with the higher voltage).
+
+For both NMOS and PMOS transistors, the gate is insulated from the channel of the transistor resulting in the current going into the gate, $I_G=0$
+
+$$HILITE{I_G=0}$$
+
+Since the gate current equals zero, the source current equals the gate current so we have 
+
+$$HILITE{I_D=I_S}$$
+
+* Mosfet Parameters
+
+- $V_{tn}$: NMOS threshold voltage. $V_{tn}>0$ \\
+- $V_{tn}$: PMOS threshold voltage. $V_{tp}<0$ \\
+- $\mu_n, \mu_p$: electron mobility and hole mobility\\
+- $C_{ox}$: gate capacitance per unit area (typically the same for NMOS and PMOS transistors)\\
+- $W$: width of the transistor\\
+- $L$: length of the transistor\\
+- $\lambda_n$: NMOS channel length modulation parameter. $\lambda_n>0$ \\
+- $\lambda_p$: PMOS channel length modulation parameter. $\lambda_p<0$
+
+In an ideal transistor, $\lambda = 0$ so that the drain current is not a function of $V_{DS}$ when the transistor is in the active region.
+
+* NMOS Large Signal Model
+The overdrive voltage, $V_{ov}$, is defined to be the amount of voltage that $V_{GS}$ is above the threshold voltage, $V_{tn}$. It is a useful value as it makes the equations slightly simpler and it gives an indication of how strongly the transistor is switched on.  
+$$HILITE{V_{ov} \equiv V_{GS}-V_{tn}}$$
+** Cutoff Region (NMOS)
+Condition: $V_{GS} \leq V_{tn}$
+$$HILITE{I_D=0}$$
+
+** Triode Region (NMOS)
+Conditions: $V_{GS} \geq V_{tn}$, $V_{DS} \leq V_{ov}$
+$$HILITE{I_D=\mu_nC_{ox}(W/L)(V_{ov}-V_{DS}/2)V_{DS}}$$
+Note that $I_D \ge 0$
+
+** Active Region (Saturation Region) (NMOS)
+Conditions: $V_{GS} \geq V_{tn}$, $V_{DS} \geq V_{ov}$
+$$HILITE{I_D=\left(\frac{\mu_nC_{ox}}{2}\right)\left(\frac{W}{L}\right)V_{ov}^2(1+\lambda_n V'_{DS})}\quad(V'_{DS}=V_{DS}-V_{ov})$$
+Note that $I_D \ge 0$
+
+A plot of $I_D$ vs $V_{DS}$ for various $V_{GS}$ values is shown below when the transistor is in triode and active regions.  
+
+For this example: $V_{tn}=0.3V$; $\mu_nC_{ox} = 240 \mu A/V^2$; $W/L=100$; $\lambda_n = 0.1 mA/V$ 
+
+INCLUDE{summLarge_idVds.svg}
+
+* PMOS Large Signal Model
+It is possible to use negative voltages such as $V_{GS}$ and $V_{DS}$ for PMOS transistors but the approach taken here is to use positive voltages so that the equations operate similar to those for an NMOS transistor.
+
+The overdrive voltage, $V_{ov}$, is defined to be the amount of voltage that $V_{SG}$ is above the magnitude of the threshold voltage, $|V_{tp}|$. 
+$$HILITE{V_{ov} \equiv V_{SG}-|V_{tp}|}$$
+** Cutoff Region (PMOS)
+Condition: $V_{SG} \leq |V_{tp}|$
+$$HILITE{I_D=0}$$
+
+** Triode Region (PMOS)
+Conditions: $V_{SG} \geq |V_{tp}|$, $V_{SD} \leq V_{ov}$
+$$HILITE{I_D=\mu_pC_{ox}(W/L)(V_{ov}-V_{SD}/2)V_{SD}}$$
+Note that $I_D \ge 0$
+
+** Active Region (Saturation Region) (PMOS)
+Conditions: $V_{SG} \geq |V_{tn}|$, $V_{SD} \geq V_{ov}$
+$$HILITE{I_D=\left(\frac{\mu_pC_{ox}}{2}\right)\left(\frac{W}{L}\right)V_{ov}^2(1+|\lambda_p| V'_{SD})}\quad(V'_{SD}=V_{SD}-V_{ov})$$
+Note that $I_D \ge 0$
+
+A plot of $I_D$ vs $V_{SD}$ looks the same as the NMOS plot except that the horizontal axis becomes $V_{SD}$ and various $V_{SG}$ values are plotted as shown below.
+
+For this example: $V_{tp}=-0.3V$; $\mu_pC_{ox} = 240 \mu A/V^2$; $W/L=100$; $\lambda_p = -0.1 mA/V$ 
+
+INCLUDE{summLargeP_idVds.svg}
+
+* Finding the DC operating point
+
+Finding the DC operation point is done quite differently between software simulation (like spice) and hand analysis.  
+
+In a simulation, roots are found for non-linear equations that model the transistor over all the regions of operation.  The simulator will take an iterative approach to find the roots.
+
+With hand analysis, we have different equations depending on what region of operation the transistor is in: cutoff, triode or active.  So we need to know what operationg region the transistor is in but we don't know which region the transistor is in until we do our analysis.  The solution to this small paradox is to GUESS a region of operation, do hand analysis and see if the results are consistent with the transistor being in that operating region. So our approach is
+
+1. Guess a set of operating regions for each transistor
+
+2. Perform hand analysis
+
+3. Check to see if results agree that the transistors are in the guessed operating regions.
+
+4. If the results do not agree, guess another set of operating regions for each transistor.
+
+Fortunately, for most analog circuits, the operating region of the transistors are usually in either the cutoff or active region.  As a result, we normally make our first guess that the transistor is in the active region, and our second guess is the cutoff region. If both fail to give consistent results, we move on to the triode region.
+
+** Often set $\lambda = 0$ for DC bias hand analysis
+
+When performing hand analysis (as opposed to simulation), it is common practice to set $\lambda = 0$ when finding the DC bias conditions. By setting $\lambda = 0$, the analysis is significantly simplfied and the error is generally small.  However, during small-signal analysis, it is generally important to not make this simplification as there are many cases where this simplification will lead to gross errors.
+
+-------
+
+** DC bias example 1
+PARAM{V_tn=0.3}
+PARAM{munCox=240#units=\mu A/V^2 ,symbol=\mu_nC_{ox}}
+PARAM{W=1#units=\mu m}
+PARAM{L=0.1#units=\mu m}
+PARAM{lambda_n=0.1#units=A/V,symbol=\lambda_n}
+PARAM{V_DD=2}
+PARAM{V_SS=0}
+PARAM{R_S=1e3}
+PARAM{R_D=1e3}
+
+Find $V_S$, $V_{GS}$, $V_{DS}$ and $I_{D}$ for the circuit below.
+
+INCLUDE{summLarge_ex01.asc#trimTop=-2}
+
+Assume the transistor is in the active region.  To be in the active region, $V_{GS}\ge VAL{V_tn}$.  Since the gate is at 0V (due to the ground connection), the source must be below 0V which means the current through $R_S$ is flowing up to the source resulting in $I_S<0$.  However, for the transistor to be in the active region, $I_D\ge 0$ and also $I_D=I_S$ all the time for a Mosfet transistor.  $I_S$ can not be both greater than 0 and less than zero, so we have a contradiction and the transistor is NOT in the active region.
+
+RUN{V_GS=0-V_SS#fmt=silent}
+RUN{V_S=V_SS#fmt=silent}
+RUN{V_D=V_DD#fmt=silent}
+RUN{V_DS=V_D-V_S#fmt=silent}
+
+
+Assume the transistor is in the cutoff region which means $I_D=0$.  Since $I_D=I_S=0$, then $VAL{V_S,=}$, $VAL{V_D,=}$, and $VAL{V_GS,=}$. There is no contradiction here, so our assumption that the transistor is in cutoff is correct. The final results are... 
+
+$VAL{V_S,=}$, $VAL{V_GS,=}$, $VAL{V_DS,=}$ and $I_D=0A$.  
+
+-------
+
+** DC bias example 2
+PARAM{V_tn=0.3}
+PARAM{munCox=240#units=\mu A/V^2 ,symbol=\mu_nC_{ox}}
+PARAM{W=1#units=\mu m}
+PARAM{L=0.1#units=\mu m}
+PARAM{lambda_n=0.1#units=A/V,symbol=\lambda_n}
+PARAM{V_DD=2}
+PARAM{V_SS=-2}
+PARAM{R_S=1e3}
+PARAM{R_D=1e3}
+
+Find $V_S$, $V_{GS}$, $V_{DS}$ and $I_{D}$ for the circuit below.
+
+INCLUDE{summLarge_ex02.asc#trimTop=-2}
+
+Assume the transistor is in the active region and also let $\lambda_n = 0$ as discussed above.  Recall $V_{GS}=V_{ov}+V_{tn}$. We have 2 equations
+$$I_S= \frac{-(V_{ov}+V_{tn})-(V_{SS})}{R_S}$$
+$$I_S=I_D=0.5\mu_nC_{ox}(W/L)(V_{ov})^2$$
+Putting in values, we have
+RUN{k1=(-V_tn-V_SS)/R_S#fmt=silent}
+RUN{k2=(1)/R_S#fmt=silent}
+RUN{k3=0.5*munCox*(W/L)#fmt=silent}
+$$I_S= VAL{k1,D5}-VAL{k2,D5}V_{ov}$$
+$$I_S=VAL{k3,D5}V_{ov}^2$$
+and combining the above 2 equations and rearranging we have
+RUN{b=k2/k3#fmt=silent}
+RUN{c=-k1/k3#fmt=silent}
+RUN{cm=-c#fmt=silent}
+$$V_{ov}^2+VAL{b,D4}V_{ov}-VAL{cm,D4}=0$$
+The above is a quadratic equation of the form $ax^2+bx+c=0$.  The roots of a quadratic equation are found to be 
+$$x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}$$
+RUN{V_ov=(-b+sqrt(b^2-4*c))/2#fmt=silent}
+RUN{V_ovm=(-b-sqrt(b^2-4*c))/2#fmt=silent}
+Using the above quadratic equation solution results in 2 values for $V_{ov}$: $VAL{V_ov}$ and $VAL{V_ovm}$.  However, we know that $V_{ov}>0$ so the solution is $VAL{V_ov,=}$.
+
+$RUN{V_GS=V_ov+V_tn}$
+
+$RUN{I_D=k3*(V_ov)^2}$
+
+Now we need to check that $V_{DS}\ge V_{ov}$ to ensure the device is in the active region.  
+
+$RUN{V_S=-V_GS}$
+
+$RUN{V_D=V_DD-I_D*R_D}$
+
+$RUN{V_DS=V_D-V_S}$
+
+So $VAL{V_DS,=}$ is indeed greater than $VAL{V_ov,=}$
+
+So everything is consistent with $M_1$ being in the active region and the final results are:
+
+$VAL{V_S,=}$, $VAL{V_GS,=}$, $VAL{V_DS,=}$ and $VAL{I_D,=}$.
+
+-------
+
+** DC bias example 3
+PARAM{V_tn=0.3}
+PARAM{munCox=240#units=\mu A/V^2 ,symbol=\mu_nC_{ox}}
+PARAM{W=1#units=\mu m}
+PARAM{L=0.1#units=\mu m}
+PARAM{lambda_n=0.1#units=A/V,symbol=\lambda_n}
+PARAM{V_DD=2}
+PARAM{V_SS=-2}
+PARAM{I_D=1e-3}
+PARAM{V_D=1}
+
+For the circuit below, choose values for $R_D$ and $R_S$ such that $VAL{I_D,=}$ and $VAL{V_D,=}$
+
+INCLUDE{summLarge_ex03.asc#trimTop=-2}
+
+Since $VAL{V_D,=}$ and $VAL{I_D,=}$, we can find the value of $R_D$ from
+
+$I_D=(V_{DD}-V_D)/R_D$
+
+$RUN{R_D=(V_DD-V_D)/I_D}$
+
+To find $R_S$, we first find $V_{ov}$ from the equation (assume $\lambda_n=0$ as discussed above)
+
+$I_D=0.5\mu_nC_{ox}(W/L)(V_{ov})^2$
+
+RUN{k1=0.5*munCox*W/L#fmt=silent}
+
+$VAL{I_D} = VAL{k1,D5}V_{ov}^2$
+
+RUN{V_ov=sqrt(I_D/k1)#fmt=silent}
+
+$V_{ov}=\sqrt{VAL{I_D}/VAL{k1}}=VAL{V_ov}$
+
+(We take the positive root since $V_{ov}\ge 0$)
+
+$RUN{V_GS=V_ov+V_tn}$
+
+RUN{V_S=0-V_GS#fmt=silent}
+
+and since $V_G=0$ then $VAL{V_S,=}$
+
+So now we can find $R_S$ from
+
+$I_S=I_D=(V_S-V_{SS})/R_S$
+
+$RUN{R_S=(V_S-V_SS)/I_D}$
+
+and find $V_{DS}$
+
+$RUN{V_DS=V_D-V_S}$
+
+As a final check, we find $VAL{V_DS,=}$ and $VAL{V_ov,=}$.
+Since $V_{DS}\ge V_{ov}$, the transistor is in the active region as was assumed so there is no contradiction. 
+
+The final results are $VAL{R_D,=}$ and $VAL{R_S,=}$
+
+We see here that this analysis was somewhat easier than example 2 since we did not have to solve a quadratic equation. The challenge with example 2 is that we had to solve for $I_D$ and $V_{ov}$ at the same time while in example 3, $I_D$ was given so finding $V_{ov}$ is straightforward.
+
+-------
+
+** DC bias example 4
+
+Find $V_S$, $V_{GS}$, $V_{DS}$ and $I_{D}$ for the circuit below.
+
+INCLUDE{summLarge_ex04.asc#trimTop=-2}
