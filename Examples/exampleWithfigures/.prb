@@ -1,0 +1,19 @@
+#+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
+#+OPTIONS: html-postamble:nil num:nil
+#+HTML_MATHJAX: path: https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_SVG
+#+HTML_HEAD: <script type="text/javascript" src="fix_svg_mathjax.js"></script>
+CONFIG{defaultUnits = [[iI:A][vV:V][rR:\Omega]]}
+* Example with Figures
+
+-------
+
+Below is the symbols for NMOS and PMOS transistors (recall the bulk is connected to the source so the bulk terminal is not shown)
+
+INCLUDE{ex01.asc#scale=0.75}
+
+A plot of $I_D$ vs $V_{DS}$ for various $V_{GS}$ values is shown below when the transistor is in triode and active regions.  
+
+For this example: $V_{tn}=0.3V$; $\mu_nC_{ox} = 240 \mu A/V^2$; $W/L=100$; $\lambda_n = 0.1 mA/V$ 
+
+INCLUDE{ex02.svg#scale=2.0}
+
