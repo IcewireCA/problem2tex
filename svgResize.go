@@ -38,7 +38,9 @@ func str2float(inString string) float64 {
 func getSvgInfo(svgIn string) (widthViewPort, heightViewPort, xmin, ymin, widthViewBox, heightViewBox float64) {
 	var result []string
 	var svgInfo string
+	var err error
 	var reSvgInfo = regexp.MustCompile(`(?msU)(?P<res1><svg.*viewBox.*>)`)
+	var reOnlyDigits = regexp.MustCompile(`(?m)[^-\.\d]`) // used to only grab digits and ignore units
 	svgInfo = reSvgInfo.FindString(svgIn)
 	if svgInfo == "" {
 		return
@@ -46,20 +48,39 @@ func getSvgInfo(svgIn string) (widthViewPort, heightViewPort, xmin, ymin, widthV
 	var reWidth = regexp.MustCompile(`(?mU)width\s*=\s*\"(?P<res1>.*)\"`)
 	if reWidth.MatchString(svgInfo) {
 		result = reWidth.FindStringSubmatch(svgInfo)
-		widthViewPort, _ = strconv.ParseFloat(result[1], 64)
+		reOnlyDigits.ReplaceAllString(result[1], "")
+		widthViewPort, err = strconv.ParseFloat(reOnlyDigits.ReplaceAllString(result[1], ""), 64)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 	var reHeight = regexp.MustCompile(`(?mU)height\s*=\s*\"(?P<res1>.*)\"`)
 	if reHeight.MatchString(svgInfo) {
 		result = reHeight.FindStringSubmatch(svgInfo)
-		heightViewPort, _ = strconv.ParseFloat(result[1], 64)
+		heightViewPort, err = strconv.ParseFloat(reOnlyDigits.ReplaceAllString(result[1], ""), 64)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 	var reViewBox = regexp.MustCompile(`(?mU)viewBox\s*=\s*\"(?P<res1>.*)\s+(?P<res2>.*)\s+(?P<res3>.*)\s+(?P<res4>.*)\"`)
 	if reViewBox.MatchString(svgInfo) {
 		result = reViewBox.FindStringSubmatch(svgInfo)
-		xmin, _ = strconv.ParseFloat(result[1], 64)
-		ymin, _ = strconv.ParseFloat(result[2], 64)
-		widthViewBox, _ = strconv.ParseFloat(result[3], 64)
-		heightViewBox, _ = strconv.ParseFloat(result[4], 64)
+		xmin, err = strconv.ParseFloat(reOnlyDigits.ReplaceAllString(result[1], ""), 64)
+		if err != nil {
+			fmt.Println(err)
+		}
+		ymin, err = strconv.ParseFloat(reOnlyDigits.ReplaceAllString(result[2], ""), 64)
+		if err != nil {
+			fmt.Println(err)
+		}
+		widthViewBox, err = strconv.ParseFloat(reOnlyDigits.ReplaceAllString(result[3], ""), 64)
+		if err != nil {
+			fmt.Println(err)
+		}
+		heightViewBox, err = strconv.ParseFloat(reOnlyDigits.ReplaceAllString(result[4], ""), 64)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 	return
 }
