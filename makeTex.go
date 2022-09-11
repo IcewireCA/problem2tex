@@ -38,14 +38,20 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 `
-	orgBegSol := `* Solution
+	orgBegSol := `
+-----
+* Solution
 :PROPERTIES:
 :CUSTOM_ID: problem-solution
-:END:`
-	orgBegAns := `* Answer
+:END:
+`
+	orgBegAns := `
+-----
+* Answer
 :PROPERTIES:
 :CUSTOM_ID: problem-answer
-:END:`
+:END:
+`
 
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
