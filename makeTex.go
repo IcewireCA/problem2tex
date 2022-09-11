@@ -36,6 +36,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 
 	orgHeader := `
 #+OPTIONS: toc:nil
+#+OPTIONS: num:nil
 `
 	orgBegSol := `* Solution
 :PROPERTIES:
