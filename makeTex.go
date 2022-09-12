@@ -146,12 +146,20 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		}
 		texOut = reEndSol.ReplaceAllString(texOut, "")
 		texOut = reEndAns.ReplaceAllString(texOut, "")
-	case "flagAnswer": // get rid of solution
+	case "flagAnswer": // get rid of solution and answer commands
+		var reBegAns = regexp.MustCompile(`(?mU)^\s*BEGIN{ANSWER}`)
+		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
 		var reSol = regexp.MustCompile(`(?msU)^\s*BEGIN{SOLUTION}.*^\s*END{SOLUTION}\s*\n`)
 		texOut = reSol.ReplaceAllString(texOut, "")
-	case "flagSolution": // get rid of answer
+		texOut = reBegAns.ReplaceAllString(texOut, "")
+		texOut = reEndAns.ReplaceAllString(texOut, "")
+	case "flagSolution": // get rid of answer and solution commands
+		var reBegSol = regexp.MustCompile(`(?mU)^\s*BEGIN{SOLUTION}`)
+		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reAns = regexp.MustCompile(`(?msU)^\s*BEGIN{ANSWER}.*^\s*END{ANSWER}\s*\n`)
 		texOut = reAns.ReplaceAllString(texOut, "")
+		texOut = reBegSol.ReplaceAllString(texOut, "")
+		texOut = reEndSol.ReplaceAllString(texOut, "")
 	default:
 		errorHeader = errorHeader + "ERROR: " + outFlag + " is not a valid outFlag parameter\n"
 	}
