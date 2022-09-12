@@ -35,8 +35,8 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
 
 	orgHeader := `
-#+OPTIONS: toc:nil
-#+OPTIONS: num:nil
+#+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
+#+OPTIONS: html-postamble:nil num:nil
 `
 	orgBegSol := `
 -----
@@ -89,6 +89,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	switch outFile.ext {
 	case ".org":
 		commentSymbol = "# "
+		texOut = orgHeader + "\n"
 	case ".tex":
 		commentSymbol = "% "
 	default: // should never be here
@@ -99,7 +100,6 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
 		switch outFile.ext {
 		case ".org":
-			texOut = texOut + orgHeader + "\n"
 			if reOrgComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
 				texOut = texOut + inLine + "\n"
 				continue
@@ -135,8 +135,15 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reBegAns = regexp.MustCompile(`(?mU)^\s*BEGIN{ANSWER}`)
 		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
-		texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
-		texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
+		switch outFile.ext {
+		case ".org":
+			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
+			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
+		case ".tex":
+			texOut = reBegSol.ReplaceAllString(texOut, "")
+			texOut = reBegAns.ReplaceAllString(texOut, "")
+		default: // should never be here
+		}
 		texOut = reEndSol.ReplaceAllString(texOut, "")
 		texOut = reEndAns.ReplaceAllString(texOut, "")
 	case "flagAnswer": // get rid of solution
