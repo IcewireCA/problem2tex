@@ -34,6 +34,25 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	var svgList []string // list of all svg files that need inkscape to make pdf and pdf_tex files
 	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
 
+	orgHeader := `
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+`
+	orgBegSol := `
+-----
+* Solution
+:PROPERTIES:
+:CUSTOM_ID: problem-solution
+:END:
+`
+	orgBegAns := `
+-----
+* Answer
+:PROPERTIES:
+:CUSTOM_ID: problem-answer
+:END:
+`
+
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
 	// these are configuration parameters
@@ -80,6 +99,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
 		switch outFile.ext {
 		case ".org":
+			texOut = texOut + orgHeader + "\n"
 			if reOrgComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
 				texOut = texOut + inLine + "\n"
 				continue
@@ -115,8 +135,8 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reBegAns = regexp.MustCompile(`(?mU)^\s*BEGIN{ANSWER}`)
 		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
-		texOut = reBegSol.ReplaceAllString(texOut, "")
-		texOut = reBegAns.ReplaceAllString(texOut, "")
+		texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
+		texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
 		texOut = reEndSol.ReplaceAllString(texOut, "")
 		texOut = reEndAns.ReplaceAllString(texOut, "")
 	case "flagAnswer": // get rid of solution
