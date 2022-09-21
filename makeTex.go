@@ -34,6 +34,25 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	var svgList []string // list of all svg files that need inkscape to make pdf and pdf_tex files
 	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
 
+	orgHeader := `
+#+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
+#+OPTIONS: html-postamble:nil num:nil
+`
+	orgBegSol := `
+-----
+* Solution
+:PROPERTIES:
+:CUSTOM_ID: problem-solution
+:END:
+`
+	orgBegAns := `
+-----
+* Answer
+:PROPERTIES:
+:CUSTOM_ID: problem-answer
+:END:
+`
+
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
 	// these are configuration parameters
@@ -70,6 +89,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	switch outFile.ext {
 	case ".org":
 		commentSymbol = "# "
+		texOut = orgHeader + "\n"
 	case ".tex":
 		commentSymbol = "% "
 	default: // should never be here
@@ -115,16 +135,31 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reBegAns = regexp.MustCompile(`(?mU)^\s*BEGIN{ANSWER}`)
 		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
-		texOut = reBegSol.ReplaceAllString(texOut, "")
-		texOut = reBegAns.ReplaceAllString(texOut, "")
+		switch outFile.ext {
+		case ".org":
+			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
+			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
+		case ".tex":
+			texOut = reBegSol.ReplaceAllString(texOut, "")
+			texOut = reBegAns.ReplaceAllString(texOut, "")
+		default: // should never be here
+		}
 		texOut = reEndSol.ReplaceAllString(texOut, "")
 		texOut = reEndAns.ReplaceAllString(texOut, "")
-	case "flagAnswer": // get rid of solution
+	case "flagAnswer": // get rid of solution and answer commands
+		var reBegAns = regexp.MustCompile(`(?mU)^\s*BEGIN{ANSWER}`)
+		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
 		var reSol = regexp.MustCompile(`(?msU)^\s*BEGIN{SOLUTION}.*^\s*END{SOLUTION}\s*\n`)
 		texOut = reSol.ReplaceAllString(texOut, "")
-	case "flagSolution": // get rid of answer
+		texOut = reBegAns.ReplaceAllString(texOut, "")
+		texOut = reEndAns.ReplaceAllString(texOut, "")
+	case "flagSolution": // get rid of answer and solution commands
+		var reBegSol = regexp.MustCompile(`(?mU)^\s*BEGIN{SOLUTION}`)
+		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reAns = regexp.MustCompile(`(?msU)^\s*BEGIN{ANSWER}.*^\s*END{ANSWER}\s*\n`)
 		texOut = reAns.ReplaceAllString(texOut, "")
+		texOut = reBegSol.ReplaceAllString(texOut, "")
+		texOut = reEndSol.ReplaceAllString(texOut, "")
 	default:
 		errorHeader = errorHeader + "ERROR: " + outFlag + " is not a valid outFlag parameter\n"
 	}

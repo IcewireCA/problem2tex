@@ -25,12 +25,12 @@
 \newcommand{\units}{\,\mathrm}
 \newcommand{\skipLine}{\\[0ex]}
   
-\title{\color{blue}\texttt{problem2tex} \\ \normalsize{version = 0.9.0 (2022-02-17)}}
+\title{\color{blue}\texttt{problem2tex} \\ \normalsize{version = 0.9.14 (2022-09-06)}}
 
 \author{
 David Johns, \\ \texttt{david.johns@icewire.ca}
 }
-\date{Document Date - 2022-02-17}
+\date{Document Date - 2022-09-06}
 
 \begin{document}
 
@@ -199,13 +199,15 @@ Each carriage return in the .prb file results in a new paragraph. However, the s
 
 \section{Commands for .prb files}
 
-There are 5 commands for problem to tex:
+There are 7 commands for problem to tex:
 \begin{itemize}
 \item CONFIG\{\}
 \item PARAM\{\}
 \item RUN\{\}
 \item VAL\{\}
 \item INCLUDE\{\}
+\item BEGIN\{\} and END\{\}
+\item HILITE\{\}
 \end{itemize}
 
 \subsection{CONFIG Command}
