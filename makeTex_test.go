@@ -57,7 +57,7 @@ func TestGetAllOptions(t *testing.T) {
 	}
 	var addTests = []addTest{ // set of tests
 		addTest{"scale=1.0, units=\\muA/V", []option{option{name: "scale", value: "1.0"}, option{name: "units", value: "\\muA/V"}}},
-		addTest{"scale= 1.0,  symbol=V_{h\\,o}", []option{option{name: "scale", value: "1.0"}, option{name: "symbol", value: "V_{h\\,o}"}}},
+		addTest{"scale= 1.0,  symbol=V_{h\\,o}", []option{option{name: "scale", value: "1.0"}, option{name: "symbol", value: "V_{h,o}"}}},
 		addTest{" ", []option{}},
 		addTest{"fred,  h=3, harry", []option{option{name: "fred", value: "true"}, option{name: "h", value: "3"}, option{name: "harry", value: "true"}}},
 	}
