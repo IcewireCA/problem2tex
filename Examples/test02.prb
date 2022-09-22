@@ -1,0 +1,8 @@
+CONFIG{defaultUnits = [[iI:A][vV:V][rR:\Omega]]}
+PARAM{I_1=2}
+PARAM{V_1=2}
+PARAM{R_1=3}
+PARAM{R_2=6}
+PARAM{R_3=6}
+
+INCLUDE{nortonThev01.asc#scale=1.0, trimTop=-3, trimBottom=0, textScale=1.0}
