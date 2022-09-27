@@ -96,7 +96,6 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		commentSymbol = "% "
 	default: // should never be here
 	}
-	texOut = texOut + "some words here\n"
 	errorHeader = commentSymbol + "Created with problem2tex: version = " + version + "\n\n"
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
