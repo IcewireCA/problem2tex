@@ -26,6 +26,7 @@ type strEqn struct {
 func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile fileInfo) (string, string) {
 	var inLines []string
 	var inLine string
+	var verbatim bool
 	var logOut, errorHeader, commentSymbol string
 	var texOut, fileRunInkscape string
 	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
@@ -86,6 +87,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	// for key = range configParam {
 	// 	fmt.Println(configParam[key])
 	// }
+	verbatim = false
 	switch outFile.ext {
 	case ".org":
 		commentSymbol = "# "
@@ -94,10 +96,27 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		commentSymbol = "% "
 	default: // should never be here
 	}
+	texOut = texOut + "some words here\n"
 	errorHeader = commentSymbol + "Created with problem2tex: version = " + version + "\n\n"
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
 		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
+		switch inLine {
+		case "#+BEGIN_EXAMPLE":
+			verbatim = true
+			texOut = texOut + inLine + "\n"
+			continue // skip to end of for lines and continue
+			// different than break... break ends for loop
+		case "#+END_EXAMPLE":
+			verbatim = false
+			texOut = texOut + inLine + "\n"
+			continue // skip to end of for lines and continue
+		default:
+		}
+		if verbatim { // if true we are in verbatim mode so just skip the lines til out of verbatim
+			texOut = texOut + inLine + "\n"
+			continue
+		}
 		switch outFile.ext {
 		case ".org":
 			if reOrgComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
@@ -350,6 +369,12 @@ func org2texFix(inString string) (outString string) {
 	outString = reFindSubSubSectionHead.ReplaceAllString(outString, "\\subsubsection*{$res1}")
 	var reHorizLine = regexp.MustCompile(`(?m)^-----.*`)
 	outString = reHorizLine.ReplaceAllString(outString, "\\noindent\\rule{\\textwidth}{1pt}")
+	var reSkipLine = regexp.MustCompile(`(?m)^\s*\\\\\s*$`)
+	outString = reSkipLine.ReplaceAllString(outString, "\n\\vspace{\\baselineskip}\n")
+	var reBegVerb = regexp.MustCompile(`(?m)^\#\+BEGIN_EXAMPLE$`)
+	outString = reBegVerb.ReplaceAllString(outString, "\\begin{verbatim}")
+	var reEndVerb = regexp.MustCompile(`(?m)^\#\+END_EXAMPLE$`)
+	outString = reEndVerb.ReplaceAllString(outString, "\\end{verbatim}")
 	return
 }
 
