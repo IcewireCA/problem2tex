@@ -53,6 +53,12 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 :CUSTOM_ID: problem-answer
 :END:
 `
+	texBegSol := `
+\beginSolution
+`
+	texBegAns := `
+\beginAnswer
+`
 
 	// using map here as I want to be able to iterate over key names as well
 	// as looking at value for each key
@@ -158,8 +164,8 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
 			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
 		case ".tex":
-			texOut = reBegSol.ReplaceAllString(texOut, "")
-			texOut = reBegAns.ReplaceAllString(texOut, "")
+			texOut = reBegSol.ReplaceAllString(texOut, texBegSol)
+			texOut = reBegAns.ReplaceAllString(texOut, texBegAns)
 		default: // should never be here
 		}
 		texOut = reEndSol.ReplaceAllString(texOut, "")
