@@ -4,5 +4,12 @@ PARAM{V_1=2}
 PARAM{R_1=3}
 PARAM{R_2=6}
 PARAM{R_3=6}
+PARAM{V_2=3}
+Here are some words
 
-INCLUDE{nortonThev01.asc#scale=1.0, trimTop=-3, trimBottom=0, textScale=1.0}
+INCLUDE{test02a.asc#scale=1.0, trimTop=-3, trimBottom=0, textScale=1.0}
+
+and more words here
+
+INCLUDE{test02b.asc#scale=1.0, trimTop=-3, trimBottom=0, textScale=1.0}
+

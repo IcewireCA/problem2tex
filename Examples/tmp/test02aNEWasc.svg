@@ -10,8 +10,8 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
 	xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-	width = "736" height = "384"
-	viewBox="-1152 32 736 384"
+	width = "736" height = "416"
+	viewBox="-1152 0 736 416"
 	version="1.1"
 	id="svg8"
 	inkscape:version="0.92.2 5c3e80d, 2017-08-06"
@@ -218,34 +218,34 @@
 >
 <use xlink:href="#svg_voltage" x="-768" y="128" transform = "rotate(270 -768 128)" />
 </g>
-<text x="-735" y="79" style="white-space:pre;text-anchor:middle;font-size:20px;">$VAL{V_1,=}$</text>
 <g 
 >
 <use xlink:href="#svg_current" x="-976" y="160" transform = "rotate(0 -976 160)" />
 </g>
-<text x="-1017" y="183" style="white-space:pre;text-anchor:end;font-size:20px;">$I_{_1}$</text>
-<text x="-1017" y="219" style="white-space:pre;text-anchor:end;font-size:20px;">$VAL{I_1}$</text>
+<text x="-1017" y="183" style="white-space:pre;text-anchor:end;font-size:20px;">$I_1$</text>
 <g 
 >
 <use xlink:href="#svg_res" x="-848" y="160" transform = "rotate(0 -848 160)" />
 </g>
-<text x="-800" y="181" style="white-space:pre;text-anchor:start;font-size:20px;">$R_{_1}$</text>
-<text x="-801" y="216" style="white-space:pre;text-anchor:start;font-size:20px;">$1 \mathrm{ \Omega}$</text>
 <g 
 >
 <use xlink:href="#svg_res" x="-672" y="160" transform = "rotate(0 -672 160)" />
 </g>
-<text x="-623" y="179" style="white-space:pre;text-anchor:start;font-size:20px;">$R_{_3}$</text>
-<text x="-623" y="216" style="white-space:pre;text-anchor:start;font-size:20px;">$3 \mathrm{ \Omega}$</text>
 <g 
 >
 <use xlink:href="#svg_res" x="-704" y="240" transform = "rotate(90 -704 240)" />
 </g>
-<text x="-736" y="296" style="white-space:pre;text-anchor:middle;font-size:20px;">$2 \mathrm{ \Omega}$</text>
 <use xlink:href="#svg_gnd" x="-592" y="288" transform = "rotate(0 -592 288)" />
 <use xlink:href="#svg_port" x="-576" y="128" transform = "rotate(0 -576 128)" />
 <text x="-564" y="134" style="white-space:pre;text-anchor:start;font-size:20px;">A</text>
 <use xlink:href="#svg_port" x="-576" y="256" transform = "rotate(0 -576 256)" />
 <text x="-564" y="262" style="white-space:pre;text-anchor:start;font-size:20px;">B</text>
+<text x="-1016" y="214" style="white-space:pre;text-anchor:end;font-size:20px;">$2 \mathrm{ A}$</text>
+<text x="-736" y="80" style="white-space:pre;text-anchor:middle;font-size:20px;">$V_{1}=2 \mathrm{ V}$</text>
+<text x="-800" y="182" style="white-space:pre;text-anchor:start;font-size:20px;">$R_1$</text>
+<text x="-800" y="214" style="white-space:pre;text-anchor:start;font-size:20px;">$3 \mathrm{ \Omega}$</text>
+<text x="-744" y="304" style="white-space:pre;text-anchor:middle;font-size:20px;">$R_{2}=6 \mathrm{ \Omega}$</text>
+<text x="-616" y="182" style="white-space:pre;text-anchor:start;font-size:20px;">$R_3$</text>
+<text x="-616" y="214" style="white-space:pre;text-anchor:start;font-size:20px;">$6 \mathrm{ \Omega}$</text>
 </g>
 </svg>
