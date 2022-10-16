@@ -154,12 +154,12 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reAns = regexp.MustCompile(`(?msU)^\s*BEGIN{ANSWER}.*^\s*END{ANSWER}\s*\n`)
 		texOut = reSol.ReplaceAllString(texOut, "")
 		texOut = reAns.ReplaceAllString(texOut, "")
-	case "flagSolAns": // get rid of locators for solution and answer
+	case "flagSolAns": // keep all
 		var reBegSol = regexp.MustCompile(`(?mU)^\s*BEGIN{SOLUTION}`)
 		var reBegAns = regexp.MustCompile(`(?mU)^\s*BEGIN{ANSWER}`)
 		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
-		switch outFile.ext {
+		switch outFile.ext { // add headers for solution and answer
 		case ".org":
 			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
 			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
@@ -170,19 +170,31 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		}
 		texOut = reEndSol.ReplaceAllString(texOut, "")
 		texOut = reEndAns.ReplaceAllString(texOut, "")
-	case "flagAnswer": // get rid of solution and answer commands
+	case "flagAnswer": // get rid of solution
 		var reBegAns = regexp.MustCompile(`(?mU)^\s*BEGIN{ANSWER}`)
 		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
 		var reSol = regexp.MustCompile(`(?msU)^\s*BEGIN{SOLUTION}.*^\s*END{SOLUTION}\s*\n`)
 		texOut = reSol.ReplaceAllString(texOut, "")
-		texOut = reBegAns.ReplaceAllString(texOut, "")
+		switch outFile.ext { // add headers for answer
+		case ".org":
+			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
+		case ".tex":
+			texOut = reBegAns.ReplaceAllString(texOut, texBegAns)
+		default: // should never be here
+		}
 		texOut = reEndAns.ReplaceAllString(texOut, "")
-	case "flagSolution": // get rid of answer and solution commands
+	case "flagSolution": // get rid of answer
 		var reBegSol = regexp.MustCompile(`(?mU)^\s*BEGIN{SOLUTION}`)
 		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reAns = regexp.MustCompile(`(?msU)^\s*BEGIN{ANSWER}.*^\s*END{ANSWER}\s*\n`)
 		texOut = reAns.ReplaceAllString(texOut, "")
-		texOut = reBegSol.ReplaceAllString(texOut, "")
+		switch outFile.ext { // add headers for solution
+		case ".org":
+			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
+		case ".tex":
+			texOut = reBegSol.ReplaceAllString(texOut, texBegSol)
+		default: // should never be here
+		}
 		texOut = reEndSol.ReplaceAllString(texOut, "")
 	default:
 		errorHeader = errorHeader + "ERROR: " + outFlag + " is not a valid outFlag parameter\n"
