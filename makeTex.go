@@ -212,11 +212,11 @@ echo "export-latex; export-area-drawing;`
 			fileRunInkscape = fileRunInkscape + `" | inkscape --shell
 `
 			fileWriteString(fileRunInkscape, "runInkscape.sh")
-			logOut = runCommand("chmod", "+x", "runInkscape.sh")
+			logOut = runCommand("chmod", false, "+x", "runInkscape.sh")
 			if logOut != "" {
 				errorHeader = errorHeader + logOut
 			}
-			logOut = runCommand("./runInkscape.sh")
+			logOut = runCommand("./runInkscape.sh", true)
 			if logOut != "" {
 				errorHeader = errorHeader + logOut
 			}
@@ -868,9 +868,9 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 			svgFileNameNoExt = fileName + fileNameAdd + "asc"
 			svgFileName = svgFileNameNoExt + ".svg"
 			fullPathFileNameNoExt = filepath.Join(outFile.path, svgFileNameNoExt)
-			logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
+			logOut = runCommand("ltspice2svg", false, "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
 			if logOut != "" {
-				return replace, svgList, logOut
+				return logOut, svgList, logOut
 			}
 			inFileStr, logOut = fileReadString(filepath.Join(outFile.path, svgFileName))
 			if logOut != "" {
@@ -896,7 +896,7 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 		case "png", "jpg":
 			inFileName = filepath.Join(inFile.path, fileName+"."+fileExt)
 			outFileName = filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt)
-			logOut = runCommand("cp", inFileName, outFileName)
+			logOut = runCommand("cp", false, inFileName, outFileName)
 			if logOut != "" {
 				return replace, svgList, logOut
 			}
@@ -906,7 +906,7 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 			// original filename.asc becomes filenameNEW.asc in tmp then filenameNEWasc.svg in tmp
 		case "asc":
 			svgFileName = fileName + fileNameAdd + "asc.svg"
-			logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
+			logOut = runCommand("ltspice2svg", false, "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
 			if logOut != "" {
 				return replace, svgList, logOut
 			}
@@ -1042,17 +1042,28 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 // }
 
 // to run a command line instruction
-func runCommand(program string, args ...string) string {
+func runCommand(program string, onlyMainError bool, args ...string) string {
 	var out bytes.Buffer    // used for cmd.run for better output errors
 	var stderr bytes.Buffer // used for cmd.run for better output errors
 	var logOut string
+	var err error
+	var outStr, stderrStr string
 	cmd := exec.Command(program, args...)
 	//	cmd.Dir = inFile.path
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
-	err := cmd.Run()
+	err = cmd.Run()
+	outStr = out.String()
+	stderrStr = stderr.String()
 	if err != nil {
-		logOut = fmt.Sprint(fmt.Sprint(err) + ": " + stderr.String())
+		logOut = fmt.Sprint(fmt.Sprint(err))
+		return logOut
+	}
+	if onlyMainError == false {
+		if (outStr != "") || (stderrStr != "") {
+			logOut = fmt.Sprint(outStr + stderrStr)
+			return logOut
+		}
 	}
 	return logOut
 }
