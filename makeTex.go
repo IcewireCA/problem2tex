@@ -870,7 +870,7 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 			fullPathFileNameNoExt = filepath.Join(outFile.path, svgFileNameNoExt)
 			logOut = runCommand("ltspice2svg", false, "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
 			if logOut != "" {
-				return logOut, svgList, logOut
+				return "ERROR: " + logOut, svgList, logOut
 			}
 			inFileStr, logOut = fileReadString(filepath.Join(outFile.path, svgFileName))
 			if logOut != "" {
@@ -1059,9 +1059,13 @@ func runCommand(program string, onlyMainError bool, args ...string) string {
 		logOut = fmt.Sprint(fmt.Sprint(err))
 		return logOut
 	}
-	if onlyMainError == false {
-		if (outStr != "") || (stderrStr != "") {
-			logOut = fmt.Sprint(outStr + stderrStr)
+	if !onlyMainError {
+		if outStr != "" {
+			logOut = fmt.Sprint(outStr)
+			return logOut
+		}
+		if stderrStr != "" {
+			logOut = fmt.Sprint(stderrStr)
 			return logOut
 		}
 	}
