@@ -50,17 +50,21 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 	inFile = getFileInfo(inFileStr)
 	outFile = getFileInfo(*outFilePtr)
 	outFlag = *outFlagPtr
+	logOut = checkOutFlag(outFlag)
+	if logOut != "" {
+		return
+	}
 	randomStr = *randomPtr
 	_, logOut = checkRandom(randomStr)
 	if logOut != "" {
 		return
 	}
 	switch outFile.ext {
-	case ".tex", ".org": // do nothing as this is what is expected
+	case ".tex", ".org", ".otex": // do nothing as this is what is expected
 	default:
 		outFile.ext = ".log"
 		outFile.full = filepath.Join(outFile.path, outFile.name+outFile.ext)
-		logOut = logOut + "Output file needs a file extension of .tex or .org"
+		logOut = logOut + "Output file needs a file extension of .tex, .org or .otex"
 	}
 	return
 }
@@ -93,6 +97,16 @@ func checkRandom(randomStr string) (int, string) {
 		}
 	}
 	return random, logOut
+}
+
+func checkOutFlag(outFlag string) string {
+	var logOut string
+	switch outFlag {
+	case "flagQuestion", "flagSolAns", "flagAnswer", "flagSolution":
+	default:
+		logOut = "outFlag should be flagQuestion, flagAnswer, flagSolution, or flagSolAns"
+	}
+	return logOut
 }
 
 func parseFormat(formatStr string) (string, string, string) {

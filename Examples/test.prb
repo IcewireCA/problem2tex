@@ -1,0 +1,23 @@
+PARAM{I_D=1}
+
+* Thevenin/Norton Equivalent
+** David Johns
+-------
+Thevenin's theorem is used to replace a multiple element circuit with a single voltage source and resistor while Norton's theorem is used to replace a 
+
+$$E=MC^2\label{1}\tag{1}$$
+
+Above is an equation and I can refer to it as equation (\ref{1}) and it should work 
+
+1) item 1
+2) item 2
+3) item 3
+
+* This is a main heading
+** and this is a sub heading
+*** while this is a sub-sub heading
+and here is an inline equation $E=MC^2$ that should work
+
+INCLUDE{currMirror01a.asc}
+
+and more words

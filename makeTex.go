@@ -95,12 +95,13 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	// }
 	verbatim = false
 	switch outFile.ext {
-	case ".org":
+	case ".org", ".otex":
 		commentSymbol = "# "
 		texOut = orgHeader + "\n"
 	case ".tex":
 		commentSymbol = "% "
 	default: // should never be here
+		fmt.Println("should not be here 01")
 	}
 	errorHeader = commentSymbol + "Created with problem2tex: version = " + version + "\n\n"
 	inLines = strings.Split(problemInput, "\n")
@@ -116,14 +117,14 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 			verbatim = false
 			texOut = texOut + inLine + "\n"
 			continue // skip to end of for lines and continue
-		default:
+		default: // do nothing if here
 		}
 		if verbatim { // if true we are in verbatim mode so just skip the lines til out of verbatim
 			texOut = texOut + inLine + "\n"
 			continue
 		}
 		switch outFile.ext {
-		case ".org":
+		case ".org", ".otex":
 			if reOrgComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
 				texOut = texOut + inLine + "\n"
 				continue
@@ -134,13 +135,14 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 				continue
 			}
 		default: // should never be here as option can only be orgMode or latex
-			fmt.Println("should not be here 11")
+			fmt.Println("should not be here 02")
 		}
 		inLine, svgList, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false, svgList)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i)
 		}
 		inLine, logOut = fixHilite(inLine, outFile.ext)
+		inLine = changeDollarDelimiters(inLine)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i)
 		}
@@ -160,13 +162,14 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
 		switch outFile.ext { // add headers for solution and answer
-		case ".org":
+		case ".org", ".otex":
 			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
 			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
 		case ".tex":
 			texOut = reBegSol.ReplaceAllString(texOut, texBegSol)
 			texOut = reBegAns.ReplaceAllString(texOut, texBegAns)
 		default: // should never be here
+			fmt.Println("should not be here 03")
 		}
 		texOut = reEndSol.ReplaceAllString(texOut, "")
 		texOut = reEndAns.ReplaceAllString(texOut, "")
@@ -176,11 +179,12 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reSol = regexp.MustCompile(`(?msU)^\s*BEGIN{SOLUTION}.*^\s*END{SOLUTION}\s*\n`)
 		texOut = reSol.ReplaceAllString(texOut, "")
 		switch outFile.ext { // add headers for answer
-		case ".org":
+		case ".org", ".otex":
 			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
 		case ".tex":
 			texOut = reBegAns.ReplaceAllString(texOut, texBegAns)
 		default: // should never be here
+			fmt.Println("should not be here 04")
 		}
 		texOut = reEndAns.ReplaceAllString(texOut, "")
 	case "flagSolution": // get rid of answer
@@ -189,11 +193,12 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reAns = regexp.MustCompile(`(?msU)^\s*BEGIN{ANSWER}.*^\s*END{ANSWER}\s*\n`)
 		texOut = reAns.ReplaceAllString(texOut, "")
 		switch outFile.ext { // add headers for solution
-		case ".org":
+		case ".org", ".otex":
 			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
 		case ".tex":
 			texOut = reBegSol.ReplaceAllString(texOut, texBegSol)
 		default: // should never be here
+			fmt.Println("should not be here 05")
 		}
 		texOut = reEndSol.ReplaceAllString(texOut, "")
 	default:
@@ -201,7 +206,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	}
 	switch outFile.ext {
 	case ".org":
-	case ".tex":
+	case ".tex", ".otex":
 		// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
 		if len(svgList) > 0 {
 			fileRunInkscape = `#!/bin/bash
@@ -223,6 +228,7 @@ echo "export-latex; export-area-drawing;`
 		}
 		texOut = org2texFix(texOut)
 	default: // should never be here
+		fmt.Println("should not be here 06")
 	}
 	return texOut, errorHeader
 }
@@ -243,7 +249,7 @@ func fixHilite(inString, fileExt string) (outString, logOut string) {
 				inStrSlice[i].partial = reTex.ReplaceAllString(inStrSlice[i].partial, "\\hilite{")
 			}
 		}
-	case ".org":
+	case ".org", ".otex":
 		for i := range inStrSlice {
 			switch inStrSlice[i].eqn {
 			case 1, 2: // an equation phrase
@@ -253,6 +259,7 @@ func fixHilite(inString, fileExt string) (outString, logOut string) {
 			}
 		}
 	default: // should never be here
+		fmt.Println("should not be here 07")
 	}
 	for i := range inStrSlice {
 		outString = outString + inStrSlice[i].partial
@@ -374,7 +381,7 @@ func findEqn(inString string) (inStrSlice []strEqn, logOut string) {
 func org2texFix(inString string) (outString string) {
 	// for simpler syntax, replace "$$stuff_here$$" with \begin{equation}stuff_here\end{equation}"
 	var reReplaceDoubleDollar = regexp.MustCompile(`(?m)\$\$(?P<res1>.*)\$\$`)
-	outString = reReplaceDoubleDollar.ReplaceAllString(inString, "\\begin{equation}$res1\\end{equation}")
+	outString = reReplaceDoubleDollar.ReplaceAllString(inString, "\\[$res1\\]")
 	// now need to make inserted comments latex proper...so change "# " to "% "
 	var reFindOrgComments = regexp.MustCompile(`(?m)^# `)
 	outString = reFindOrgComments.ReplaceAllString(outString, "% ")
@@ -650,131 +657,15 @@ func valUpdate(inString, fileExt string, varAll map[string]varSingle, configPara
 			logOut = logOut + " - error in external file: "
 			return
 		}
-		if fileExt == ".org" {
+		switch fileExt {
+		case ".org", ".otex":
 			inLines[i] = changeDollarDelimiters(inLines[i])
+		default: // do nothing
 		}
 	}
 	outString = strings.Join(inLines, "\n")
 	return
 }
-
-// func runIncludeLatex(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
-// 	var options = map[string]string{ // defaults shown below
-// 		"textScale":  "1.0", // Scale size of text (in case of svg)
-// 		"trimTop":    "0",   //  trim top of svg image
-// 		"trimBottom": "0",   //  trim bottom of svg image
-// 		"trimLeft":   "0",   // trim left of svg image
-// 		"trimRight":  "0",   // trim right of svg image
-// 		"scale":      "1.0", //  scale image size
-// 	}
-// 	var allOptions []option
-// 	var replace, optionStr, logOut string
-// 	var fileNameAdd, fullFileName, tmpStr, width string
-// 	var inFileStr, svgFileName, svgFileNameNoExt, fullPathFileNameNoExt string
-// 	var widthDefault float64
-// 	var result []string
-// 	var fileName, fileExt string
-// 	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
-// 	if !reNameInfo.MatchString(inCmd) {
-// 		logOut = "INCLUDE command does not have filename in correct format\n Should look like filename.ext"
-// 		return "", svgList, logOut
-// 	}
-// 	result = reNameInfo.FindStringSubmatch(inCmd)
-// 	fileName = result[1]
-// 	fileExt = result[2]
-// 	optionStr = getAfter(inCmd, "#") // get options after "#" character
-// 	allOptions = getAllOptions(optionStr)
-// 	for i := 0; i < len(allOptions); i++ { // First check if any option errors depending on file type
-// 		switch fileExt {
-// 		case "png", "jpg", "jpeg", "pdf":
-// 			if allOptions[i].name == "textScale" {
-// 				logOut = "textScale is NOT an option for a " + fileExt + " file in an INCLUDE command"
-// 				return "", svgList, logOut
-// 			}
-// 		case "svg": // do nothing
-// 		case "asc": // do nothing
-// 		case "tex": // there should be no options for a tex file
-// 			logOut = "No options are allowed for a .tex file in an INCLUDE command"
-// 			return "", svgList, logOut
-// 		default:
-// 			logOut = "File extension not recognized: " + fileExt + " for this INCLUDE command"
-// 			return "", svgList, logOut
-// 		}
-// 		switch allOptions[i].name {
-// 		case "textScale", "trimTop", "trimBottom", "trimLeft", "trimRight", "scale":
-// 			_, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
-// 			if err != nil {
-// 				logOut = allOptions[i].value + " is not a valid decimal number"
-// 				return "", svgList, logOut
-// 			}
-// 			options[allOptions[i].name] = allOptions[i].value
-// 		default:
-// 			logOut = allOptions[i].name + " is not a valid option"
-// 			return "", svgList, logOut
-// 		}
-// 	}
-// 	fileNameAdd = "NEW"
-// 	switch fileExt {
-// 	case "png", "jpg", "jpeg", "pdf": // need to fix this
-// 		fullFileName = fileName + `.` + fileExt // need .extension here as final includegraphics command needs that info
-// 		replace = `\incPic{` + fullFileName + `}{` + width + `}{` +
-// 			options["spaceAbove"] + `}{` + options["spaceHoriz"] + `}{` +
-// 			options["spaceBelow"] + `}`
-// 	case "svg", "tex":
-// 		inFileStr, logOut = fileReadString(filepath.Join(inFile.path, fileName+"."+fileExt))
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		inFileStr, logOut = valUpdate(inFileStr, outFile.ext, varAll, configParam) // update VAL{} elements to values
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		fileWriteString(inFileStr, filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt))
-// 		switch fileExt {
-// 		case "svg":
-// 			svgFileNameNoExt = fileName + fileNameAdd
-// 			fullPathFileNameNoExt = filepath.Join(outFile.path, svgFileNameNoExt)
-// 			widthDefault = 100
-// 			width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
-// 			replace = `\incSvg{` + svgFileNameNoExt + `}{` + width + `}{` +
-// 				options["trimLeft"] + `}{` + options["trimBottom"] + `}{` +
-// 				options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
-// 			tmpStr = "file-open:" + fullPathFileNameNoExt + ".svg; export-filename:" + fullPathFileNameNoExt + ".pdf; export-do; "
-// 			svgList = append(svgList, tmpStr)
-// 		case "tex":
-// 			fullFileName = fileName + fileNameAdd + `.tex`
-// 			replace = `\incTex{` + fullFileName + `}`
-// 		default: // should never be here
-// 		}
-// 	case "asc":
-// 		svgFileNameNoExt = fileName + fileNameAdd + "asc"
-// 		svgFileName = svgFileNameNoExt + ".svg"
-// 		fullPathFileNameNoExt = filepath.Join(outFile.path, svgFileNameNoExt)
-// 		logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		inFileStr, logOut = fileReadString(filepath.Join(outFile.path, svgFileName))
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		inFileStr, logOut = valUpdate(inFileStr, outFile.ext, varAll, configParam) // update VAL{} elements to values
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		fileWriteString(inFileStr, filepath.Join(outFile.path, svgFileName))
-// 		widthDefault = 100
-// 		width = fmt.Sprintf("%.2f", widthDefault*str2float(options["scale"]))
-// 		replace = `\incSvg{` + svgFileNameNoExt + `}{` + width + `}{` +
-// 			options["trimLeft"] + `}{` + options["trimBottom"] + `}{` +
-// 			options["trimRight"] + `}{` + options["trimTop"] + `}{` + options["textScale"] + `}`
-// 		tmpStr = "file-open:" + fullPathFileNameNoExt + ".svg; export-filename:" + fullPathFileNameNoExt + ".pdf; export-do; "
-// 		svgList = append(svgList, tmpStr)
-// 	default:
-// 		logOut = "File extension not recognized: " + fileExt
-// 	}
-// 	return replace, svgList, logOut
-// }
 
 func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
 	var options = map[string]string{ // defaults shown below
@@ -831,7 +722,7 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 	}
 	fileNameAdd = "NEW"
 	switch outFile.ext {
-	case ".tex":
+	case ".tex", ".otex":
 		switch fileExt {
 		case "png", "jpg", "jpeg", "pdf": // need to fix this
 			fullFileName = fileName + `.` + fileExt // need .extension here as final includegraphics command needs that info
@@ -863,6 +754,7 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 				fullFileName = fileName + fileNameAdd + `.tex`
 				replace = `\incTex{` + fullFileName + `}`
 			default: // should never be here
+				fmt.Println("should not be here 09")
 			}
 		case "asc":
 			svgFileNameNoExt = fileName + fileNameAdd + "asc"
@@ -939,107 +831,10 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 			logOut = "File extension not recognized: " + fileExt
 		}
 	default:
+		fmt.Println("should not be here 10")
 	}
 	return replace, svgList, logOut
 }
-
-// func runIncludeOrg(inCmd string, inFile, outFile fileInfo, varAll map[string]varSingle, configParam map[string]string, svgList []string) (string, []string, string) {
-// 	var options = map[string]string{ // defaults shown below
-// 		"textScale":  "1.0", // Scale size of text (in case of svg)
-// 		"trimTop":    "0",   // trim top of svg
-// 		"trimBottom": "0",   //  trim bottom of svg
-// 		"trimLeft":   "0",   // trim left of svg
-// 		"trimRight":  "0",   // trim right of svg
-// 		"scale":      "1.0", //  Determines size of figure (in px) Only currently works for png, jpg.
-// 	}
-// 	var allOptions []option
-// 	var replace, optionStr, logOut string
-// 	var fileNameAdd, inFileName, outFileName, inFileStr string
-// 	var svgFileName string
-// 	var result []string
-// 	var fileName, fileExt string
-// 	var reNameInfo = regexp.MustCompile(`(?m)^\s*(?P<res1>\w+)\.(?P<res2>\w+)`)
-// 	if !reNameInfo.MatchString(inCmd) {
-// 		logOut = "INCLUDE command does not have filename in correct format\n Should look like filename.ext"
-// 		return "", svgList, logOut
-// 	}
-// 	result = reNameInfo.FindStringSubmatch(inCmd)
-// 	fileName = result[1]
-// 	fileExt = result[2]
-// 	optionStr = getAfter(inCmd, "#") // get options after "#" character
-// 	allOptions = getAllOptions(optionStr)
-// 	for i := 0; i < len(allOptions); i++ { // First check if any option errors depending on file type
-// 		switch fileExt {
-// 		case "png", "jpg": // just checking fileExt is valid
-// 			logOut = "No options are allowed for a .png or .jpg file in an INCLUDE command"
-// 			return "", svgList, logOut
-// 		case "svg", "asc":
-// 		default:
-// 			logOut = "File extension not recognized for INCLUDE command: ." + fileExt
-// 			return "", svgList, logOut
-// 		}
-// 		switch allOptions[i].name {
-// 		case "scale", "trimTop", "trimBottom", "trimLeft", "trimRight", "textScale":
-// 			_, err := strconv.ParseFloat(allOptions[i].value, 64) // check if option value is a decimal number
-// 			if err != nil {
-// 				logOut = allOptions[i].value + " is not a valid decimal number for " + allOptions[i].name
-// 				return "", svgList, logOut
-// 			}
-// 			options[allOptions[i].name] = allOptions[i].value
-// 		default:
-// 			logOut = allOptions[i].name + " is not a valid option"
-// 			return "", svgList, logOut
-// 		}
-// 	}
-// 	fileNameAdd = "NEW"
-// 	switch fileExt {
-// 	case "png", "jpg":
-// 		inFileName = filepath.Join(inFile.path, fileName+"."+fileExt)
-// 		outFileName = filepath.Join(outFile.path, fileName+fileNameAdd+"."+fileExt)
-// 		logOut = runCommand("cp", inFileName, outFileName)
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		replace = "#+attr_html: :width " + options["width"] + "px\n"
-// 		replace = replace + "[[./" + fileName + fileNameAdd + "." + fileExt + "]]"
-// 		// original filename.svg becomes filenameNEW.svg in tmp directory
-// 		// original filename.asc becomes filenameNEW.asc in tmp then filenameNEWasc.svg in tmp
-// 	case "asc":
-// 		svgFileName = fileName + fileNameAdd + "asc.svg"
-// 		logOut = runCommand("ltspice2svg", "-export="+filepath.Join(outFile.path, svgFileName), "-text=latex", filepath.Join(inFile.path, fileName+".asc"))
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		inFileStr, logOut = fileReadString(filepath.Join(outFile.path, svgFileName))
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		inFileStr, logOut = valUpdate(inFileStr, outFile.ext, varAll, configParam) // update VAL{} elements to values
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		// resize and trim svg
-// 		inFileStr = svgResize(inFileStr, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
-// 		fileWriteString(inFileStr, filepath.Join(outFile.path, svgFileName))
-// 		replace = `#+INCLUDE: "./` + svgFileName + `" export html`
-// 	case "svg":
-// 		inFileStr, logOut = fileReadString(filepath.Join(inFile.path, fileName+".svg"))
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		inFileStr, logOut = valUpdate(inFileStr, outFile.ext, varAll, configParam) // update VAL{} elements to values
-// 		if logOut != "" {
-// 			return replace, svgList, logOut
-// 		}
-// 		// resize and trim svg
-// 		inFileStr = svgResize(inFileStr, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
-// 		fileWriteString(inFileStr, filepath.Join(outFile.path, fileName+fileNameAdd+".svg"))
-// 		replace = `#+INCLUDE: "./` + fileName + fileNameAdd + `.svg" export html`
-// 	default:
-// 		logOut = "File extension not recognized: " + fileExt
-// 	}
-// 	return replace, svgList, logOut
-// }
 
 // to run a command line instruction
 func runCommand(program string, onlyMainError bool, args ...string) string {
@@ -1276,6 +1071,7 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 					num = len(values) - 1
 				}
 			default: // should never be here
+				fmt.Println("should not be here 11")
 			}
 		default: // if here, random is a seed so use it to get the next random
 			random = psuedoRand(random) // update random based on the last random value (treat last one as seed)
@@ -1525,6 +1321,7 @@ func prefix2float(prefix string) (x float64) {
 	case "P":
 		x = 1e15
 	default: // unrecognized prefix
+		fmt.Println("unrecognized prefix")
 	}
 	return
 }
