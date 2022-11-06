@@ -4,27 +4,18 @@
 #+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
 #+OPTIONS: html-postamble:nil num:nil
 
+Consider the circuit shown below where it is desired to find the Norton and Thevenin equivalent circuits between nodes A/B. Use \(i_{sc}\) for the short circuit output current and \(v_{oc}\) for the open circuit output voltage and \(R_{out}\) for the output resistance.
 
-\section*{Thevenin/Norton Equivalent}
-\subsection*{David Johns}
-\noindent\rule{\textwidth}{1pt}
-Thevenin's theorem is used to replace a multiple element circuit with a single voltage source and resistor while Norton's theorem is used to replace a
+Solve by using Thevenin/Norton source transformations.
 
-\[E=MC^2\label{1}\tag{1}\]
+\incSvg{testNEWasc}{100.00}{0}{0}{0}{-3}{1.0}
 
-Above is an equation and I can refer to it as equation (\ref{1}) and it should work
+\[\hiliteEQN{v_oc=i_sc*R_out}\]
 
-1) item 1
-2) item 2
-3) item 3
+\beginSolution
 
-\section*{This is a main heading}
-\subsection*{and this is a sub heading}
-\subsubsection*{while this is a sub-sub heading}
-and here is an inline equation \(E=MC^2\) that should work
 
-\incSvg{currMirror01aNEWasc}{100.00}{0}{0}{0}{0}{1.0}
+here i am
 
-and more words
 
 

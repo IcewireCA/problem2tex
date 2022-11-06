@@ -162,10 +162,10 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
 		switch outFile.ext { // add headers for solution and answer
-		case ".org", ".otex":
+		case ".org":
 			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
 			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
-		case ".tex":
+		case ".tex", ".otex":
 			texOut = reBegSol.ReplaceAllString(texOut, texBegSol)
 			texOut = reBegAns.ReplaceAllString(texOut, texBegAns)
 		default: // should never be here
@@ -179,9 +179,9 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reSol = regexp.MustCompile(`(?msU)^\s*BEGIN{SOLUTION}.*^\s*END{SOLUTION}\s*\n`)
 		texOut = reSol.ReplaceAllString(texOut, "")
 		switch outFile.ext { // add headers for answer
-		case ".org", ".otex":
+		case ".org":
 			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
-		case ".tex":
+		case ".tex", ".otex":
 			texOut = reBegAns.ReplaceAllString(texOut, texBegAns)
 		default: // should never be here
 			fmt.Println("should not be here 04")
@@ -193,9 +193,9 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reAns = regexp.MustCompile(`(?msU)^\s*BEGIN{ANSWER}.*^\s*END{ANSWER}\s*\n`)
 		texOut = reAns.ReplaceAllString(texOut, "")
 		switch outFile.ext { // add headers for solution
-		case ".org", ".otex":
+		case ".org":
 			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
-		case ".tex":
+		case ".tex", ".otex":
 			texOut = reBegSol.ReplaceAllString(texOut, texBegSol)
 		default: // should never be here
 			fmt.Println("should not be here 05")
@@ -240,7 +240,7 @@ func fixHilite(inString, fileExt string) (outString, logOut string) {
 	outString = ""
 	inStrSlice, logOut = findEqn(inString)
 	switch fileExt {
-	case ".tex":
+	case ".tex", ".otex":
 		for i := range inStrSlice {
 			switch inStrSlice[i].eqn {
 			case 1, 2: // an equation phrase
@@ -249,7 +249,7 @@ func fixHilite(inString, fileExt string) (outString, logOut string) {
 				inStrSlice[i].partial = reTex.ReplaceAllString(inStrSlice[i].partial, "\\hilite{")
 			}
 		}
-	case ".org", ".otex":
+	case ".org":
 		for i := range inStrSlice {
 			switch inStrSlice[i].eqn {
 			case 1, 2: // an equation phrase

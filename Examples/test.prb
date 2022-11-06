@@ -1,23 +1,19 @@
-PARAM{I_D=1}
+CONFIG{defaultUnits = [[iI:A][vV:V][rR:\Omega]]}
+PARAM{I_1=2}
+PARAM{V_1=2}
+PARAM{R_1=3}
+PARAM{R_2=6}
+PARAM{R_3=6}
+Consider the circuit shown below where it is desired to find the Norton and Thevenin equivalent circuits between nodes A/B. Use $i_{sc}$ for the short circuit output current and $v_{oc}$ for the open circuit output voltage and $R_{out}$ for the output resistance.
 
-* Thevenin/Norton Equivalent
-** David Johns
--------
-Thevenin's theorem is used to replace a multiple element circuit with a single voltage source and resistor while Norton's theorem is used to replace a 
+Solve by using Thevenin/Norton source transformations.
 
-$$E=MC^2\label{1}\tag{1}$$
+INCLUDE{test.asc#scale=1.0, trimTop=-3, trimBottom=0, textScale=1.0}
 
-Above is an equation and I can refer to it as equation (\ref{1}) and it should work 
+$$HILITE{v_oc=i_sc*R_out}$$
 
-1) item 1
-2) item 2
-3) item 3
+BEGIN{SOLUTION}
 
-* This is a main heading
-** and this is a sub heading
-*** while this is a sub-sub heading
-and here is an inline equation $E=MC^2$ that should work
+here i am 
 
-INCLUDE{currMirror01a.asc}
-
-and more words
+END{SOLUTION}
