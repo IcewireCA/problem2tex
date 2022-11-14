@@ -1228,14 +1228,14 @@ func value2Str(x float64, units, formatStr string) (outString string) {
 		if exponent == "0" {
 			outString = significand
 		} else {
-			outString = significand + "e" + exponent
+			outString = significand + "e{" + exponent + "}"
 		}
 	case "S": // scientific notation
 		significand, exponent, _ := float2Parts(x, strIncrement(sigDigits, -1), false)
 		if exponent == "0" {
 			outString = significand
 		} else {
-			outString = significand + "e" + exponent
+			outString = significand + "e{" + exponent + "}"
 		}
 	case "D": // decimal notation
 		outString = removeTrailingZeros(fmt.Sprintf("%."+strIncrement(sigDigits, 0)+"f", x))
@@ -1247,7 +1247,7 @@ func value2Str(x float64, units, formatStr string) (outString string) {
 			if exponent == "0" {
 				outString = significand
 			} else {
-				outString = significand + "e" + exponent
+				outString = significand + "e{" + exponent + "}"
 			}
 		} else {
 			outString = significand + " \\mathrm{" + prefix + " " + units + "}"
