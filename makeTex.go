@@ -1224,20 +1224,25 @@ func value2Str(x float64, units, formatStr string) (outString string) {
 	formatType, sigDigits, _ = parseFormat(formatStr)
 	switch formatType {
 	case "E": // engineering notation (powers of 3 for exponent)
-		significand, exponent, _ := float2Parts(x, strIncrement(sigDigits, -1))
+		significand, exponent, _ := float2Parts(x, strIncrement(sigDigits, -1), true)
 		if exponent == "0" {
 			outString = significand
 		} else {
 			outString = significand + "e" + exponent
 		}
 	case "S": // scientific notation
-		outString = fmt.Sprintf("%."+strIncrement(sigDigits, -1)+"e", x)
+		significand, exponent, _ := float2Parts(x, strIncrement(sigDigits, -1), false)
+		if exponent == "0" {
+			outString = significand
+		} else {
+			outString = significand + "e" + exponent
+		}
 	case "D": // decimal notation
 		outString = removeTrailingZeros(fmt.Sprintf("%."+strIncrement(sigDigits, 0)+"f", x))
 	case "DL": // dollar notation (2 decimal places and rounded off)
 		outString = fmt.Sprintf("%.2f", math.Round(x*100)/100)
 	case "U": // SI notation and includes units if available
-		significand, exponent, prefix := float2Parts(x, strIncrement(sigDigits, -1))
+		significand, exponent, prefix := float2Parts(x, strIncrement(sigDigits, -1), true)
 		if units == "" {
 			if exponent == "0" {
 				outString = significand
@@ -1257,7 +1262,8 @@ func value2Str(x float64, units, formatStr string) (outString string) {
 // returns significand (ex: 2.354 or 23.54 or 235.4)
 // returns exponent (ex: 0 or 3 or 9 or -3 or -6)
 // returns prefix (ex: "" or k or G or m or \mu)
-func float2Parts(x float64, sigDigits string) (significand string, exponent string, prefix string) {
+// eng is a bool and refers to engineering notation
+func float2Parts(x float64, sigDigits string, eng bool) (significand string, exponent string, prefix string) {
 	var xSci string
 	var result []string
 	var expInt int
@@ -1274,15 +1280,19 @@ func float2Parts(x float64, sigDigits string) (significand string, exponent stri
 			expInt = expInt + 1
 			signifFloat = signifFloat / 10
 		} else {
-			for expInt%3 != 0 { // do until exponent is a multiple of 3 (engineering and SI notation)
-				expInt = expInt - 1
-				signifFloat = 10 * signifFloat
+			if eng {
+				for expInt%3 != 0 { // do until exponent is a multiple of 3 (engineering and SI notation)
+					expInt = expInt - 1
+					signifFloat = 10 * signifFloat
+				}
 			}
 		}
 		significand = fmt.Sprintf("%f", signifFloat)
 		significand = removeTrailingZeros(significand)
 		exponent = strconv.Itoa(expInt)
-		prefix = exponent2Prefix(exponent)
+		if eng {
+			prefix = exponent2Prefix(exponent)
+		}
 	}
 	return
 }
