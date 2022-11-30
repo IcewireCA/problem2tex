@@ -19,7 +19,7 @@ import (
 func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr, outFlag, logOut string) {
 	var inFileStr string
 
-	outFilePtr := flag.String("export", "", "outFile - REQUIRED FLAG\nFile extension should be .tex or .org")
+	outFilePtr := flag.String("export", "", "outFile - REQUIRED FLAG\nFile extension should be .tex .md or .org")
 	randomPtr := flag.String("random", "false", "Choices are false, true, min, max, minMax, or positive integer")
 	// determines whether parameters are default or random chosen from a set
 	outFlagPtr := flag.String("outFlag", "flagSolAns", "Choices are flagQuestion, flagSolAns, flagSolution, flagAnswer")
@@ -60,11 +60,11 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 		return
 	}
 	switch outFile.ext {
-	case ".tex", ".org", ".otex": // do nothing as this is what is expected
+	case ".tex", ".org", ".otex", ".md": // do nothing as this is what is expected
 	default:
 		outFile.ext = ".log"
 		outFile.full = filepath.Join(outFile.path, outFile.name+outFile.ext)
-		logOut = logOut + "Output file needs a file extension of .tex, .org or .otex"
+		logOut = logOut + "Output file needs a file extension of .tex, .org, .md or .otex"
 	}
 	return
 }

@@ -27,9 +27,10 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	var inLines []string
 	var inLine string
 	var verbatim bool
-	var logOut, errorHeader, commentSymbol string
+	var logOut, errorHeader string
 	var texOut, fileRunInkscape string
-	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
+	//var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
+	var reMdVerbatim = regexp.MustCompile(`(?m)^\x60\x60\x60`)
 	var reOrgComment = regexp.MustCompile(`(?m)^# `)
 	var reLatexComment = regexp.MustCompile(`(?m)^\s*%`)
 	var svgList []string // list of all svg files that need inkscape to make pdf and pdf_tex files
@@ -94,34 +95,61 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	// 	fmt.Println(configParam[key])
 	// }
 	verbatim = false
+	headerFirstLine := "Created with problem2tex: version = " + version
 	switch outFile.ext {
 	case ".org", ".otex":
-		commentSymbol = "# "
+		errorHeader = "# " + headerFirstLine + "\n\n" // org mode comment
 		texOut = orgHeader + "\n"
 	case ".tex":
-		commentSymbol = "% "
+		errorHeader = "% " + headerFirstLine + "\n\n" // tex comment
+	case ".md":
+		errorHeader = "<!---\n" + headerFirstLine + "\n--->\n" // markdown comment
 	default: // should never be here
 		fmt.Println("should not be here 01")
 	}
-	errorHeader = commentSymbol + "Created with problem2tex: version = " + version + "\n\n"
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
-		inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
-		switch inLine {
-		case "#+BEGIN_EXAMPLE":
-			verbatim = true
-			texOut = texOut + inLine + "\n"
-			continue // skip to end of for lines and continue
-			// different than break... break ends for loop
-		case "#+END_EXAMPLE":
-			verbatim = false
-			texOut = texOut + inLine + "\n"
-			continue // skip to end of for lines and continue
-		default: // do nothing if here
-		}
-		if verbatim { // if true we are in verbatim mode so just skip the lines til out of verbatim
-			texOut = texOut + inLine + "\n"
-			continue
+		//	inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
+		switch outFile.ext {
+		case ".org", "otex":
+			switch inLine {
+			case "#+BEGIN_EXAMPLE":
+				verbatim = true
+				texOut = texOut + inLine + "\n"
+				continue // skip to end of for lines and continue
+				// different than break... break ends for loop
+			case "#+END_EXAMPLE":
+				verbatim = false
+				texOut = texOut + inLine + "\n"
+				continue // skip to end of for lines and continue
+			default: // do nothing if here
+			}
+			if verbatim { // if true we are in verbatim mode so just skip the lines til out of verbatim
+				texOut = texOut + inLine + "\n"
+				continue
+			}
+		case ".md":
+			switch {
+			case reMdVerbatim.MatchString(inLine) == true: // if true, we are either starting or stopping a verbatim block
+				switch verbatim {
+				case true: // we are at the end of a verbatim block
+					verbatim = false
+					texOut = texOut + inLine + "\n"
+					continue // skip to end of for lines and continue
+				case false: // we are starting a verbatim block
+					verbatim = true
+					texOut = texOut + inLine + "\n"
+					continue // skip to end of for lines and continue
+				}
+			default: // do nothing if here
+			}
+			if verbatim { // if true we are in verbatim mode so just skip the lines til out of verbatim
+				texOut = texOut + inLine + "\n"
+				continue
+			}
+		case ".tex": // have not bothered with a verbatim mode in tex output
+		default: // should never be here
+			fmt.Println("should not be here 01a")
 		}
 		switch outFile.ext {
 		case ".org", ".otex":
