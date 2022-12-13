@@ -59,12 +59,15 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 	if logOut != "" {
 		return
 	}
+	// .mdtex is used when the input syntax is md but the output will be further processed by pandoc to tex and then latex
+	// .tex is used when the input syntax is tex and the output will be further processes by latex
+	// .md is used when the input syntax is md and the output will be further processed by pandoc to html
 	switch outFile.ext {
-	case ".tex", ".org", ".otex", ".md": // do nothing as this is what is expected
+	case ".tex", ".mdtex", ".md": // do nothing as this is what is expected
 	default:
 		outFile.ext = ".log"
 		outFile.full = filepath.Join(outFile.path, outFile.name+outFile.ext)
-		logOut = logOut + "Output file needs a file extension of .tex, .org, .md or .otex"
+		logOut = logOut + "Output file needs a file extension of .tex, .mdtex or .md"
 	}
 	return
 }

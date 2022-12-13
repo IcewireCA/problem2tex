@@ -29,36 +29,31 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	var verbatim bool
 	var logOut, errorHeader string
 	var texOut, fileRunInkscape string
-	//var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
+	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
 	var reMdVerbatim = regexp.MustCompile(`(?m)^\x60\x60\x60`)
-	var reOrgComment = regexp.MustCompile(`(?m)^# `)
 	var reLatexComment = regexp.MustCompile(`(?m)^\s*%`)
 	var svgList []string // list of all svg files that need inkscape to make pdf and pdf_tex files
 	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
 
-	orgHeader := `
-#+OPTIONS: toc:nil author:nil email:nil creator:nil timestamp:nil
-#+OPTIONS: html-postamble:nil num:nil
-`
-	orgBegSol := `
------
-* Solution
-:PROPERTIES:
-:CUSTOM_ID: problem-solution
-:END:
-`
-	orgBegAns := `
------
-* Answer
-:PROPERTIES:
-:CUSTOM_ID: problem-answer
-:END:
-`
 	texBegSol := `
 \beginSolution
 `
 	texBegAns := `
 \beginAnswer
+`
+	mdBegSol := `
+
+-----
+
+# Solution
+
+`
+	mdBegAns := `
+	
+-----
+
+# Solution
+	
 `
 
 	// using map here as I want to be able to iterate over key names as well
@@ -97,9 +92,6 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	verbatim = false
 	headerFirstLine := "Created with problem2tex: version = " + version
 	switch outFile.ext {
-	case ".org", ".otex":
-		errorHeader = "# " + headerFirstLine + "\n\n" // org mode comment
-		texOut = orgHeader + "\n"
 	case ".tex":
 		errorHeader = "% " + headerFirstLine + "\n\n" // tex comment
 	case ".md":
@@ -109,26 +101,17 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	}
 	inLines = strings.Split(problemInput, "\n")
 	for i := range inLines {
-		//	inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
 		switch outFile.ext {
-		case ".org", "otex":
-			switch inLine {
-			case "#+BEGIN_EXAMPLE":
-				verbatim = true
-				texOut = texOut + inLine + "\n"
-				continue // skip to end of for lines and continue
-				// different than break... break ends for loop
-			case "#+END_EXAMPLE":
-				verbatim = false
-				texOut = texOut + inLine + "\n"
-				continue // skip to end of for lines and continue
-			default: // do nothing if here
-			}
-			if verbatim { // if true we are in verbatim mode so just skip the lines til out of verbatim
-				texOut = texOut + inLine + "\n"
-				continue
-			}
-		case ".md":
+		case ".tex":
+			inLine = reRemoveEndStuff.ReplaceAllString(inLines[i], "")
+		case ".md", ".mdtex":
+			inLine = inLines[i]
+		default:
+			fmt.Println("should not be here 00a")
+		}
+		// now look for verbatim lines
+		switch outFile.ext {
+		case ".md", ".mdtex":
 			switch {
 			case reMdVerbatim.MatchString(inLine) == true: // if true, we are either starting or stopping a verbatim block
 				switch verbatim {
@@ -151,32 +134,28 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		default: // should never be here
 			fmt.Println("should not be here 01a")
 		}
+		// now deal with comment lines
 		switch outFile.ext {
-		case ".org", ".otex":
-			if reOrgComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
-				texOut = texOut + inLine + "\n"
-				continue
-			}
 		case ".tex":
-			if reLatexComment.MatchString(inLine) || inLine == "" { // either a comment line or a blank line so add \n and skip
+			if reLatexComment.MatchString(inLine) { // either a comment line or a blank line so add \n and skip
 				texOut = texOut + inLine + "\n"
 				continue
 			}
+		case ".md", ".mdtex": // NEED TO ADD COMMENT SKIP SOMEHOW HERE
 		default: // should never be here as option can only be orgMode or latex
 			fmt.Println("should not be here 02")
 		}
+		// finally can do real processing here
 		inLine, svgList, logOut = commandReplace(inLine, inFile, outFile, varAll, configParam, false, svgList)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i)
 		}
 		inLine, logOut = fixHilite(inLine, outFile.ext)
-		inLine = changeDollarDelimiters(inLine)
+		// inLine = changeDollarDelimiters(inLine)
 		if logOut != "" {
 			errorHeader = errorHeader + logOutError(logOut, i)
 		}
-		if inLine != "" {
-			texOut = texOut + inLine + "\n"
-		}
+		texOut = texOut + inLine + "\n"
 	}
 	switch outFlag {
 	case "flagQuestion": // get rid of solution and answer
@@ -190,10 +169,10 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reEndSol = regexp.MustCompile(`(?mU)^\s*END{SOLUTION}`)
 		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
 		switch outFile.ext { // add headers for solution and answer
-		case ".org":
-			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
-			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
-		case ".tex", ".otex":
+		case ".md":
+			texOut = reBegSol.ReplaceAllString(texOut, mdBegSol)
+			texOut = reBegAns.ReplaceAllString(texOut, mdBegAns)
+		case ".tex", ".mdtex":
 			texOut = reBegSol.ReplaceAllString(texOut, texBegSol)
 			texOut = reBegAns.ReplaceAllString(texOut, texBegAns)
 		default: // should never be here
@@ -207,9 +186,9 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reSol = regexp.MustCompile(`(?msU)^\s*BEGIN{SOLUTION}.*^\s*END{SOLUTION}\s*\n`)
 		texOut = reSol.ReplaceAllString(texOut, "")
 		switch outFile.ext { // add headers for answer
-		case ".org":
-			texOut = reBegAns.ReplaceAllString(texOut, orgBegAns)
-		case ".tex", ".otex":
+		case ".md":
+			texOut = reBegAns.ReplaceAllString(texOut, mdBegAns)
+		case ".tex", ".mdtex":
 			texOut = reBegAns.ReplaceAllString(texOut, texBegAns)
 		default: // should never be here
 			fmt.Println("should not be here 04")
@@ -221,8 +200,8 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		var reAns = regexp.MustCompile(`(?msU)^\s*BEGIN{ANSWER}.*^\s*END{ANSWER}\s*\n`)
 		texOut = reAns.ReplaceAllString(texOut, "")
 		switch outFile.ext { // add headers for solution
-		case ".org":
-			texOut = reBegSol.ReplaceAllString(texOut, orgBegSol)
+		case ".md":
+			texOut = reBegSol.ReplaceAllString(texOut, mdBegSol)
 		case ".tex", ".otex":
 			texOut = reBegSol.ReplaceAllString(texOut, texBegSol)
 		default: // should never be here
@@ -233,8 +212,8 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		errorHeader = errorHeader + "ERROR: " + outFlag + " is not a valid outFlag parameter\n"
 	}
 	switch outFile.ext {
-	case ".org":
-	case ".tex", ".otex":
+	case ".md": // do nothing
+	case ".tex", ".mdtex":
 		// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
 		if len(svgList) > 0 {
 			fileRunInkscape = `#!/bin/bash
@@ -254,7 +233,9 @@ echo "export-latex; export-area-drawing;`
 				errorHeader = errorHeader + logOut
 			}
 		}
-		texOut = org2texFix(texOut)
+		// if outFile.ext == ".mdtex" {
+		// 	texOut = md2texFix(texOut)
+		// }
 	default: // should never be here
 		fmt.Println("should not be here 06")
 	}
@@ -268,7 +249,7 @@ func fixHilite(inString, fileExt string) (outString, logOut string) {
 	outString = ""
 	inStrSlice, logOut = findEqn(inString)
 	switch fileExt {
-	case ".tex", ".otex":
+	case ".tex", ".mdtex":
 		for i := range inStrSlice {
 			switch inStrSlice[i].eqn {
 			case 1, 2: // an equation phrase
@@ -277,7 +258,7 @@ func fixHilite(inString, fileExt string) (outString, logOut string) {
 				inStrSlice[i].partial = reTex.ReplaceAllString(inStrSlice[i].partial, "\\hilite{")
 			}
 		}
-	case ".org":
+	case ".md":
 		for i := range inStrSlice {
 			switch inStrSlice[i].eqn {
 			case 1, 2: // an equation phrase
@@ -406,13 +387,10 @@ func findEqn(inString string) (inStrSlice []strEqn, logOut string) {
 	return
 }
 
-func org2texFix(inString string) (outString string) {
+func md2texFix(inString string) (outString string) {
 	// for simpler syntax, replace "$$stuff_here$$" with \begin{equation}stuff_here\end{equation}"
 	var reReplaceDoubleDollar = regexp.MustCompile(`(?m)\$\$(?P<res1>.*)\$\$`)
 	outString = reReplaceDoubleDollar.ReplaceAllString(inString, "\\[$res1\\]")
-	// now need to make inserted comments latex proper...so change "# " to "% "
-	var reFindOrgComments = regexp.MustCompile(`(?m)^# `)
-	outString = reFindOrgComments.ReplaceAllString(outString, "% ")
 	var reFindSectionHead = regexp.MustCompile(`(?m)^\* (?P<res1>.*)`)
 	outString = reFindSectionHead.ReplaceAllString(outString, "\\section*{$res1}")
 	var reFindSubSectionHead = regexp.MustCompile(`(?m)^\*\* (?P<res1>.*)`)
@@ -750,7 +728,7 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 	}
 	fileNameAdd = "NEW"
 	switch outFile.ext {
-	case ".tex", ".otex":
+	case ".tex", ".otex", ".md":
 		switch fileExt {
 		case "png", "jpg", "jpeg", "pdf": // need to fix this
 			fullFileName = fileName + `.` + fileExt // need .extension here as final includegraphics command needs that info
