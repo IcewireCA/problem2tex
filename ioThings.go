@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -72,29 +73,28 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 	return
 }
 
-func checkRandom(randomStr string) (int, string) {
-	var random int
+func checkRandom(randomStr string) (string, string) {
+	var random string
 	var logOut string
-	var err error
 	switch randomStr {
 	case "false", "0":
-		random = 0
-	case "true", "-1":
-		random = -1
+		random = "0"
+	case "true", "-1": // if true set the seed to be a random number between 1000 and 9999
+		random = strconv.Itoa(psuedoRand(rand.Intn(9999)))
 	case "min":
-		random = -2
+		random = "-2"
 	case "max":
-		random = -3
+		random = "-3"
 	case "minMax":
-		random = -4
+		random = "-4"
 	default: //check that string is a positive integer
-		random, err = strconv.Atoi(randomStr)
+		number, err := strconv.Atoi(randomStr)
 		if err != nil {
-			random = 0
+			random = "0"
 			logOut = logOut + "random should be either \"false\", \"true\", \"min\", \"max\", \"minMax\", or a positive integer"
 		} else {
-			if random < 1 {
-				random = 0
+			if number < 1 {
+				random = "0"
 				logOut = logOut + "random should be a positive integer"
 			}
 		}

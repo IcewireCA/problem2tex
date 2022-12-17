@@ -65,13 +65,13 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	// fmtRun(): the values inside brackets when RUN() is used
 	// fmtRunEQ: when RUN= is used
 	var configParam = map[string]string{ // defaults shown below
-		"random":       randomStr, // can be false, true, any positive integer, min, max, minMax
-		"nomVar":       "1.3:5",   // variation from x/k to kx : number of choices
-		"fmtVal":       "U4",      // can be E, S, D, DL, or U (engineering, sci, decimal, dollar or SI Units)
-		"fmtRun()":     "E4",      // can be E, S, D, DL (engineering, sci, decimal, dollar)
-		"fmtRunEQ":     "U4",      // can be E, S, D, DL, or U (engineering, sci, decimal, dollar or SI Units)
-		"verbose":      "false",   // can be true or false
-		"defaultUnits": "",        // place defaultUnits here [[iI:A][vV:V][rR:\Omega]]  etc
+		"random":       "0",     // can be -4, -3, -2, -1, 0, or positive integer from 1000 to 9999
+		"nomVar":       "1.3:5", // variation from x/k to kx : number of choices
+		"fmtVal":       "U4",    // can be E, S, D, DL, or U (engineering, sci, decimal, dollar or SI Units)
+		"fmtRun()":     "E4",    // can be E, S, D, DL (engineering, sci, decimal, dollar)
+		"fmtRunEQ":     "U4",    // can be E, S, D, DL, or U (engineering, sci, decimal, dollar or SI Units)
+		"verbose":      "false", // can be true or false
+		"defaultUnits": "",      // place defaultUnits here [[iI:A][vV:V][rR:\Omega]]  etc
 		// if first letter of a variable is i or I then default units is A
 	}
 	// when DL (dollar) is used, the symbol "$" is NOT automatically added and can be added by user.
@@ -90,12 +90,21 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	// 	fmt.Println(configParam[key])
 	// }
 	verbatim = false
-	headerFirstLine := "Created with problem2tex: version = " + version
+	configParam["random"], logOut = checkRandom(randomStr)
+	if logOut != "" {
+		errorHeader = logOutError(logOut, -1)
+	}
+	switch randomStr {
+	case "true", "-1":
+		randomStr = configParam["random"]
+	default: // do nothing
+	}
+	headerTop := "Created with problem2tex: version = " + version + "\nrandom=" + randomStr
 	switch outFile.ext {
 	case ".tex":
-		errorHeader = "% " + headerFirstLine + "\n\n" // tex comment
+		errorHeader = "% " + headerTop + "\n\n" // tex comment
 	case ".md":
-		errorHeader = "<!---\n" + headerFirstLine + "\n--->\n" // markdown comment
+		errorHeader = "<!---\n" + headerTop + "\n--->\n" // markdown comment
 	default: // should never be here
 		fmt.Println("should not be here 01")
 	}
@@ -1057,20 +1066,17 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			}
 			outVerbose = outVerbose + "] units=" + prefix + units + "   symbol=" + tmp2.latex + "\\end{verbatim}"
 		}
-		random, logOut = checkRandom(configParam["random"])
-		switch random {
-		case 0: // if random == 0, then num = 0 so first element is chosen
+		switch configParam["random"] {
+		case "0": // if random == 0, then num = 0 so first element is chosen
 			num = 0
-		case -1: // if random == -1, then  num is a random in between 0 and values-1 (based on machine time so pretty much really random)
-			num = rand.Intn(len(values))
-		case -2, -3, -4: // min, max, minMax case
+		case "-2", "-3", "-4": // min, max, minMax case
 			sort.Float64s(values) // sort values - lowest at 0 highest at len(values)-1
-			switch random {
-			case -2:
+			switch configParam["random"] {
+			case "-2":
 				num = 0
-			case -3:
+			case "-3":
 				num = len(values) - 1
-			case -4: // choose either min or max value
+			case "-4": // choose either min or max value
 				if rand.Intn(2) == 0 {
 					num = 0
 				} else {
@@ -1080,6 +1086,7 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 				fmt.Println("should not be here 11")
 			}
 		default: // if here, random is a seed so use it to get the next random
+			random, _ = strconv.Atoi(configParam["random"])
 			random = psuedoRand(random) // update random based on the last random value (treat last one as seed)
 			num = randInt(len(values), random)
 			configParam["random"] = strconv.Itoa(random)
@@ -1525,16 +1532,16 @@ func randInt(N, random int) int {
 func psuedoRand(x0 int) int {
 	// A linear congruential generator (LCG) based on
 	// https://en.wikipedia.org/wiki/Linear_congruential_generator
-	// it returns an psuedorandom integer between 100000 and 999999
+	// it returns an psuedorandom integer between 1000 and 9999
 	var a, c, m, x1 int
 	if x0 < 0 { // correct x0 if it happens to be less than 0
 		x0 = -1 * x0
 	}
-	a = 707106 // 1e6/sqrt(2) and truncated
+	a = 7071 // 1e4/sqrt(2) and truncated
 	c = 1
-	m = 999983 // largest prime number less than 1e6
+	m = 9973 // largest prime number less than 1e6
 	x1 = 0
-	for x1 < 100000 { // loop until find a new random number larger than 100000
+	for x1 < 1000 { // loop until find a new random number larger than 1000
 		x1 = (a*x0 + c) % m
 		x0 = x1
 	}
