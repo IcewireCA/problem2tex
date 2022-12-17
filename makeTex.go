@@ -43,16 +43,30 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 `
 	mdBegSol := `
 
+<div class = "solution">
+
 -----
 
 # Solution
 
 `
 	mdBegAns := `
-	
+
+<div class = "answer">
+
 -----
 
 # Solution
+	
+`
+	mdEndSol := `
+
+<div>
+
+`
+	mdEndAns := `
+
+<div>
 	
 `
 
@@ -101,9 +115,10 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	}
 	headerTop := "Created with problem2tex: version = " + version + "\nrandom=" + randomStr
 	switch outFile.ext {
-	case ".tex":
+	case ".tex", ".mdtex":
 		errorHeader = "% " + headerTop + "\n\n" // tex comment
 	case ".md":
+		fileWriteString(randomStr, filepath.Join(outFile.path, outFile.name+"_random.txt"))
 		errorHeader = "<!---\n" + headerTop + "\n--->\n" // markdown comment
 	default: // should never be here
 		fmt.Println("should not be here 01")
@@ -181,14 +196,16 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		case ".md":
 			texOut = reBegSol.ReplaceAllString(texOut, mdBegSol)
 			texOut = reBegAns.ReplaceAllString(texOut, mdBegAns)
+			texOut = reEndSol.ReplaceAllString(texOut, mdEndSol)
+			texOut = reEndAns.ReplaceAllString(texOut, mdEndAns)
 		case ".tex", ".mdtex":
 			texOut = reBegSol.ReplaceAllString(texOut, texBegSol)
 			texOut = reBegAns.ReplaceAllString(texOut, texBegAns)
+			texOut = reEndSol.ReplaceAllString(texOut, "")
+			texOut = reEndAns.ReplaceAllString(texOut, "")
 		default: // should never be here
 			fmt.Println("should not be here 03")
 		}
-		texOut = reEndSol.ReplaceAllString(texOut, "")
-		texOut = reEndAns.ReplaceAllString(texOut, "")
 	case "flagAnswer": // get rid of solution
 		var reBegAns = regexp.MustCompile(`(?mU)^\s*BEGIN{ANSWER}`)
 		var reEndAns = regexp.MustCompile(`(?mU)^\s*END{ANSWER}`)
