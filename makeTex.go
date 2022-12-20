@@ -113,11 +113,12 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		randomStr = configParam["random"]
 	default: // do nothing
 	}
-	headerTop := "Created with problem2tex: version = " + version + "\nrandom=" + randomStr
 	switch outFile.ext {
 	case ".tex", ".mdtex":
+		headerTop := "Created with problem2tex: version = " + version + "\n% random=" + randomStr
 		errorHeader = "% " + headerTop + "\n\n" // tex comment
 	case ".md":
+		headerTop := "Created with problem2tex: version = " + version + "\nrandom=" + randomStr
 		fileWriteString(randomStr, filepath.Join(outFile.path, outFile.name+"_random.txt"))
 		errorHeader = "<!---\n" + headerTop + "\n--->\n" // markdown comment
 	default: // should never be here
@@ -754,7 +755,7 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 	}
 	fileNameAdd = "NEW"
 	switch outFile.ext {
-	case ".tex", ".otex", ".md":
+	case ".tex", ".mdtex":
 		switch fileExt {
 		case "png", "jpg", "jpeg", "pdf": // need to fix this
 			fullFileName = fileName + `.` + fileExt // need .extension here as final includegraphics command needs that info
@@ -815,7 +816,7 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 		default:
 			logOut = "File extension not recognized: " + fileExt
 		}
-	case ".org":
+	case ".md":
 		switch fileExt {
 		case "png", "jpg":
 			inFileName = filepath.Join(inFile.path, fileName+"."+fileExt)
