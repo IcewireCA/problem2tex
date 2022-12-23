@@ -35,6 +35,9 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	var svgList []string // list of all svg files that need inkscape to make pdf and pdf_tex files
 	// done as a list so that inkscape only needs to be called once using inkscape --shell (makes it much faster than calling inkscape multiple times)
 
+	mdHead := `<div id="content" class="content">
+`
+	mdEnd := `</div>`
 	texBegSol := `
 \beginSolution
 `
@@ -121,6 +124,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		headerTop := "Created with problem2tex: version = " + version + "\nrandom=" + randomStr
 		fileWriteString(randomStr, filepath.Join(outFile.path, outFile.name+"_random.txt"))
 		errorHeader = "<!---\n" + headerTop + "\n--->\n" // markdown comment
+		errorHeader = errorHeader + mdHead
 	default: // should never be here
 		fmt.Println("should not be here 01")
 	}
@@ -240,6 +244,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	}
 	switch outFile.ext {
 	case ".md": // do nothing
+		texOut = texOut + mdEnd
 	case ".tex", ".mdtex":
 		// Now we need to create pdf and pdf_tex files for svg files if svgList has elements in it
 		if len(svgList) > 0 {
@@ -846,7 +851,10 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 			// resize and trim svg
 			inFileStr = svgResize(inFileStr, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
 			fileWriteString(inFileStr, filepath.Join(outFile.path, svgFileName))
-			replace = `#+INCLUDE: "./` + svgFileName + `" export html`
+			replace = `
+<div class=svgImage>
+` + inFileStr + `</div>
+`
 		case "svg":
 			inFileStr, logOut = fileReadString(filepath.Join(inFile.path, fileName+".svg"))
 			if logOut != "" {
@@ -859,7 +867,10 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 			// resize and trim svg
 			inFileStr = svgResize(inFileStr, options["trimTop"], options["trimBottom"], options["trimLeft"], options["trimRight"], options["scale"])
 			fileWriteString(inFileStr, filepath.Join(outFile.path, fileName+fileNameAdd+".svg"))
-			replace = `#+INCLUDE: "./` + fileName + fileNameAdd + `.svg" export html`
+			replace = `
+<div class=svgImage>
+` + inFileStr + `</div>
+`
 		default:
 			logOut = "File extension not recognized: " + fileExt
 		}

@@ -10,6 +10,7 @@ import (
 func svgResize(svgIn string, trimTopStr, trimBottomStr, trimLeftStr, trimRightStr, scaleStr string) (svgOut string) {
 	var widthViewPort, heightViewPort, xmin, ymin, widthViewBox, heightViewBox float64
 	var sizeOfLetter float64
+	var reRemoveEmptyLines = regexp.MustCompile(`(?m)^\s*$\n`)
 	sizeOfLetter = 10.0 // used so that trimTop = 1 is more than just one pixel (in this case 10)
 	scale := str2float(scaleStr)
 	trimTop := sizeOfLetter * str2float(trimTopStr)
@@ -26,6 +27,8 @@ func svgResize(svgIn string, trimTopStr, trimBottomStr, trimLeftStr, trimRightSt
 	widthViewPort = widthViewPort - (trimLeft+trimRight)*(widthViewPort/widthViewBox)
 	widthViewBox = widthViewBox - trimLeft - trimRight
 	svgOut = putSvgInfo(svgIn, widthViewPort, heightViewPort, xmin, ymin, widthViewBox, heightViewBox)
+	svgOut = reRemoveEmptyLines.ReplaceAllString(svgOut, "") // remove all empty lines
+	// empty lines mess up when html block in included into markdown
 	return
 }
 
