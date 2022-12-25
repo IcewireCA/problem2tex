@@ -98,6 +98,7 @@ func checkRandom(randomStr string) (string, string) {
 				logOut = logOut + "random should be a positive integer"
 			}
 		}
+		random = randomStr
 	}
 	return random, logOut
 }
