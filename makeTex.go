@@ -27,7 +27,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	var inLines []string
 	var inLine string
 	var verbatim bool
-	var logOut, errorHeader string
+	var logOut, errorHeader, newRandomStr string
 	var texOut, fileRunInkscape string
 	var reRemoveEndStuff = regexp.MustCompile(`(?m)\s*$`) // to delete blank space \r \n tabs etc at end of line
 	var reMdVerbatim = regexp.MustCompile(`(?m)^\x60\x60\x60`)
@@ -82,7 +82,8 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	// fmtRun(): the values inside brackets when RUN() is used
 	// fmtRunEQ: when RUN= is used
 	var configParam = map[string]string{ // defaults shown below
-		"random":       "0",     // can be -4, -3, -2, -1, 0, or positive integer from 1000 to 9999
+		"random": "0", // can be default, random, min, max, minMax, or positive integer from 1000 to 9999
+		// In addition, can use 0 for default and -1 for random
 		"nomVar":       "1.3:5", // variation from x/k to kx : number of choices
 		"fmtVal":       "U4",    // can be E, S, D, DL, or U (engineering, sci, decimal, dollar or SI Units)
 		"fmtRun()":     "E4",    // can be E, S, D, DL (engineering, sci, decimal, dollar)
@@ -112,19 +113,22 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		errorHeader = logOutError(logOut, -1)
 	}
 	switch randomStr {
-	case "true", "-1":
-		randomStr = configParam["random"]
+	case "random", "-1":
+		newRandomStr = configParam["random"]
 	default: // do nothing
 	}
 	switch outFile.ext {
 	case ".tex", ".mdtex":
-		headerTop := "Created with problem2tex: version = " + version + "\n% random=" + randomStr
+		headerTop := "Created with problem2tex: version = " + version + "\n% random=" + newRandomStr
 		errorHeader = "% " + headerTop + "\n\n" // tex comment
 	case ".md":
-		headerTop := "Created with problem2tex: version = " + version + "\nrandom=" + randomStr
-		fileWriteString(randomStr, filepath.Join(outFile.path, outFile.name+"_random.txt"))
+		headerTop := "Created with problem2tex: version = " + version + "\nrandom=" + newRandomStr
 		errorHeader = "<!---\n" + headerTop + "\n--->\n" // markdown comment
 		errorHeader = errorHeader + mdHead
+		// write out a simple file that only has newRandomStr in it.  This is used to show the
+		// random seed value if problem2tex was called with "random" since it checkRandom will
+		// create a random seed and it is good to know what that see is
+		fileWriteString(newRandomStr, filepath.Join(outFile.path, outFile.name+"_random.txt"))
 	default: // should never be here
 		fmt.Println("should not be here 01")
 	}
@@ -1101,11 +1105,11 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 		case "-2", "-3", "-4": // min, max, minMax case
 			sort.Float64s(values) // sort values - lowest at 0 highest at len(values)-1
 			switch configParam["random"] {
-			case "-2":
+			case "min":
 				num = 0
-			case "-3":
+			case "max":
 				num = len(values) - 1
-			case "-4": // choose either min or max value
+			case "minMax": // choose either min or max value
 				if rand.Intn(2) == 0 {
 					num = 0
 				} else {

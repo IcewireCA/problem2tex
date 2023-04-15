@@ -77,24 +77,17 @@ func checkRandom(randomStr string) (string, string) {
 	var random string
 	var logOut string
 	switch randomStr {
-	case "false", "0":
-		random = "0"
-	case "true", "-1": // if true set the seed to be a random number between 1000 and 9999
+	case "random", "-1": // if true set the seed to be a random number between 1000 and 9999
 		random = strconv.Itoa(psuedoRand(rand.Intn(9999)))
-	case "min":
-		random = "-2"
-	case "max":
-		random = "-3"
-	case "minMax":
-		random = "-4"
+	case "min", "max", "minMax", "default", "0":
 	default: //check that string is a positive integer
 		number, err := strconv.Atoi(randomStr)
 		if err != nil {
 			random = "0"
-			logOut = logOut + "random should be either \"false\", \"true\", \"min\", \"max\", \"minMax\", or a positive integer"
+			logOut = logOut + "random should be either \"default\", \"random\", \"min\", \"max\", \"minMax\", or a positive integer"
 		} else {
 			if number < 1 {
-				random = "0"
+				random = "default"
 				logOut = logOut + "random should be a positive integer"
 			}
 		}
