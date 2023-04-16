@@ -122,13 +122,11 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 		headerTop := "Created with problem2tex: version = " + version + "\n% random=" + newRandomStr
 		errorHeader = "% " + headerTop + "\n\n" // tex comment
 	case ".md":
+		// Put in header the random seed that was used if random=random was chosen so that
+		// the same problem can be found again
 		headerTop := "Created with problem2tex: version = " + version + "\nrandom=" + newRandomStr
 		errorHeader = "<!---\n" + headerTop + "\n--->\n" // markdown comment
 		errorHeader = errorHeader + mdHead
-		// write out a simple file that only has newRandomStr in it.  This is used to show the
-		// random seed value if problem2tex was called with "random" since it checkRandom will
-		// create a random seed and it is good to know what that see is
-		fileWriteString(newRandomStr, filepath.Join(outFile.path, outFile.name+"_random.txt"))
 	default: // should never be here
 		fmt.Println("should not be here 01")
 	}
