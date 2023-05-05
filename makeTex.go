@@ -108,15 +108,7 @@ func makeTex(problemInput, randomStr, outFlag, version string, inFile, outFile f
 	// 	fmt.Println(configParam[key])
 	// }
 	verbatim = false
-	configParam["random"], logOut = checkRandom(randomStr)
-	if logOut != "" {
-		errorHeader = logOutError(logOut, -1)
-	}
-	switch randomStr {
-	case "random", "-1":
-		newRandomStr = configParam["random"]
-	default: // do nothing
-	}
+	configParam["random"] = randomStr
 	switch outFile.ext {
 	case ".tex", ".mdtex":
 		headerTop := "Created with problem2tex: version = " + version + "\n% random=" + newRandomStr
@@ -1098,9 +1090,9 @@ func runParamFunc(statement string, varAll map[string]varSingle, configParam map
 			outVerbose = outVerbose + "] units=" + prefix + units + "   symbol=" + tmp2.latex + "\\end{verbatim}"
 		}
 		switch configParam["random"] {
-		case "0": // if random == 0, then num = 0 so first element is chosen
+		case "default": // if random == 0, then num = 0 so first element is chosen
 			num = 0
-		case "-2", "-3", "-4": // min, max, minMax case
+		case "min", "max", "minMax": // min, max, minMax case
 			sort.Float64s(values) // sort values - lowest at 0 highest at len(values)-1
 			switch configParam["random"] {
 			case "min":

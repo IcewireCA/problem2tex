@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"golang.org/x/text/encoding/unicode"
 )
@@ -20,8 +21,8 @@ import (
 func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr, outFlag, logOut string) {
 	var inFileStr string
 
-	outFilePtr := flag.String("export", "", "outFile - REQUIRED FLAG\nFile extension should be .tex .md or .org")
-	randomPtr := flag.String("random", "false", "Choices are false, true, min, max, minMax, or positive integer")
+	outFilePtr := flag.String("export", "", "outFile - REQUIRED FLAG\nFile extension should be .tex .md or .mdtex")
+	randomPtr := flag.String("params", "false", "Choices: default, random, min, max, minMax, or positive integer")
 	// determines whether parameters are default or random chosen from a set
 	outFlagPtr := flag.String("outFlag", "flagSolAns", "Choices are flagQuestion, flagSolAns, flagSolution, flagAnswer")
 	// determines what is sent back (just question, solution/answer, solution, answer) question is always sent back
@@ -55,7 +56,7 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 	if logOut != "" {
 		return
 	}
-	randomStr = *randomPtr
+	randomStr = strings.TrimSpace(*randomPtr)
 	_, logOut = checkRandom(randomStr)
 	if logOut != "" {
 		return
@@ -77,13 +78,14 @@ func checkRandom(randomStr string) (string, string) {
 	var random string
 	var logOut string
 	switch randomStr {
-	case "random", "-1": // if true set the seed to be a random number between 1000 and 9999
+	case "random": // if true set the seed to be a random number between 1000 and 9999
 		random = strconv.Itoa(psuedoRand(rand.Intn(9999)))
-	case "min", "max", "minMax", "default", "0":
+	case "min", "max", "minMax", "default":
+		random = randomStr
 	default: //check that string is a positive integer
 		number, err := strconv.Atoi(randomStr)
 		if err != nil {
-			random = "0"
+			random = "default"
 			logOut = logOut + "random should be either \"default\", \"random\", \"min\", \"max\", \"minMax\", or a positive integer"
 		} else {
 			if number < 1 {
