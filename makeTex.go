@@ -1295,6 +1295,8 @@ func value2Str(x float64, units, formatStr string) (outString string) {
 			}
 		} else {
 			outString = significand + " \\mathrm{" + prefix + " " + units + "}"
+			var re = regexp.MustCompile(`(?m)\\Omega`)
+			outString = re.ReplaceAllString(outString, "}\\Omega{")
 		}
 	default:
 		outString = "format not recognized: " + formatType
