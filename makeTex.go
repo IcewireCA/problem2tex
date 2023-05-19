@@ -706,7 +706,7 @@ func runInclude(inCmd string, inFile, outFile fileInfo, varAll map[string]varSin
 		"trimBottom": "0",   //  trim bottom of svg
 		"trimLeft":   "0",   // trim left of svg
 		"trimRight":  "0",   // trim right of svg
-		"scale":      "1.0", //  Determines size of figure (in px) Only currently works for png, jpg.
+		"scale":      "1.0", //  Determines size of figure.
 	}
 	var allOptions []option
 	var replace, optionStr, logOut string

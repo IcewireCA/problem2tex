@@ -22,7 +22,7 @@ func commandFlags(version string) (inFile fileInfo, outFile fileInfo, randomStr,
 	var inFileStr string
 
 	outFilePtr := flag.String("export", "", "outFile - REQUIRED FLAG\nFile extension should be .tex .md or .mdtex")
-	randomPtr := flag.String("params", "false", "Choices: default, random, min, max, minMax, or positive integer")
+	randomPtr := flag.String("param", "false", "Choices: default, random, min, max, minMax, or positive integer")
 	// determines whether parameters are default or random chosen from a set
 	outFlagPtr := flag.String("outFlag", "flagSolAns", "Choices are flagQuestion, flagSolAns, flagSolution, flagAnswer")
 	// determines what is sent back (just question, solution/answer, solution, answer) question is always sent back
